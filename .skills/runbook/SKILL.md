@@ -1,159 +1,386 @@
 ---
 name: runbook
-description: Use when the user asks for a runbook, 执行手册, rollout playbook, SOP, production-grade delivery plan, or wants a full plan-and-execute workflow with fresh reconnaissance, ambiguity gating, evidence capture, and a required solo/collaboration choice before execution.
+description: >-
+  严格分阶段 runbook 的规划主 skill。适用于用户给出了草稿 runbook、零散步骤、
+  运维需求或目标状态，需要主 agent 消除二义性、降低执行风险，并最终产出一份可供
+  生产环境执行的 authority runbook（操作手册）的场景。这个 skill 只负责规划、
+  澄清、结构化和定稿，不负责执行态落地。
 ---
 
-# Runbook
+# 运行手册规划主 skill
 
-Use this skill as the primary runbook surface. Planning lives here. Execution is delegated to `../runbook-executor/SKILL.md` and acceptance is delegated to `../runbook-acceptor/SKILL.md`.
+当用户给了 runbook 草稿、现场目标、迁移/变更需求，或者要求你整理出一份生产可执行操作手册时，使用这个 skill。
 
-Before generating the plan, load:
-- `references/runbook-template.md` as the only output scaffold and filling rulebook
+本 skill 的唯一目标是：
 
-Do not generate an ad-hoc structure when the template is available.
+1. 消除用户给出的 runbook / 需求里的二义性
+2. 降低执行风险
+3. 产出一份可供生产环境执行的 authority runbook
 
-## Planning Gates
+它不是执行态 skill。不要在这个 skill 里直接执行 runbook 编号项，也不要把自己漂移成 execution / acceptance lane。
 
-1. Perform fresh reconnaissance first.
-Treat live inspection as the source of truth. Inspect the current repo, runtime, service state, config, endpoints, logs, or environment directly. Existing docs or prior conversation may be used only as historical hints, never as current-state truth.
+## Scope
 
-2. Require ambiguity and risk below `10%`.
-Any uncertainty, conflicting evidence, or more than one viable implementation path counts as ambiguity. If ambiguity or risk exceeds `10%`, stop and ask the user before finalizing the plan.
+本 skill 只负责：
 
-3. Require at least five user interviews.
-An approved runbook must contain at least five user Q/A pairs in `## 访谈记录`. If fewer than five interviews exist, planning is incomplete and must continue.
+- 读懂用户给出的 runbook、草稿、目标或约束
+- 识别 ambiguity / risk / 缺失前提
+- 通过提问或只读侦察补足关键事实
+- 冻结唯一执行路径
+- 明确非目标、停止条件、回滚边界和验收路径
+- 产出或修订 authority runbook
 
-4. Ask questions in the required format.
-Avoid open-ended questions by default. Use exactly one question followed by numbered options and reasons. Every question must offer at least two concrete alternatives for comparison, and each option must include its reason. When one option is clearly better, put it first and make that recommendation explicit in the reason. Only when the answer space truly cannot be enumerated may you add `3. 其他`, but even then you must still present at least two concrete options first.
+本 skill 不负责：
 
-```text
-问题：<需要用户决定的点>
-1. <选项标题>
-理由：<为什么选这个>
-2. <选项标题>
-理由：<为什么选这个>
-3. 其他
-理由：<仅在必须开放时才提供，并说明边界>
-```
+- 直接执行 `#### 执行`
+- 直接执行 `#### 验收`
+- 在现场变更系统状态
+- 把规划问题伪装成执行项
+- 在 authority 未收敛时抢跑实施
 
-5. Draw both current and target with dot.
-`## 现状` and `## 目标` must each include a `dot` code block. The current-state diagram must be derived from fresh reconnaissance done in this turn.
-When drawing runbook `dot` graphs, target the dark-mode handbook renderer: keep the background explicitly transparent via graph attributes, prefer rounded rectangles, and use dark-safe colors by lowering brightness first rather than washing everything into gray. Keep some color identity, but avoid bright neon fills. Apply the same color to same-kind nodes so category groupings remain visually obvious.
+## Canary 路由钩子
 
-6. Require the runbook validator to pass before execution admission.
-Run `python scripts/validate_runbook.py <runbook.md>` against the final planning artifact. Do not ask for execution handoff and do not enter execution mode unless the validator exits `0`.
+如果当前 authority / runbook 的目标明确落在 canary cluster、canary 宿主机、canary VM 集群，或需要继承 `dev3 -> canary` 的既有操作边界：
 
-## Planning Workflow
+- 默认同时加载 `canary-env`（如果当前工作区已安装）
+- 让规划态直接继承既有的 `dev3` 交互式入口、Git 同步优先级、非粘贴传输面，以及 canary automation / Ansible 工作流
+- 不要在主 `runbook` skill 内重复发明一套 canary 入口、上传、同步或 rollout 规则
 
-1. Reconstruct the live current state.
-Collect direct evidence first. Quote commands, live responses, file paths, process status, or code locations that prove the current state.
+如果任务不是 canary 相关，就不要为了“统一格式”而额外加载 `canary-env`。
 
-2. Run the interview loop.
-When intent, scope, ownership, cutover choice, rollback choice, acceptance bar, fallback path, or operational boundary is unclear, ask the user. Do not compress the user's answer into only a numeric choice in the archive; record the actual content in `## 访谈记录`. Keep asking until the runbook contains at least five user Q/A pairs.
-Format `## 访谈记录` as grouped三级标题: one `### 访谈 N - <topic>` per interview, then put `Q:` and `A:` on their own lines.
-In each `A:`, keep only the concrete answer content. Do not write wrapper text such as `用户选择 1` or `用户选择 2` before the real answer.
+如果用户已经在问“按这份 runbook 开始执行”，本 skill 也仍然先完成规划态收敛；只有 authority runbook 达到可执行标准后，才允许切入执行态 surface。
 
-3. Build the runbook against the template.
-Load `references/runbook-template.md`, keep its section order, and fill every required section, including `背景与现状`, `目标与非目标`, `风险与收益`, `红线行为`, `访谈记录`, `思维脑图`, `执行计划`, `执行记录`, `最终验收`, and `参考文献`.
-In `## 参考文献`, use Markdown links only; keep raw commands in the planning sections rather than the reference list.
-Do not emit a leading `Rules` block or any template meta-instructions in the final runbook body.
-Treat runbook headings as a whitelist, not a pattern playground: only the approved `##` titles, approved fixed `###` titles, step titles `### 步骤 N - ...`, and approved `#### 执行/验收` forms may appear.
-`## 思维脑图` must be a `dot` graph with one brain root, at least two first-level categories, and at least two second-level conclusions under each category.
-If the current interview record cannot support that structure honestly, planning is incomplete and must continue interviewing before execution admission.
-For all runbook `dot` graphs, use consistent styling defaults such as explicitly transparent graph backgrounds, rounded rectangles, dark-safe mid-saturation colors with restrained brightness, and same-color treatment for same-kind nodes.
+## 执行态切换
 
-4. Make the steps executable and acceptable.
-In `## 执行计划`, each step must have:
-- a stable step title
-- `#### 执行` with exact commands or exact actions
-- `#### 验收` with exact validation commands or checks
+当 authority runbook 已经达到可执行标准后：
 
-5. Pre-allocate the execution record.
-In `## 执行记录`, create the same step titles in the same order. Leave placeholders when execution has not happened yet.
-Before execution starts, keep placeholder subheadings unsigned:
-- `#### 执行`
-- `#### 验收`
-When real evidence is archived, replace them with signed subheadings:
-- `#### 执行 @<name> YYYY-MM-DD HH:mm CST`
-- `#### 验收 @<name> YYYY-MM-DD HH:mm CST`
+- 主 rollout 的默认动作不是直接结束，也不是替用户静默选择执行编排，而是先向用户确认：
+  - 这次进入 `solo` 执行
+  - 还是进入 `team` 执行
+- 身份约束固定为：
+  - `solo`：主 rollout 统一使用 `吕布` 身份
+  - `team`：主 rollout 与全部子代理统一使用三国阵营命名，主 rollout 必须是该阵营势力领袖
+- 这一步确认必须在主回复里显式提出，不能隐式假设。
+- 用户一旦给出 `solo` / `team` 选择，主 rollout 就立即切入对应执行态，不要停留在规划态反复总结。
+- 如果用户明确确认开始 `solo` 执行，就同时加载：
+  - [runbook-recon](../runbook-recon/SKILL.md)
+  - [runbook-executor](../runbook-executor/SKILL.md)
+  - [runbook-acceptor](../runbook-acceptor/SKILL.md)
+  - 三个 skill 仍然各守边界，分别独立负责侦察 / 执行 / 验收
+- 如果用户明确确认进入 team 执行，就加载 [runbook-team](../runbook-team/SKILL.md)
+- 如果用户没有回复 `solo` / `team`，主 rollout 保持在规划态，不得擅自进入执行态。
+- 一旦执行态中的任一编号项出现下面任一情况：
+  - `#### 执行` 实际结果不符合预期
+  - `#### 验收` 未通过
+  - 命中停止条件
+  - 出现 authority 之外的新 blocker / 新事实
+  主 rollout 必须立刻退出当前 execution / acceptance lane，回到规划态。
+- 回到规划态后的默认顺序固定为：
+  1. 向用户提出最小但必要的规划问题
+  2. 按需启动 `$runbook-recon` 做只读补证
+  3. 用新问答和新证据修订 authority runbook
+  4. 重新把 `ambiguity` / `risk` 压回可执行阈值
+  5. 再次向用户确认进入 `solo` 还是 `team`
+  6. 收到新的执行确认后，才允许重新进入执行态
+- 不要在 execution / acceptance lane 内直接临场修法、偷偷换路径、或带着未收敛的新事实继续推进。
 
-6. Run the admission validator.
-After the runbook body is complete, run:
+主 `runbook` skill 自己不承载执行态细节。
 
-```text
+## 对用户回复的格式要求
+
+主 rollout 的回复格式由工作区级 `.codex/USER.md` 统一管理。
+
+- 不要在 runbook skill 内重复定义主回复字段或其渲染形状。
+- 当前界面该用 CLI 纯文本对齐还是 VS Code Markdown 表格，以 `.codex/USER.md` 和对应 reply-format 模板为准。
+- runbook skill 只要求你把当前目标、未决 ambiguity、和最高风险讲清楚；不要再在这里维护一套并行的格式规范。
+
+## 规划原则
+
+- 先判断用户给的是：
+  - 已接近 authority 的 runbook 草稿
+  - 只有目标和约束的需求描述
+  - 已有 authority，但其中存在过期、冲突或多路径并列
+- 规划顺序是硬约束：
+  1. 先完整读懂当前 runbook / 需求 / 现场证据
+  2. 再补真实用户问答，必要时补只读侦察
+  3. 问答和侦察把关键边界收敛后，才允许重构或大改 runbook 正文
+  4. `## 思维脑图` 必须最后基于真实访谈记录与侦察证据落图，不能先画占位版
+- 规划的首要任务不是“补字数”，而是去掉会影响后续执行形状的未决项。
+- 只要还存在 materially different 的候选路线，就不要把 runbook 写成已拍板。
+- 不要再写 `## 当前已决策` 这种作者口吻的小结节；规划态收敛必须改写为 `## 访谈记录`，把 planning 阶段向用户提出的问题、用户回答以及收敛影响显式留档。
+- 对会改变实现、验收、回滚或影响面的具体选择，必须显式收敛：
+  - 版本 / 发行版
+  - 镜像 / 模板来源
+  - 网络 / bridge / underlay 机制
+  - CNI / LB / storage 路线
+  - 路径、接口名、模板来源
+  - 执行入口主机、跳板、控制节点
+- 不要把未决选择伪装成编号项，例如：
+  - “确认 X”
+  - “核定 X”
+  - “统一 X”
+- 正确做法是：按 `.codex/USER.md` 约定的主回复格式明确写出当前不确定性，再给出 `2-4` 个具体选项，并在拍板前把 downstream item 标成 blocked / gate。
+- 如果执行态带回了新的 blocker / 新事实，先把它们当成新的规划输入，再重新应用这套提问规则；不要把执行遇阻伪装成“继续执行的一部分”。
+
+## 10% Gate
+
+在真正定稿 authority runbook 之前，主 rollout 必须把这两项都降到 **10% 或以下**：
+
+- `ambiguity`
+- `risk`
+
+只要任一项高于 10%，或者存在任何二义性、风险、或不确定内容，就不要宣称 runbook 已可执行。
+
+此时主 rollout 只能先做下面两件事之一：
+
+1. 问用户一个简洁规划问题
+2. 启动 `$runbook-recon` 做只读补证
+
+先完成这两件事之一，再根据得到的新信息继续修订 authority 草稿。
+
+在这个 gate 没解除前：
+
+- 不要先重构 runbook 主体结构
+- 不要先补写 `## 访谈记录`
+- 不要先补画 `## 思维脑图`
+- 不要先把多路径正文改写成看似已经拍板的唯一路径
+
+## 何时必须提问
+
+出现下面任一情况时，必须先问用户，而不是替用户静默拍板：
+
+- 有多个 viable 方案，且会改变后续执行或回滚形状
+- 非目标边界不清楚
+- 成功定义或验收路径不清楚
+- 回滚边界会影响生产风险
+- 用户给的 runbook 与最新现场事实冲突
+- 用户给的 runbook 同时保留多个 materially different 路线
+
+提问规则：
+
+- 每轮只问一个问题
+- 只围绕一个维度：
+  - `goal`
+  - `non-goal`
+  - `risk`
+  - `rollback`
+  - `acceptance`
+  - `path selection`
+- 问题里必须带上：
+  - 当前目标
+  - 当前 ambiguity
+  - 当前最高风险
+  - 一个明确问题
+  - 如有必要，给出 `2-4` 个具体选项与取舍
+- authority 定稿前，必须累计至少 `5` 条真实的用户访谈记录；如果当前 runbook 没有 `## 访谈记录`，或记录数少于 `5`，主 rollout 必须继续补问，不能跳过。
+- 如果发现真实用户问答不足，默认动作不是先改文档，而是继续提问；只有当这轮补问已经把关键边界收敛下来，才允许开始重构正文。
+
+## 何时必须侦察
+
+只要规划依赖这些信息，就必须用 `$runbook-recon`，不要把主 skill 漂移成上机侦察：
+
+- SSH / 上机只读检查
+- 网络或网页检索
+- 来自远端系统的只读证据
+- 带主机边界的事实收集
+- 会显著膨胀主上下文的环境状态检查
+
+当事实按主机或环境边界天然拆分时，应优先按边界拆 reconnaissance，而不是把所有探查都塞进主线程。
+
+如果 `## 思维脑图`、`### 现状`、风险判断或路径选择需要依赖现场事实，先补 reconnaissance，再落这些章节；不要凭旧印象、旧 runbook 或推测先写图、再补证据。
+
+## Authority Runbook 模板
+
+authority runbook 的标准大纲放在独立文件里：
+
+- [references/authority-runbook-template.md](./references/authority-runbook-template.md)
+
+需要新建 authority runbook、检查结构是否齐全、或对照模板补章节时，再读取这个文件。
+
+authority 定稿前还必须通过结构校验脚本：
+
+- [scripts/validate_runbook.py](./scripts/validate_runbook.py)
+
+默认执行方式：
+
+```bash
 python scripts/validate_runbook.py <runbook.md>
 ```
 
-If the validator fails, stay in planning mode, read the reported `code / line / content` diagnostics, fix the runbook, and rerun it until it passes.
+如果脚本返回非 `0`，说明 authority 还没达到可执行阈值；先修文档，再继续规划或再申请进入执行态。
 
-7. Own every replanning loop.
-If execution or acceptance finds that the live scene does not match the plan, planning mode must take control again. Re-run reconnaissance or ask the user as needed, update the runbook, and only then hand the revised runbook back to execution.
+## 规划输出要求
 
-8. Refuse execution when interviews are insufficient.
-Do not hand the runbook to execution unless `## 访谈记录` contains at least five user Q/A pairs. If the count is lower, return to planning, ask more questions, and revise the runbook first.
+最终 authority runbook 必须做到：
 
-## Execution Mode Choice
+- 只有一条已拍板的执行路径
+- 有独立的 `## 访谈记录`
+  - 只记录规划阶段真正向用户提的问题，不记录作者自问自答
+  - 至少 `5` 条
+  - 每条都要写成：
+    - quote 内分成两段：
+      - `Q：...` 与问题正文写在同一行
+      - 空 quote 行
+      - `A：...` 与回答正文写在同一行
+    - quote 外再写：
+      - `收敛影响：...`
+  - 如果当轮是多选项提问，`A：...` 必须回填用户实际选中的完整选项内容，不要只写“选项 1/2/3”
+- 有独立的 `## 思维脑图`
+  - 根节点直接引用用户原始需求
+  - 至少发散出 3 个边界/选型问题
+  - 每个问题再拆 2-3 个叶子结论
+  - 必须基于真实 `## 访谈记录` 与已确认侦察结果生成，不能凭空捏造、提前占位或作者自拟
+- `### 现状` 与 `### 目标` 各有一张图
+- 不要单独再起 `## 当前前提` / `### 当前前提` 之类章节
+  - 执行前提、已成立事实、固定地址表、环境入口、route authority 这类内容，都应并入 `### 现状`
+  - `### 现状` 必须以现场最新状态为准，不能只复述旧 runbook 或过期侦察结论
+- 有独立的 `## 红线行为`
+- 在 `## 背景与现状` 下有明确的：
+  - `### 背景`
+  - `### 现状`
+- 在 `## 目标与非目标` 下有明确的：
+  - `### 目标`
+  - `### 非目标`
+- 不要单独起 `## 编排策略`
+  - 执行顺序、固定入口、回退边界、侦察触发条件等内容，应并入正文对应章节，而不是再起一个元章节
+- 每个编号项都包含：
+  - `#### 执行`
+  - `#### 验收`
+- authority 单独包含一个 `## 执行记录`
+  - 其中每个记录 item 必须和执行计划 item 一一对齐
+  - 每个记录 item 里都要再拆成独立的：
+    - `#### 执行记录 @名字 YYYY-MM-DD HH:MM TZ`
+    - `#### 验收记录 @名字 YYYY-MM-DD HH:MM TZ`
+  - 如果当前 item 只完成了执行、还没完成验收，就只允许先写并先签 `#### 执行记录 ...`
+  - 如果当前 item 还没执行或还没验收，对应记录区只保留未签名 heading；不要写 `@待执行`、`@TBD` 或任何伪签名占位
+  - `#### 执行` / `#### 验收` 的签名 heading 下方正文首行都必须带一个页内导航链接，能直接跳到对应的 `#### 执行记录 ...` / `#### 验收记录 ...`
+  - 记录区必须为这些跳转提供稳定 anchor；不要依赖不同 Markdown 渲染器对中文 heading 的自动锚点实现
+- 每个可执行步骤都包含：
+  - fenced code block
+  - `预期结果`
+  - `停止条件`
+- 验收项使用 Markdown checkbox
+- `## 执行记录` 明确要求保留真实执行 / 验收证据
+- authority 包含 `## 最终验收`
+- 如果需要回滚，authority 明确写出回滚边界与回滚动作
+- authority 包含 `## 文档链接`
+  - 使用 Markdown 列表
+  - 只放与当前 authority 直接相关的上游 / 下游 / 旁路文档
 
-Once the plan is complete, ask:
+## 写作硬规则
 
-```text
-问题：执行模式选哪个？
-1. Solo
-理由：主 agent 直接推进执行与验收，最终执行签名用 @吕布。
-2. Collaboration
-理由：主 agent 负责编排；执行由武将 subagent 负责，验收由文官 subagent 负责。
-```
+- `#### 执行`、`#### 验收`、`## 最终验收` 里的命令必须读取或改变真实状态，并能用真实输出证明结果。
+- 不要用 `printf`、`echo check`、占位输出来冒充执行或验收。
+- 不要再写 `## 当前已决策`；原本想放进该章节的内容，必须回收到 `## 访谈记录` 的 `收敛影响` 或正文对应章节里。
+- 不要写独立的 `## 当前前提`；原本想放进该章节的前提条件、环境边界和已成立事实，必须并回 `### 现状`。
+- 不要写独立的 `## 编排策略`；原本想放进该章节的执行顺序、入口约束、侦察触发条件、回退规则，应拆回对应正文或各编号项。
+- `### 现状` 必须对应执行前的现场冻结证据；不要把旧现场结论直接抄成当前现状。
+- `## 访谈记录` 里，问答正文必须放在 blockquote 中，且使用 `Q：` / `A：` 前缀；正文必须和前缀写在同一行，`Q` 和 `A` 之间保留一个空 quote 行；不要改成普通段落、小标题或别的标签。
+- 如果提问时给过编号选项，`A：...` 里仍然要写完整选项语义；编号可以保留，但不能只写“选项 `1`”这种脱离上下文的简写。
+- 执行计划的第一个编号项必须是“冻结现状”或同等语义的现场冻结步骤，用来在真正改动或深入执行前留住当前现场状态，防止执行过程中现状漂移。
+- 如果某个 `#### 执行` 或 `#### 验收` 天然很长，应拆成多个较小分组。
+  - 每个分组都要有自己的 code block、`预期结果`、`停止条件`
+  - 验收分组要有独立 checkbox
+- 如果命令包含内嵌脚本，默认把外层命令和脚本正文拆成相邻 code block，而不是把脚本埋进一大段 shell。
+- 每个编号项的 `#### 执行` 必须在执行完成后立刻签名；不要等同一步 `#### 验收` 也做完再一起补签。
+- 每个编号项的 `#### 验收` 必须在验收完成后立刻签名；不要回头和同一步 `#### 执行` 共用一次补签。
+- 禁止把同一编号项的 `#### 执行` / `#### 验收` 签名在同一次批量回写里一起补上。
+- `## 执行记录` 里的执行证据和验收证据也必须各自带签名 heading，不能只在正文 `#### 执行` / `#### 验收` 里签名。
+- 未执行 / 未验收的 item 只能保留未签名 heading 与待执行正文；禁止使用 `@待执行` 这类占位签名。
+- 签名 heading 的推荐形状固定为：
+  - `#### 执行 @名字 YYYY-MM-DD HH:MM TZ`
+  - 下一行单独写：`[跳转到执行记录](#item-N-execution-record)`
+  - `#### 验收 @名字 YYYY-MM-DD HH:MM TZ`
+  - 下一行单独写：`[跳转到验收记录](#item-N-acceptance-record)`
+- 对应记录区在签名 heading 之前先放显式 anchor：
+  - `<a id="item-N-execution-record"></a>`
+  - `<a id="item-N-acceptance-record"></a>`
+- authority 内的图、红线、命令、停止条件、回滚和验收，必须服务于同一条唯一执行路径，不能图是 A 路径、正文却执行 B 路径。
+- `## 思维脑图` 不是装饰图。
+  - 它必须从用户原始需求出发，外显 authority 收敛前最关键的边界/选型问题。
+  - 至少 3 个边界/选型问题，且每个问题必须再拆 2-3 个叶子结论。
+  - 叶子节点必须写成已经固化的结论、边界或落地口径，不要写成“是否 …”这类提问句。
+  - Graphviz 不会替你自动把中文长句收进框里；每个节点都要手动插入换行。
+  - 除根节点外，单行尽量控制在 `10-16` 个中文字符；超出就拆成 `2-4` 行，或先把口径改写得更短。
+  - 不要把完整命令、长路径、长文件名直接塞进脑图节点；脑图只保留收敛后的语义。
+  - 脑图默认使用中文友好字体，例如 `Noto Sans CJK SC`，不要继续沿用 `Arial` 这类容易造成中文宽度失配的字体。
+  - 如果脑图里的问题后来已经被 authority 拍板，后文正文必须体现这些问题是如何被收敛掉的。
+- 当真实访谈记录不足、关键侦察未完成、或边界仍未拍板时，不要先重构正文来“等以后补证据”。
+  - 正确动作是继续提问或继续 reconnaissance。
+  - 错误动作包括：先写 `## 访谈记录` 占位、先画脑图占位、先把正文改成唯一答案再回填证据。
+- 当 execution / acceptance 因为预期外结果或 blocker 停下时，也不要在原 execution lane 里直接修文档后继续跑。
+  - 正确动作是回到规划态，补问答 / 补 reconnaissance / 重写 authority，然后重新进入执行态。
+  - 错误动作包括：execution lane 自己改路线、acceptance lane 自己追加新检查、主 rollout 不经过重新规划就直接续跑下一 item。
 
-Do not start execution before the user answers.
-Do not ask this question until the validator has passed for the current runbook revision.
+## 主 rollout 的职责
 
-## Execution Routing
+主 rollout 必须自己负责：
 
-### Solo
+- 判断当前输入离 authority 还有多远
+- 决定何时提问
+- 决定何时需要 reconnaissance
+- 审阅 reconnaissance 结果
+- 撰写或修订 authority runbook
+- 把 runbook 从“草稿/需求”收敛成“生产可执行操作手册”
+- 在执行态遇阻时，把执行结果重新吸收到规划态，而不是停留在半执行状态
+- 在重新规划完成后，重新请求用户确认进入执行态
 
-- Main agent executes and validates directly.
-- Sign the execution close-out as `@吕布`.
-- Use `../runbook-executor/SKILL.md` and `../runbook-acceptor/SKILL.md` as behavioral contracts even when the main agent performs both roles itself.
+不要把最终 authority 成稿职责外包给子代理。
 
-### Collaboration
+## 完成判定
 
-Use one Three Kingdoms roster consistently:
-- Wei default: leader `@曹操`, executor general `@张辽`, acceptor official `@荀彧`
-- Shu fallback: leader `@刘备`, executor general `@赵云`, acceptor official `@诸葛亮`
-- Wu fallback: leader `@孙权`, executor general `@甘宁`, acceptor official `@鲁肃`
+只有满足下面这些条件，才可以把 runbook 规划任务报告为完成：
 
-Default to Wei unless the user asks for another faction.
+- `ambiguity <= 10%`
+- `risk <= 10%`
+- authority runbook 已存在或已被更新
+- authority 含有至少 `5` 条真实用户访谈记录
+- authority 中不存在 materially different 的多路径并列
+- 目标、非目标、红线、回滚、验收路径都清楚
+- 需要执行的人不用再替你补关键决策
+- 文档已经达到“可供生产环境执行”的质量，而不是“讨论草稿”
 
-Execution rules:
-- Main agent acts as the faction leader and orchestrator.
-- Delegate implementation to `../runbook-executor/SKILL.md`.
-- Delegate acceptance to `../runbook-acceptor/SKILL.md`.
-- Keep the execution record aligned with the plan one-to-one.
+如果主 rollout 已经判断 authority runbook 可以进入执行态，那么默认收口动作不是直接宣告结束，而是：
 
-## Output Contract
+1. 向用户确认这次走 `solo` 还是 `team`
+2. 收到选择后立刻切入对应执行态
 
-- Planning output must contain both `## 执行计划` and `## 执行记录`.
-- Planning output must pass `python scripts/validate_runbook.py <runbook.md>` before execution admission.
-- Execution output must fill `## 执行记录` with evidence while preserving the step mapping from the plan.
-- Planning output must not prefill signature placeholders before execution or acceptance has actually happened.
-- Execution and acceptance evidence must be recorded under signed subheadings in the exact format `@<name> YYYY-MM-DD HH:mm CST`.
-- Execution or acceptance is not allowed to repair planning gaps in place. Any live mismatch must send the work back to planning first.
+此外还必须满足：
 
-## Postmortem
+- `python scripts/validate_runbook.py <runbook.md>` 返回 `0`
 
-- Symptom: planning-stage runbooks looked like partially executed artifacts because `执行记录` already contained signed execution/acceptance headings.
-- Root cause: the template mixed execution-time evidence format into pre-execution placeholders.
-- Repair pattern: keep planning placeholders unsigned as `#### 执行` / `#### 验收`, and add signatures only when real execution or acceptance evidence is archived.
-- Preventative check: when reviewing a newly generated runbook before execution starts, scan `## 执行记录`; if any line already contains `@<name> YYYY-MM-DD HH:mm CST`, the planning output is wrong.
-- Symptom: validator failure was non-actionable because it only returned a generic rule message with no location.
-- Root cause: the validator emitted rule-level failures but did not attach the failing line or original content.
-- Repair pattern: print structured diagnostics with `code / line / content`, and expose the same data via `--json` for automated planning repair loops.
-- Preventative check: when adding a new validator rule, verify one negative test prints enough detail for the planner to patch the exact line without rereading the whole runbook.
-- Symptom: planning output looked structurally correct to humans, but headings and mind maps were still too free-form for reliable execution admission.
-- Root cause: heading rules were implicit rather than whitelisted, and `思维脑图` used loose bullet structure instead of a machine-checkable graph form.
-- Repair pattern: validate headings with an explicit whitelist, and require `思维脑图` to be a rooted `dot` tree: `brain -> category -> conclusion`, with at least two categories and at least two conclusions per category.
-- Preventative check: keep one negative test for an illegal heading and one negative test for an under-expanded or malformed mindmap tree; both must fail before shipping validator changes.
-- Symptom: generated runbook diagrams still looked white-backed and visually harsh in the dark handbook even though the template claimed dark-mode support.
-- Root cause: the template only set a top-level transparent background hint and still used overly saturated accent fills, so renderer defaults and bright fills dominated the result.
-- Repair pattern: set graph transparency explicitly in the graph attributes, keep rounded rectangles, and standardize on a muted low-saturation palette with same-kind nodes sharing one fill.
-- Preventative check: when updating any runbook `dot` example, inspect the graph block itself for explicit transparent graph attributes and verify there are no vivid high-saturation fills or mixed colors for the same node class.
+## 停止条件
+
+出现下面任一情况时，不要继续假装可以定稿，必须停下来继续澄清：
+
+- 最新证据和现有 authority 冲突
+- 关键前提缺失
+- 目标或非目标仍不清楚
+- 回滚路径不清楚
+- 验收路径不清楚
+- `## 访谈记录` 缺失，或真实用户访谈记录少于 `5` 条
+- authority 仍保留多个 materially different 路线
+- 文档中的命令还只是占位示意，无法真实执行
+- 执行态带回了新的 blocker、失败现场、或与 authority 冲突的新事实，但主 rollout 还没重新提问 / 重新侦察 / 重新规划
+
+## 质量标准
+
+一个使用本 skill 产出的 runbook，只有在满足这些条件时才算达标：
+
+- 主 skill 的 scope 保持在规划，不漂移到执行
+- 用户给出的二义性被显式识别并收敛
+- 执行风险被显式识别并压低到可接受范围
+- authority runbook 只有一条唯一执行路径
+- authority 含有一个合格的 `## 访谈记录`，且至少有 `5` 条真实用户访谈
+- authority 含有一个合格的 `## 思维脑图`
+- 生产执行手册的 `### 现状` 与 `### 目标` 必须各有一张图
+- 生产执行手册不再单列 `## 当前前提`，前提事实已并入 `### 现状`
+- 生产执行手册的第一个执行项必须先冻结现场现状
+- 生产执行手册必须有独立的 `## 红线行为` 章节
+- 生产执行手册必须有独立的 `## 文档链接` 章节
+- 每个编号项都有明确的执行和验收内容
+- 过长的执行 / 验收命令块会被拆成更小分组，并用独立 checkbox 跟踪
+- authority 明确要求在 `## 执行记录` 中保留真实证据
+- authority 含有一个反映真实终态的 `## 最终验收`
+- 执行者拿到这份文档后，可以在不替规划者补关键决策的前提下进入生产执行
+- 当执行态命中 stop 或失败时，主 rollout 会先回规划态扫清盲点，再重新进入执行态，而不是在旧 execution lane 里硬续跑

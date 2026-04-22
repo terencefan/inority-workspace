@@ -1,0 +1,4 @@
+interface:
+  display_name: "Runbook Recon"
+  short_description: "Read-only reconnaissance for runbook planning or execution support."
+  default_prompt: "Use $runbook-recon to gather read-only evidence for the assigned runbook scope."
