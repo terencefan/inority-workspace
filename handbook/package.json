@@ -1,0 +1,33 @@
+{
+  "name": "inority-handbook",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Workspace-level local handbook site for Markdown documents.",
+  "scripts": {
+    "build": "npm run typecheck && npm run build:server && vite build",
+    "build:server": "tsc -p tsconfig.server.json",
+    "start": "node build-server/server.js",
+    "dev": "nodemon --watch server.ts --watch vite.config.ts --watch tsconfig.json --ext ts,json --exec \"tsx server.ts --dev\"",
+    "service:install:wsl": "bash ./scripts/install-wsl-service.sh",
+    "service:uninstall:wsl": "bash ./scripts/uninstall-wsl-service.sh",
+    "service:status:wsl": "bash ./scripts/status-wsl-service.sh",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [],
+  "license": "ISC",
+  "dependencies": {
+    "@viz-js/viz": "^3.25.0",
+    "github-markdown-css": "^5.9.0",
+    "highlight.js": "^11.11.1",
+    "markdown-it": "^14.1.1",
+    "markdown-it-task-lists": "^2.1.1"
+  },
+  "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
+    "@types/node": "^24.6.0",
+    "nodemon": "^3.1.10",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.12"
+  }
+}
