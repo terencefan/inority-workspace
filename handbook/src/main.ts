@@ -87,7 +87,8 @@ const workspaceGrid = (() => {
 const THEME_STORAGE_KEY = "inority-handbook-theme";
 const DIRECTORY_COLLAPSED_STORAGE_KEY = "inority-handbook-directory-collapsed";
 const TOC_COLLAPSED_STORAGE_KEY = "inority-handbook-toc-collapsed";
-const DOC_ROUTE_PREFIX = "/workspace";
+const DOC_ROUTE_PREFIX = "/docs";
+const LEGACY_DOC_ROUTE_PREFIX = "/workspace";
 const THEMES: Record<ThemeName, ThemeDefinition> = {
   light: {
     markdownHref: markdownLightHref,
@@ -124,8 +125,19 @@ function getDocPathFromLocation() {
   if (pathname === DOC_ROUTE_PREFIX || pathname === "") {
     return state.defaultDoc;
   }
-  if (!pathname.startsWith(`${DOC_ROUTE_PREFIX}/`)) {
+  if (pathname === LEGACY_DOC_ROUTE_PREFIX) {
     return state.defaultDoc;
+  }
+  if (!pathname.startsWith(`${DOC_ROUTE_PREFIX}/`)) {
+    if (!pathname.startsWith(`${LEGACY_DOC_ROUTE_PREFIX}/`)) {
+      return state.defaultDoc;
+    }
+    return pathname
+      .slice(LEGACY_DOC_ROUTE_PREFIX.length + 1)
+      .split("/")
+      .filter(Boolean)
+      .map(segment => decodeURIComponent(segment))
+      .join("/");
   }
   return pathname
     .slice(DOC_ROUTE_PREFIX.length + 1)
@@ -356,7 +368,12 @@ async function loadDoc(docPath: string, { replace = false } = {}) {
 
 function isInternalDocLink(anchor: HTMLAnchorElement) {
   const href = anchor.getAttribute("href") || "";
-  return href === DOC_ROUTE_PREFIX || href.startsWith(`${DOC_ROUTE_PREFIX}/`);
+  return (
+    href === DOC_ROUTE_PREFIX ||
+    href.startsWith(`${DOC_ROUTE_PREFIX}/`) ||
+    href === LEGACY_DOC_ROUTE_PREFIX ||
+    href.startsWith(`${LEGACY_DOC_ROUTE_PREFIX}/`)
+  );
 }
 
 async function navigateToDoc(docPath: string, options = {}) {
@@ -377,9 +394,12 @@ preview.addEventListener("click", event => {
 
   event.preventDefault();
   const url = new URL(anchor.href, window.location.origin);
+  const routePrefix = url.pathname.startsWith(`${LEGACY_DOC_ROUTE_PREFIX}/`) || url.pathname === LEGACY_DOC_ROUTE_PREFIX
+    ? LEGACY_DOC_ROUTE_PREFIX
+    : DOC_ROUTE_PREFIX;
   const docPath =
     url.pathname
-      .slice(DOC_ROUTE_PREFIX.length + 1)
+      .slice(routePrefix.length + 1)
       .split("/")
       .filter(Boolean)
       .map(segment => decodeURIComponent(segment))

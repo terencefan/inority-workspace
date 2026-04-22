@@ -59,7 +59,8 @@ const port = Number.parseInt(process.env.HANDBOOK_PORT || process.env.DOCS_PORT 
 const distRoot = path.join(projectRoot, "dist");
 const isDev = process.argv.includes("--dev");
 const TREE_CACHE_TTL_MS = 1500;
-const DOC_ROUTE_PREFIX = "/workspace";
+const DOC_ROUTE_PREFIX = "/docs";
+const LEGACY_DOC_ROUTE_PREFIX = "/workspace";
 const IGNORED_DIRECTORY_NAMES = new Set([".git", "node_modules", ".venv", "third_party"]);
 const graphvizFontFamily = process.env.HANDBOOK_GRAPHVIZ_FONT || "sans-serif";
 const GRAPHVIZ_RENDER_MAX_BUFFER = 8 * 1024 * 1024;
@@ -589,7 +590,25 @@ function resolveClientPath(rootDir: string, requestPath: string) {
 }
 
 function isDocAppRoute(requestPath: string) {
-  return requestPath === "/" || requestPath === "/index.html" || requestPath === DOC_ROUTE_PREFIX || requestPath.startsWith(`${DOC_ROUTE_PREFIX}/`);
+  return (
+    requestPath === "/" ||
+    requestPath === "/index.html" ||
+    requestPath === DOC_ROUTE_PREFIX ||
+    requestPath.startsWith(`${DOC_ROUTE_PREFIX}/`) ||
+    requestPath === LEGACY_DOC_ROUTE_PREFIX ||
+    requestPath.startsWith(`${LEGACY_DOC_ROUTE_PREFIX}/`)
+  );
+}
+
+function maybeRedirectLegacyDocRoute(requestPath: string, res: ServerResponse) {
+  if (requestPath !== LEGACY_DOC_ROUTE_PREFIX && !requestPath.startsWith(`${LEGACY_DOC_ROUTE_PREFIX}/`)) {
+    return false;
+  }
+
+  const nextPath = requestPath === LEGACY_DOC_ROUTE_PREFIX ? DOC_ROUTE_PREFIX : `${DOC_ROUTE_PREFIX}${requestPath.slice(LEGACY_DOC_ROUTE_PREFIX.length)}`;
+  res.writeHead(308, { Location: nextPath });
+  res.end();
+  return true;
 }
 
 async function handleApiRequest(requestUrl: URL, res: ServerResponse) {
@@ -633,6 +652,10 @@ async function runViteMiddleware(vite: any, req: IncomingMessage, res: ServerRes
 }
 
 async function serveDevClient(vite: any, req: IncomingMessage, res: ServerResponse, requestUrl: URL) {
+  if (maybeRedirectLegacyDocRoute(requestUrl.pathname, res)) {
+    return;
+  }
+
   if (isDocAppRoute(requestUrl.pathname)) {
     const templatePath = path.join(projectRoot, "index.html");
     const template = await fs.readFile(templatePath, "utf8");
@@ -648,6 +671,10 @@ async function serveDevClient(vite: any, req: IncomingMessage, res: ServerRespon
 }
 
 async function serveBuiltClient(res: ServerResponse, requestUrl: URL) {
+  if (maybeRedirectLegacyDocRoute(requestUrl.pathname, res)) {
+    return;
+  }
+
   if (isDocAppRoute(requestUrl.pathname)) {
     await serveFile(res, path.join(distRoot, "index.html"));
     return;
