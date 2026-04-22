@@ -1,0 +1,6 @@
+interface:
+  display_name: "Postmortem 经验提炼"
+  short_description: "从当前上下文提炼可复用经验，并编号待选入长期记忆。"
+  default_prompt: "Use $postmortem to extract reusable lessons from the current context, number them, and wait for my selection before writing anything into long-term memory."
+policy:
+  allow_implicit_invocation: false

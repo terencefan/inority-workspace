@@ -38,6 +38,9 @@ STEP_SIGNED_ACCEPT_RE = re.compile(r"^#### 验收 @\S+ \d{4}-\d{2}-\d{2} \d{2}:\
 RECORD_SIGNED_EXEC_RE = re.compile(r"^#### 执行记录 @\S+ \d{4}-\d{2}-\d{2} \d{2}:\d{2} [A-Za-z0-9:+-]+$")
 RECORD_SIGNED_ACCEPT_RE = re.compile(r"^#### 验收记录 @\S+ \d{4}-\d{2}-\d{2} \d{2}:\d{2} [A-Za-z0-9:+-]+$")
 REFERENCE_LINK_RE = re.compile(r"^- \[[^\]]+\]\([^)]+\)：.+$")
+ANSWER_OPTION_SHORTHAND_RE = re.compile(
+    r"^> A：\s*(?:选项\s*`?\d+`?|选\s*`?\d+`?)(?:[。；，,\s]|$)"
+)
 
 
 @dataclass
@@ -220,6 +223,10 @@ def validate_current_and_target(
         body = "\n".join(lines[abs_start:abs_end])
         if "```dot" not in body:
             errors.append(err("E020", f"`### {title}` 必须包含一个 dot 代码块。", lines, abs_start))
+        if "fontname=\"Noto Sans CJK SC\"" not in body:
+            errors.append(err("E021", f"`### {title}` 的 dot 代码块必须显式使用 `Noto Sans CJK SC`。", lines, abs_start))
+        if "Arial" in body:
+            errors.append(err("E022", f"`### {title}` 的 dot 代码块不允许继续使用 `Arial`。", lines, abs_start))
     target = section_slice(h2_sections, "目标与非目标", len(lines))
     if target is None:
         return errors
@@ -233,6 +240,10 @@ def validate_current_and_target(
         body = "\n".join(lines[abs_start:abs_end])
         if "```dot" not in body:
             errors.append(err("E020", "`### 目标` 必须包含一个 dot 代码块。", lines, abs_start))
+        if "fontname=\"Noto Sans CJK SC\"" not in body:
+            errors.append(err("E021", "`### 目标` 的 dot 代码块必须显式使用 `Noto Sans CJK SC`。", lines, abs_start))
+        if "Arial" in body:
+            errors.append(err("E022", "`### 目标` 的 dot 代码块不允许继续使用 `Arial`。", lines, abs_start))
     return errors
 
 
@@ -292,6 +303,12 @@ def validate_qa(
         a_label = body[a_label_pos][1]
         if a_label == "> A：":
             errors.append(err("E037", "回答正文必须和 `> A：` 写在同一行。", lines, a_label_idx))
+        if ANSWER_OPTION_SHORTHAND_RE.match(a_label):
+            errors.append(err("E039", "`A：...` 不能只写“选项 1/2/3”这类脱离上下文的简写。", lines, a_label_idx))
+
+        raw_between = [lines[idx].rstrip() for idx in range(q_label_idx + 1, a_label_idx)]
+        if ">" not in raw_between:
+            errors.append(err("E035", "`Q：` 和 `A：` 之间必须保留一个空 quote 行。", lines, q_label_idx))
 
         if not any(line == "收敛影响：" for _, line in body):
             errors.append(err("E038", "每条问答后都必须有 `收敛影响：`。", lines, heading_idx))
@@ -310,6 +327,11 @@ def validate_mindmap(
     if dot_block is None:
         return [err("E040", "`## 思维脑图` 必须包含一个 dot 代码块。", lines, start)]
     block_start, block_end, dot_lines = dot_block
+    dot_text = "\n".join(dot_lines)
+    if 'fontname="Noto Sans CJK SC"' not in dot_text:
+        return [err("E047", "`## 思维脑图` 的 dot 代码块必须显式使用 `Noto Sans CJK SC`。", lines, block_start)]
+    if "Arial" in dot_text:
+        return [err("E048", "`## 思维脑图` 的 dot 代码块不允许继续使用 `Arial`。", lines, block_start)]
 
     edge_re = re.compile(r"^\s*([A-Za-z0-9_]+)\s*->\s*([A-Za-z0-9_]+)")
     children: dict[str, list[str]] = {}
@@ -509,22 +531,26 @@ def validate_plan_step(
             errors.append(err("E072", f"`### {title}` 下存在非法四级标题。", lines, block_start))
             continue
         block_text = "\n".join(lines[block_start:block_end])
+        is_exec_block = h4_title == "执行" or STEP_SIGNED_EXEC_RE.match(f"#### {h4_title}") is not None
+        is_accept_block = h4_title == "验收" or STEP_SIGNED_ACCEPT_RE.match(f"#### {h4_title}") is not None
         if "```" not in block_text:
             errors.append(err("E073", f"`### {title}` 的 `#### {h4_title}` 必须包含 code block。", lines, block_start))
         if "预期结果：" not in block_text:
             errors.append(err("E074", f"`### {title}` 的 `#### {h4_title}` 缺少 `预期结果：`。", lines, block_start))
         if "停止条件：" not in block_text:
             errors.append(err("E075", f"`### {title}` 的 `#### {h4_title}` 缺少 `停止条件：`。", lines, block_start))
-        if h4_title == "验收":
+        if is_accept_block:
             if "- [ ]" not in block_text and "- [x]" not in block_text:
                 errors.append(err("E076", f"`### {title}` 的 `#### 验收` 至少需要一个 checkbox。", lines, block_start))
-        expected_link = (
-            f"[跳转到执行记录](#item-{index}-execution-record)"
-            if h4_title == "执行"
-            else f"[跳转到验收记录](#item-{index}-acceptance-record)"
-        )
-        if expected_link not in block_text:
+        expected_link = f"[跳转到执行记录](#item-{index}-execution-record)" if is_exec_block else f"[跳转到验收记录](#item-{index}-acceptance-record)"
+        disallowed_link = f"[跳转到验收记录](#item-{index}-acceptance-record)" if is_exec_block else f"[跳转到执行记录](#item-{index}-execution-record)"
+        expected_count = block_text.count(expected_link)
+        if expected_count == 0:
             errors.append(err("E077", f"`### {title}` 的 `#### {h4_title}` 缺少页内跳转链接。", lines, block_start))
+        elif expected_count != 1:
+            errors.append(err("E078", f"`### {title}` 的 `#### {h4_title}` 页内跳转链接只能出现一次。", lines, block_start))
+        if disallowed_link in block_text:
+            errors.append(err("E079", f"`### {title}` 的 `#### {h4_title}` 只能跳转到对应记录，不能混入另一类跳转。", lines, block_start))
     return errors
 
 
@@ -629,11 +655,30 @@ def print_pass(path: Path, json_mode: bool) -> None:
         print(f"[runbook-validator] PASS {path}")
 
 
+def build_natural_language_summary(errors: list[ValidationError]) -> list[str]:
+    summary = [f"本次扫描共发现 {len(errors)} 个问题，当前 runbook 还不能进入执行态。"]
+    for index, item in enumerate(errors, start=1):
+        location = f"第 {item.line} 行" if item.line is not None else "某处"
+        detail = f"{location}需要修正：{item.message}"
+        if item.content:
+            detail += f" 当前命中的内容是：{item.content}"
+        summary.append(f"{index}. {detail}")
+    summary.append("请先按以上问题修正文档，再重新运行 validate_runbook.py。")
+    return summary
+
+
 def print_fail(path: Path, errors: list[ValidationError], json_mode: bool) -> None:
+    summary = build_natural_language_summary(errors)
     if json_mode:
         print(
             json.dumps(
-                {"status": "fail", "path": str(path), "errors": [asdict(e) for e in errors]},
+                {
+                    "status": "fail",
+                    "path": str(path),
+                    "errors": [asdict(e) for e in errors],
+                    "natural_language_summary": "\n".join(summary),
+                    "natural_language_items": summary,
+                },
                 ensure_ascii=False,
                 indent=2,
             )
@@ -645,6 +690,9 @@ def print_fail(path: Path, errors: list[ValidationError], json_mode: bool) -> No
         print(f"- {item.code}{location}: {item.message}")
         if item.content:
             print(f"  content: {item.content}")
+    print("\n[runbook-validator] 自然语言总结")
+    for line in summary:
+        print(f"- {line}")
 
 
 def main() -> int:

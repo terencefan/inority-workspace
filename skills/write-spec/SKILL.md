@@ -32,7 +32,7 @@ Make the document scroll-friendly. Structure it so a reader can keep orientation
    - neighboring modules that reveal naming, boundaries, and constraints
    - existing conventions in the same repo
 5. 在正文定稿前，先通过真实用户问答做访谈收敛。
-6. 访谈规则参考 `runbook`：
+6. 如果要借用 runbook 式访谈纪律，只能显式按 `$runbook` 的方式引用，不要直接挪用其他 skill 的资产；本 skill 默认沿用下面这组访谈约束：
    - authority 定稿前，必须累计至少 `5` 轮真实用户问答
    - 每轮只问一个问题
    - 每轮只围绕一个维度，例如 `goal`、`non-goal`、`risk`、`acceptance`、`path selection`
@@ -63,6 +63,10 @@ Unless the user asks for a narrower format, include these sections:
 
 Prefer the Chinese section names above when no repo-specific template exists. Rename them only when the surrounding project already uses a stable convention or the user explicitly asks for another heading style.
 
+## Section Rules
+
+### 标题与层级约束
+
 Use exactly these content-level first-level headings by default:
 
 - `背景与现状`
@@ -83,6 +87,8 @@ Within the first-level heading `假设与约束`, default to exactly these two s
 - `假设`
 - `约束`
 
+### `访谈记录`
+
 `访谈记录` 是强制章节，不是可选附录。
 
 - 写 spec 时必须保留独立的 `访谈记录` 一级标题。
@@ -98,13 +104,17 @@ Within the first-level heading `假设与约束`, default to exactly these two s
   - quote 外再写：
     - `收敛影响：...`
 
+### `目录`
+
 Do not add a manual `目录` / table-of-contents section to the spec by default.
 
 - Assume navigation is provided separately unless the user explicitly asks for an inline table of contents.
 - If the surrounding repository has a strong existing convention of including a manual `目录`, follow that convention only when the user has not expressed a conflicting preference.
 - When a user says specs should not include a manual directory / TOC, treat that as the default for future specs in this workspace and update the skill accordingly.
 
-Treat `背景与现状` as the default first content section near the beginning:
+### `背景与现状`
+
+Treat `背景与现状` as the default first content section near the beginning.
 
 - `背景与现状` answers why this document or change exists now and what the current system, workflow, topology, or behavior looks like.
 - Within `背景与现状`, default to short subsections such as:
@@ -112,13 +122,43 @@ Treat `背景与现状` as the default first content section near the beginning:
   - `现状`
   - `问题`
 - `现状` should contain a fenced `dot` / `graphviz` diagram by default so the reader can see the current structure instead of only reading prose.
+
+### `目标与非目标`
+
 - Within `目标与非目标`, the `目标` subsection should also contain a fenced `dot` / `graphviz` diagram by default so the target state is explicit and visually comparable to `现状`.
+
+### `架构总览`
+
 - Use `架构总览` as its own first-level section to show the whole system shape before diving into layers, modules, or flows.
 - `架构总览` must contain a fenced `dot` / `graphviz` diagram by default.
 - That overview diagram must simultaneously express both:
   - `架构分层` (north-south structure)
   - `模块划分` (east-west structure)
 - Do not let `架构总览` degenerate into prose-only summary when the document is architectural enough to require `架构分层` or `模块划分`.
+- For topology-heavy technical docs, this overview should usually be the main end-to-end diagram for the system being described.
+- If the overview diagram becomes visually dense or carries multiple subsystems, split the large picture into focused subsections after the overview.
+- When you split the overview into subsystem breakdowns, place those subsections directly under `架构总览` rather than scattering them into distant top-level sections.
+- Create subsection breakdowns around natural subsystem boundaries such as observability, storage, ingress, control plane, or a critical business domain.
+- Let the overview answer "what is the whole shape", and let the subsections answer "how this important part works internally".
+- Apply the same pattern recursively: each important subsystem subsection should usually begin with its own architecture diagram before you split into narrower flows or components.
+- Avoid wrapper headings that add no information. If a heading exists only to introduce a single meaningful diagram section, lift the meaningful diagram title up one level and use it directly.
+- That parent heading should also start with its own overview diagram, just like other major structural sections.
+- Treat diagrams as the primary structural language of the document. At each heading level, show a diagram first when the section is describing architecture, topology, relationships, or flow.
+- Make the spec diagram-driven, not text-driven. Readers should be able to understand the system shape mainly from the diagrams, then use the prose as supporting detail.
+- The highest-priority diagram is the `架构总览` diagram. It should be a `dot` diagram that shows both the north-south layering backbone and the east-west module partitioning in one picture.
+- Only introduce the next child-heading level when the current heading's diagram is no longer enough to explain the structure clearly.
+- Once a section has introduced its architecture diagram, any further decomposition should appear as that section's direct child headings. For example, a subsystem architecture section can decompose into child headings for individual flows such as online ingestion and heartbeat probing.
+- If those child headings represent distinct flows, each child heading should also start with its own focused diagram rather than only a text sequence.
+- Prefer this recursive shape:
+  - heading
+  - one-sentence quote
+  - one diagram
+  - short explanatory prose
+  - child headings only if the parent diagram still needs further decomposition
+- If a diagram or component is not directly connected to the main path you want the reader to follow, pull it out of the main overview and explain it in a separate focused diagram.
+
+### `架构分层`
+
 - After `架构总览`, add `架构分层` as its own first-level section by default when the document describes a layered system, network path, or multi-stage flow.
 - Treat `架构分层` as the default north-south view.
 - If `架构分层` introduces a fixed set of layers, the next heading level should use those layers directly as child headings.
@@ -126,17 +166,21 @@ Treat `背景与现状` as the default first content section near the beginning:
 - For network and deployment docs, group layers by where they live before expanding each layer, for example external, host machine, and Kubernetes.
 - When both dimensions matter, organize `架构分层` as: category first, layer second.
 - For example: `External -> App / DNS / TUN`, `Host -> APISIX`, `Kubernetes -> Cluster Ingress / Service Ingress / Node / Pod`.
-- Treat `架构分层` as the vertical model by default.
 - Use it for end-to-end path structure, runtime position, ingress chain, storage path, or other vertical decomposition.
+- If the document needs more than one layering model, use multiple layer sections side by side, each with its own diagram and its own concrete layer breakdown.
+- Do not stop at the layer overview. After each layer section, continue into the next heading level and explain each individual layer in detail.
+- Treat architecture layers as one dimension, not the only dimension. When useful, add a second, horizontal layering dimension to show cross-cutting capabilities, domains, or responsibilities.
+- Use grouping headings only when they add real location context. The layer remains the main explanatory unit, but the category helps the reader understand where that layer physically or logically lives.
+- Avoid an extra wrapper heading between `架构分层` and the concrete layers it already named.
+
+### `模块划分`
+
 - Add `模块划分` as its own first-level section by default after `架构分层`.
 - Treat `模块划分` as the default east-west view.
 - Use `模块划分` for horizontal decomposition such as business modules, platform modules, shared services, domains, ownership boundaries, or namespace-level partitions.
 - When the document also needs a namespace or domain slicing model, put it under `模块划分` unless the user explicitly asks for another first-level heading.
 - For Kubernetes docs, `命名空间分层` should usually live under `模块划分` and contain its own child headings.
 - In Kubernetes docs, prefer: `架构分层` for north-south structure, `模块划分` for east-west structure.
-- If the document needs more than one layering model, use multiple layer sections side by side, each with its own diagram and its own concrete layer breakdown.
-- Do not stop at the layer overview. After each layer section, continue into the next heading level and explain each individual layer in detail.
-- Treat architecture layers as one dimension, not the only dimension. When useful, add a second, horizontal layering dimension to show cross-cutting capabilities, domains, or responsibilities.
 - Use vertical layering for end-to-end path structure, and horizontal layering for slices such as business, data, observability, security, control plane, ownership boundaries, or namespace boundaries.
 - Horizontal slicing should usually produce high-cohesion modules or domains rather than arbitrary buckets. If the grouped items do not naturally belong together, the slice is probably wrong.
 - Classify storage by domain responsibility, not only by its current consumers. For example, PostgreSQL and S3/MinIO usually both belong to the data plane even when observability systems consume the object store.
@@ -154,6 +198,9 @@ Treat `背景与现状` as the default first content section near the beginning:
   - optional internal branch: business-owned data instances such as dedicated PostgreSQL or Redis
   - observability flow usually lands in the data plane rather than being treated as a peer branch of the business plane
 - Draw the business-plane scope explicitly when it matters. Business-owned services and exclusive data instances should appear inside that scope, while shared data-plane infrastructure should remain outside it.
+
+### 架构章节组合写法
+
 - For this class of architecture spec, build the main body from two primary views:
   - `架构分层`: north-south layers, path, or runtime chain
   - `模块划分`: east-west modules, domains, planes, or ownership slices
@@ -167,51 +214,32 @@ Treat `背景与现状` as the default first content section near the beginning:
 - Render explicit tasks as Markdown checkboxes so they can double as a lightweight execution tracker.
 - In architecture reviews, call out mixed placement explicitly when control plane, business plane, and data plane are still co-located on the same machine or node. Treat that as a gap in responsibility separation unless the document is intentionally describing a tightly scoped single-node system.
 - Keep titles natural by default, but when the user explicitly wants fixed structural labels such as `架构分层` and `模块划分`, treat those labels as the stable convention for the document and follow them consistently.
-- That parent heading should also start with its own overview diagram, just like other major structural sections.
-- For topology-heavy technical docs, this overview should usually be the main end-to-end diagram for the system being described.
-- If the overview diagram becomes visually dense or carries multiple subsystems, split the large picture into focused subsections after the overview.
-- When you split the overview into subsystem breakdowns, place those subsections directly under `架构总览` rather than scattering them into distant top-level sections.
-- Create subsection breakdowns around natural subsystem boundaries such as observability, storage, ingress, control plane, or a critical business domain.
-- Let the overview answer "what is the whole shape", and let the subsections answer "how this important part works internally".
-- Apply the same pattern recursively: each important subsystem subsection should usually begin with its own architecture diagram before you split into narrower flows or components.
-- Avoid wrapper headings that add no information. If a heading exists only to introduce a single meaningful diagram section, lift the meaningful diagram title up one level and use it directly.
-- Avoid an extra wrapper heading between `架构分层` and the concrete layers it already named.
-- Use grouping headings only when they add real location context. The layer remains the main explanatory unit, but the category helps the reader understand where that layer physically or logically lives.
-- Treat diagrams as the primary structural language of the document. At each heading level, show a diagram first when the section is describing architecture, topology, relationships, or flow.
-- Make the spec diagram-driven, not text-driven. Readers should be able to understand the system shape mainly from the diagrams, then use the prose as supporting detail.
-- The highest-priority diagram is the `架构总览` diagram. It should be a `dot` diagram that shows both the north-south layering backbone and the east-west module partitioning in one picture.
 - `背景` may stay prose-first when that is clearer, but `现状` and `目标` should default to diagram-first sections.
-- Only introduce the next child-heading level when the current heading's diagram is no longer enough to explain the structure clearly.
-- Once a section has introduced its architecture diagram, any further decomposition should appear as that section's direct child headings. For example, a subsystem architecture section can decompose into child headings for individual flows such as online ingestion and heartbeat probing.
-- If those child headings represent distinct flows, each child heading should also start with its own focused diagram rather than only a text sequence.
-- Prefer this recursive shape:
-  - heading
-  - one-sentence quote
-  - one diagram
-  - short explanatory prose
-  - child headings only if the parent diagram still needs further decomposition
-- If a diagram or component is not directly connected to the main path you want the reader to follow, pull it out of the main overview and explain it in a separate focused diagram.
 
 ## Writing Rules
 
+Only keep cross-section prose and formatting guidance here. Title hierarchy and section-specific structure belong in `Section Rules`.
+
+### 全局规则
+
 - Default to Chinese prose for titles, headings, explanations, decisions, and acceptance criteria unless the user explicitly requests another language.
-- Default the top-level and second-level section names to Chinese when using this skill. By default, the content-level first-level headings are `背景与现状`, `目标与非目标`, `风险与收益`, `假设与约束`, `架构总览`, `架构分层`, `模块划分`, `验收标准`, `访谈记录`, and `参考文档`, while sections such as `范围`, `方案设计`, `收益`, and `风险` should normally live under them.
 - When naming the document or referring to its artifact type, prefer `spec` over `规格` by default in this workspace, for example `AI-Ready 数据集分级 spec` rather than `AI-Ready 数据集分级规格`, unless the user explicitly asks otherwise.
 - Keep exact identifiers in their source form when translation would reduce precision, for example code symbols, API paths, config keys, SQL field names, resource names, and protocol terms.
-- When listing fields, prefer a Markdown table with columns such as `字段名 | 字段描述` instead of a bullet list. Use this especially for schemas, outputs, required fields, optional fields, and report sections that enumerate structured fields.
-- For tool design sections, prefer list-style presentation over tables. A good default shape is one tool per bullet, followed by short labeled lines such as `输入` / `输出` / `用途` when helpful.
-- Do not use numbered headings by default. Unless child headings have a strict sequential dependency or temporal order, use plain titles without numeric prefixes.
-- Prefer concrete statements over filler such as "improve experience" or "optimize performance" without a mechanism.
-- Prefer a scroll-friendly structure: stable heading hierarchy, compact section intros, and a navigation entry such as a table of contents when the document is long.
-- Write directly to the reader. Prefer a direct explanatory voice over a detached narrator voice.
+- Do not pad the spec with generic sections that add no decision value.
+
+### 适用于所有主要章节的小节写法
+
 - Start each major subsection with a short Markdown blockquote that states the point of the section in one sentence.
 - Treat the blockquote as the one-sentence summary of the section's actual takeaway, not as meta commentary about what the section will do.
 - Keep each blockquote concise and declarative. State the key conclusion first, then use the body to expand, justify, or break it down.
+- Write directly to the reader. Prefer a direct explanatory voice over a detached narrator voice.
 - Avoid third-person framing such as "本文将...", "这篇文档介绍...", "这一节说明...", or other meta narration about the document itself when a direct statement would be clearer.
 - Prefer sentences that describe the system and the reader's understanding directly, for example "先看入口链路" or "这里先建立分层模型", instead of introducing the section from outside.
-- When a single diagram is too large, do not force every detail into one place. Prefer one overview diagram plus a small number of subsystem diagrams that each justify their own section.
-- Protect the readability of the main diagram. It should show the connected backbone first; loosely related or disconnected side systems can live in companion diagrams.
-- Use transparent backgrounds for diagrams by default.
+- Prefer concrete statements over filler such as "improve experience" or "optimize performance" without a mechanism.
+- Prefer a scroll-friendly structure: stable heading hierarchy and compact section intros.
+
+### 证据与表达
+
 - Keep decisions close to evidence:
   - name the module, API, table, config, job, or workflow being changed
   - include exact paths, endpoints, flags, schemas, or resource names when confirmed locally
@@ -221,13 +249,21 @@ Treat `背景与现状` as the default first content section near the beginning:
   - design decision
   - assumption
   - interview evidence
-- Prefer bulleted acceptance criteria that can be checked by a reviewer or test.
-- Include rollout, migration, compatibility, or operational impact when the change touches live behavior.
-- If the request is mostly implementation-facing, include a short execution plan.
 - If the request is mostly product-facing, include user flows, edge cases, and success signals.
+- Include rollout, migration, compatibility, or operational impact when the change touches live behavior.
+
+### 图与表
+
+- Use transparent backgrounds for diagrams by default.
+- When listing fields, prefer a Markdown table with columns such as `字段名 | 字段描述` instead of a bullet list. Use this especially for schemas, outputs, required fields, optional fields, and report sections that enumerate structured fields.
+- For tool design sections, prefer list-style presentation over tables. A good default shape is one tool per bullet, followed by short labeled lines such as `输入` / `输出` / `用途` when helpful.
+
+### 收口与扩展
+
+- Prefer bulleted acceptance criteria that can be checked by a reviewer or test.
+- If the request is mostly implementation-facing, include a short execution plan.
 - If there is an obvious unresolved tradeoff, explain it inline in the most relevant section instead of creating a dedicated `Alternatives and tradeoffs` section by default.
 - Create a dedicated tradeoff section only when the user explicitly asks for alternatives, option comparison, or tradeoff analysis.
-- Do not pad the spec with generic sections that add no decision value.
 
 ## Decision Heuristics
 

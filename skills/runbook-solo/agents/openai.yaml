@@ -1,0 +1,4 @@
+interface:
+  display_name: "Runbook Solo"
+  short_description: "Execute approved runbooks in solo mode."
+  default_prompt: "Use $runbook-solo to run an approved authority runbook in solo mode for execution and acceptance only; if recon is needed, return to $runbook planning first."
