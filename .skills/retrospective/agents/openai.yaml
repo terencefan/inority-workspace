@@ -1,0 +1,6 @@
+interface:
+  display_name: "Retrospective"
+  short_description: "Run concise engineering retrospectives"
+  default_prompt: "Use $retrospective to review the recent work and extract reusable lessons."
+policy:
+  allow_implicit_invocation: true

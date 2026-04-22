@@ -1,0 +1,4 @@
+interface:
+  display_name: "Runbook Executor"
+  short_description: "Execute approved runbook steps only."
+  default_prompt: "Use $runbook-executor to execute the approved runbook steps and archive execution evidence."

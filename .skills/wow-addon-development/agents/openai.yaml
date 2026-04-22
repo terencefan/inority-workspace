@@ -1,0 +1,6 @@
+interface:
+  display_name: "WoW Addon Dev"
+  short_description: "Build and debug World of Warcraft addons"
+  default_prompt: "Use $wow-addon-development to inspect, debug, or document a World of Warcraft addon codebase."
+policy:
+  allow_implicit_invocation: true

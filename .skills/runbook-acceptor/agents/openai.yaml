@@ -1,0 +1,4 @@
+interface:
+  display_name: "Runbook Acceptor"
+  short_description: "Accept approved runbook steps only."
+  default_prompt: "Use $runbook-acceptor to validate the approved runbook steps and archive acceptance evidence."
