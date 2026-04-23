@@ -1,0 +1,66 @@
+{
+  "misnumbered_sections": {
+    "replacements": [
+      {
+        "old": "<a id=\"item-1\"></a>\n\n### 1. 冻结现状",
+        "new": "<a id=\"item-8\"></a>\n\n### 8. 冻结现状"
+      },
+      {
+        "old": "[跳转到执行记录](#item-1-execution-record)",
+        "new": "[跳转到执行记录](#item-8-execution-record)"
+      },
+      {
+        "old": "[跳转到验收记录](#item-1-acceptance-record)",
+        "new": "[跳转到验收记录](#item-8-acceptance-record)"
+      },
+      {
+        "old": "<a id=\"item-2\"></a>\n\n### 2. <编号项标题>",
+        "new": "<a id=\"item-9\"></a>\n\n### 9. <编号项标题>"
+      },
+      {
+        "old": "[跳转到执行记录](#item-2-execution-record)",
+        "new": "[跳转到执行记录](#item-9-execution-record)"
+      },
+      {
+        "old": "[跳转到验收记录](#item-2-acceptance-record)",
+        "new": "[跳转到验收记录](#item-9-acceptance-record)"
+      },
+      {
+        "old": "### 1. 冻结现状\n\n<a id=\"item-1-execution-record\"></a>",
+        "new": "### 8. 冻结现状\n\n<a id=\"item-8-execution-record\"></a>"
+      },
+      {
+        "old": "<a id=\"item-1-acceptance-record\"></a>",
+        "new": "<a id=\"item-8-acceptance-record\"></a>"
+      },
+      {
+        "old": "### 2. <编号项标题>\n\n<a id=\"item-2-execution-record\"></a>",
+        "new": "### 9. <编号项标题>\n\n<a id=\"item-9-execution-record\"></a>"
+      },
+      {
+        "old": "<a id=\"item-2-acceptance-record\"></a>",
+        "new": "<a id=\"item-9-acceptance-record\"></a>"
+      },
+      {
+        "old": "### 1. <问题主题>",
+        "new": "### 6. <问题主题>"
+      },
+      {
+        "old": "### 2. <问题主题>",
+        "new": "### 8. <问题主题>"
+      }
+    ]
+  },
+  "plan_jump_links": {
+    "replacements": [
+      {
+        "old": "[跳转到执行记录](#item-1-execution-record)",
+        "new": "[跳转到验收记录](#item-99-acceptance-record)"
+      },
+      {
+        "old": "[跳转到验收记录](#item-2-acceptance-record)\n\n- [ ] <通过条件>",
+        "new": "- [ ] <通过条件>"
+      }
+    ]
+  }
+}

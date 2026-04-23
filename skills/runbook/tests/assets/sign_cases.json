@@ -1,0 +1,19 @@
+{
+  "execution_ready": {
+    "item": 1,
+    "phase": "execution",
+    "timestamp": "2026-04-23 10:30 +0800",
+    "signer": "codex",
+    "replacements": [
+      {
+        "old": "执行结论：\n\n- 待执行",
+        "new": "执行结论：\n\n- 已完成现场冻结并生成可复核留档"
+      }
+    ],
+    "expected_fragments": [
+      "#### 执行 @codex 2026-04-23 10:30 +0800",
+      "#### 执行记录 @codex 2026-04-23 10:30 +0800",
+      "- 已完成现场冻结并生成可复核留档"
+    ]
+  }
+}

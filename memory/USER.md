@@ -20,7 +20,7 @@ Personal preferences for collaborating with Terence.
 - In terminal-hosted interfaces such as Codex CLI, do not append textual level suffixes or trailing punctuation after the percentages; use color alone to distinguish severity.
 - In CLI output, use a fixed separator so the description text for `Goal`, `Ambiguity`, and `Risk` starts in the same column on all three lines.
 - In the VS Code table format, prepend a traffic-light prefix to the `Percent` value: `🟢 0%-10%`, `🟡 11%-40%`, and `🔴 41%-100%`.
-- Keep the concrete CLI template in `.codex/references/reply-format-cli.md` and the VS Code template in `.codex/references/reply-format-vscode.md` rather than inline in this file.
+- Keep the concrete CLI and VS Code templates in the installable reply-format hook package (`inority-workspace/codex/reply-format-hook/`); the installer syncs them into `~/.codex/reply-format-hook/references/` for runtime use instead of inlining them in this file.
 - When presenting lists, prefer clearer hierarchy and more structured organization instead of flat lists.
 
 ## Writing Preferences

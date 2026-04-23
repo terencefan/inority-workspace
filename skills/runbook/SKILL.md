@@ -191,17 +191,140 @@ authority runbook 的标准大纲放在独立文件里：
 
 需要新建 authority runbook、检查结构是否齐全、或对照模板补章节时，再读取这个文件。
 
-authority 定稿前还必须通过结构校验脚本：
+authority 定稿前还必须通过统一控制入口：
 
-- [scripts/validate_runbook.py](./scripts/validate_runbook.py)
+- [scripts/runctl](./scripts/runctl)
+- [references/validator-error-codes.yaml](./references/validator-error-codes.yaml)
 
-默认执行方式：
+常规工作流：
+
+1. 新建空白 authority：
+   `python3 scripts/runctl init <runbook.md>`
+2. 增量编辑结构：
+   `add-step` / `add-qa` / `move-step` / `remove-step`
+3. 收口结构细节：
+   `normalize`
+4. 做最终结构校验：
+   `validate`
+5. 需要时同步记录区或签名：
+   `sync-records` / `sign-step`
+
+只有当执行出问题、忘了参数、或需要确认完整 CLI 形状时，再看帮助：
 
 ```bash
-python scripts/validate_runbook.py <runbook.md>
+python3 scripts/runctl --help
 ```
 
+初始化：
+
+```bash
+python3 scripts/runctl init <runbook.md>
+```
+
+如果需要顺手替掉标题占位：
+
+```bash
+python3 scripts/runctl init <runbook.md> --title "<runbook 标题>"
+```
+
+`init` 会从 authority 模板生成一份空白 runbook，后续 LLM 只需要按章节逐段填写，不需要自己从零搭正文骨架。
+
+计划区与访谈记录编辑：
+
+```bash
+python3 scripts/runctl add-step <runbook.md> --title "<步骤标题>" --after <n>
+```
+
+如果不传 `--after`，默认追加到当前最后一个编号项后面。
+
+`add-step` 会同时在 `## 执行计划` 和 `## 执行记录` 插入同标题的新编号项，并自动补齐最小可编辑骨架，后续 LLM 只需要专注填该步骤的正文内容。
+
+```bash
+python3 scripts/runctl add-qa <runbook.md> --question "<Q>" --answer "<A>" --impact "<收敛影响>"
+```
+
+`add-qa` 会在 `## 访谈记录` 末尾追加一条标准形态的问答记录，并自动处理连续编号。
+
+```bash
+python3 scripts/runctl move-step <runbook.md> --item <n> --after <m>
+```
+
+如果 `--after 0`，表示把该步骤移到最前。
+
+`move-step` 会同时重排 `## 执行计划` 和 `## 执行记录` 的对应编号项，后续只需要继续编辑移动后的正文。
+
+```bash
+python3 scripts/runctl remove-step <runbook.md> --item <n>
+```
+
+`remove-step` 会同时删除 `## 执行计划` 和 `## 执行记录` 里的对应步骤，并在写回前过一轮 normalize + validate。
+
+结构整理与校验：
+
+```bash
+python3 scripts/runctl normalize <runbook.md>
+```
+
+`normalize` 会把编号、item anchor、执行/验收跳转链接整理到标准形态。
+
+```bash
+python3 scripts/runctl validate <runbook.md>
+```
+
+`validate` 在真正校验前，会先自动执行一轮与 `normalize` 相同的整理，再做结构检查。LLM 在起草这些带编号的小节时，不需要先手工抠编号细节；只要：
+
+- 编号项顺序本身是对的
+- `### N. 标题` 里编号后面的标题语义能对齐
+
+即可把整理工作交给 validator。
+
 如果脚本返回非 `0`，说明 authority 还没达到可执行阈值；先修文档，再继续规划或再申请进入执行态。
+
+编号与记录同步：
+
+```bash
+python3 scripts/runctl shift-items <runbook.md> --start <x> --shift <n> --in-place
+```
+
+这个辅助脚本会把现有 `x..末尾` 的 item 统一改成 `x+n..末尾+n`，同时更新：
+
+- `### N. 标题`
+- `<a id="item-N">`
+- `<a id="item-N-execution-record">`
+- `<a id="item-N-acceptance-record">`
+- `[跳转到执行记录](#item-N-execution-record)`
+- `[跳转到验收记录](#item-N-acceptance-record)`
+
+改完后，runbook 中会空出 `x..x+n-1` 这些编号槽位，后续 agent 可以直接把新的编号项插进中间。
+
+```bash
+python3 scripts/runctl sync-records <runbook.md>
+```
+
+`sync-records` 会按 `## 执行计划` 的编号与标题重建/补齐 `## 执行记录` 的步骤骨架，适合 LLM 先专注写计划区、再统一补记录区。
+
+执行记录签名：
+
+如果某个编号项的执行或验收证据已经回填完成，LLM 不需要手工拼签名 heading，直接调用签名脚本即可；脚本会同时更新：
+
+- `## 执行计划` 对应 item 下的 `#### 执行` 或 `#### 验收`
+- `## 执行记录` 对应 item 下的 `#### 执行记录` 或 `#### 验收记录`
+
+并在写回前强制跑整份 validator；只有通过才会真正落盘。
+
+```bash
+python3 scripts/runctl sign-step <runbook.md> --item <n> --phase execution
+```
+
+```bash
+python3 scripts/runctl sign-step <runbook.md> --item <n> --phase acceptance
+```
+
+如果需要显式 signer 或固定时间戳：
+
+```bash
+python3 scripts/runctl sign-step <runbook.md> --item <n> --phase execution --signer codex --timestamp '2026-04-23 10:30 +0800'
+```
 
 凡是模板和 validator 已能稳定检测的禁写项与格式细节，例如禁用章节名、问答简写、脑图字体、占位签名、anchor / jump-link 形状，以及 `## 执行计划` / `## 执行记录` 的对齐关系，统一以脚本报错为准；不要在 skill 正文里再维护一套并行禁写清单。
 
@@ -248,6 +371,8 @@ python scripts/validate_runbook.py <runbook.md>
   - 验收项使用 Markdown checkbox
   - 如果某个 `#### 执行` 或 `#### 验收` 天然很长，就拆成多个较小分组；每个分组都要保留自己的 code block、`预期结果` 和 `停止条件`
   - 如果命令包含内嵌脚本，默认把外层命令和脚本正文拆成相邻 code block，而不是把脚本埋进一大段 shell
+  - 规划态写 authority 时，默认不要把跨机器 scope 混在同一个编号项里；尤其不要把“上传/下载”和“远端执行”塞进同一个 `#### 执行`
+  - 遇到跨机器链路时，按 scope / 主机边界拆成多个步骤，例如把“本机生成或打包”“传到跳板 / 目标机”“在目标机执行”“回传或拉取结果”拆开，而不是写成一段跨机器长脚本
 
 - `## 执行记录`
   - 必须独立存在
@@ -281,6 +406,7 @@ python scripts/validate_runbook.py <runbook.md>
       - `A：...` 与回答正文写在同一行
     - quote 外再写：
       - `收敛影响：...`
+  - 如果当轮是多选项提问，`Q：...` 只保留题干本身，不要把候选选项抄进 `Q`，也不要只留下 `1` / `2` / `3` 这类编号占位
   - 如果当轮是多选项提问，`A：...` 必须回填用户实际选中的完整选项内容
   - 必须基于本轮真实问答，不要用占位问答冒充规划收敛
 
@@ -288,7 +414,7 @@ python scripts/validate_runbook.py <runbook.md>
   - 必须独立存在
   - 使用 Markdown 列表
   - 只放与当前 authority 直接相关的上游 / 下游 / 旁路文档
-- 章节禁写项、问答形状、脑图字体、签名 / anchor / jump-link 细节、占位签名与对齐关系统一由 `scripts/validate_runbook.py` 强制校验；正文不要再和脚本维护两套并行约束。
+- 章节禁写项、问答形状、脑图字体、签名 / anchor / jump-link 细节、占位签名与对齐关系统一由 validator 强制校验；正文不要再和脚本维护两套并行约束。
 - 如果 execution / acceptance 因为预期外结果或 blocker 停下，先回规划态，补问答 / 补 reconnaissance / 重写 authority，再决定是否重新进入执行态。
 
 ## 主 rollout 的职责
@@ -326,7 +452,7 @@ python scripts/validate_runbook.py <runbook.md>
 
 此外还必须满足：
 
-- `python scripts/validate_runbook.py <runbook.md>` 返回 `0`
+- `python3 scripts/runctl validate <runbook.md>` 返回 `0`
 
 ## 停止条件
 

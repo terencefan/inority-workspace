@@ -1,0 +1,134 @@
+E000:
+  message: "file not found: {path}"
+E001:
+  message: "首行必须是 runbook 标题"
+E002:
+  message: "不允许出现 ## {title}"
+E003:
+  message: "不允许出现 ### {title}"
+E010:
+  message: "二级标题顺序必须严格为: {expected_order}"
+E011:
+  message: "## {h2_title} 下的三级标题必须严格为: {expected_order}"
+E020:
+  message: "### {title} 必须包含一个 dot 代码块"
+E021:
+  message: "### {title} 的 dot 代码块必须显式使用 Noto Sans CJK SC"
+E022:
+  message: "### {title} 的 dot 代码块不允许继续使用 Arial"
+E030:
+  message: "## 访谈记录 至少需要 5 条真实用户访谈"
+E031:
+  message: "## 访谈记录 下的三级标题必须是 ### N. 主题"
+E032:
+  message: "## 访谈记录 的编号必须连续；期望 {expected}，实际 {actual}"
+E033:
+  message: "每条问答至少包含 Q/A 与 收敛影响"
+E034:
+  message: "问答必须以同一行 > Q：... 开始"
+E035:
+  message: "Q： 和 A： 之间必须保留一个空 quote 行"
+E036:
+  message: "问答缺少同一行 > A：..."
+E037:
+  message: "回答正文必须和 > A： 写在同一行"
+E038:
+  message: "每条问答后都必须有 收敛影响："
+E039:
+  message: "A：... 不能只写“选项 1/2/3”这类脱离上下文的简写"
+E040:
+  message: "## 思维脑图 必须包含一个 dot 代码块"
+E041:
+  message: "## 思维脑图 至少需要一条边"
+E042:
+  message: "## 思维脑图 必须且只能有一个根节点"
+E043:
+  message: "## 思维脑图 至少需要 3 个边界/选型问题"
+E044:
+  message: "每个边界/选型问题至少需要 2 个叶子结论"
+E045:
+  message: "每个边界/选型问题最多保留 3 个叶子结论"
+E046:
+  message: "叶子结论不能继续向下发散"
+E047:
+  message: "## 思维脑图 的 dot 代码块必须显式使用 Noto Sans CJK SC"
+E048:
+  message: "## 思维脑图 的 dot 代码块不允许继续使用 Arial"
+E049:
+  message: "Q：... 只允许写题干，不允许内联候选选项或 1/2/3 这类编号列表"
+E050:
+  message: "## 红线行为 至少需要一条明确禁止项"
+E051:
+  message: "## 红线行为 不允许包含三级子标题"
+E060:
+  message: "## 执行计划 至少需要一个步骤"
+E061:
+  message: "## 执行记录 至少需要一个步骤"
+E062:
+  message: "## 执行计划 和 ## 执行记录 的步骤标题必须一一对应"
+E063:
+  message: "执行计划的第一个步骤必须是“冻结现状”或同等语义"
+E064:
+  message: "## {section_name} 下的三级标题必须是 ### N. 标题"
+E065:
+  message: "## {section_name} 的编号必须连续；期望 {expected}，实际 {actual}"
+E066:
+  message: "## 执行计划 和 ## 执行记录 的编号步骤数量必须一致"
+E067:
+  message: "## 执行计划 和 ## 执行记录 的编号与标题必须完全对齐"
+E070:
+  message: "### {title} 缺少 #### 执行"
+E071:
+  message: "### {title} 缺少 #### 验收"
+E072:
+  message: "### {title} 下存在非法四级标题"
+E073:
+  message: "### {title} 的 #### {h4_title} 必须包含 code block"
+E074:
+  message: "### {title} 的 #### {h4_title} 缺少 预期结果："
+E075:
+  message: "### {title} 的 #### {h4_title} 缺少 停止条件："
+E076:
+  message: "### {title} 的 #### 验收 至少需要一个 checkbox"
+E077:
+  message: "### {title} 的 #### {h4_title} 缺少页内跳转链接"
+E078:
+  message: "### {title} 的 #### {h4_title} 页内跳转链接只能出现一次"
+E079:
+  message: "### {title} 的 #### {h4_title} 只能跳转到对应记录，不能混入另一类跳转"
+E080:
+  message: "### {title} 缺少执行记录 anchor"
+E081:
+  message: "### {title} 缺少验收记录 anchor"
+E082:
+  message: "### {title} 缺少 #### 执行记录"
+E083:
+  message: "### {title} 缺少 #### 验收记录"
+E084:
+  message: "### {title} 下存在非法记录标题"
+E085:
+  message: "### {title} 的执行记录缺少命令/结果/结论字段"
+E086:
+  message: "### {title} 的验收记录缺少命令/结果/结论字段"
+E087:
+  message: "### {title} 的记录块必须包含代码或文本证据块"
+E088:
+  message: "### {title} 已签名的记录块不能继续保留待执行占位"
+E089:
+  message: "### {title} 的 #### {h4_title} 不要把跨机器传输和远端执行混在同一步；请按 scope 拆成多个步骤"
+E090:
+  message: "## 最终验收 缺少 {label}"
+E091:
+  message: "## 最终验收 缺少 {label}"
+E092:
+  message: "## 最终验收 缺少 {label}"
+E093:
+  message: "## 回滚方案 不允许包含三级子标题"
+E094:
+  message: "## 回滚方案 至少需要明确回滚边界或回滚动作"
+E095:
+  message: "## 回滚方案 至少需要一个真实命令代码块"
+E100:
+  message: "## 文档链接 不能为空"
+E101:
+  message: "## 文档链接 只能使用带说明的 Markdown 列表项"

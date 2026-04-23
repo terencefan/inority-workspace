@@ -1,0 +1,39 @@
+{
+  "start_2_shift_2": {
+    "start": 2,
+    "shift": 2,
+    "replacements": [
+      {
+        "old": "<a id=\"item-2\"></a>",
+        "new": "<a id=\"item-4\"></a>"
+      },
+      {
+        "old": "### 2. <编号项标题>",
+        "new": "### 4. <编号项标题>"
+      },
+      {
+        "old": "[跳转到执行记录](#item-2-execution-record)",
+        "new": "[跳转到执行记录](#item-4-execution-record)"
+      },
+      {
+        "old": "[跳转到验收记录](#item-2-acceptance-record)",
+        "new": "[跳转到验收记录](#item-4-acceptance-record)"
+      },
+      {
+        "old": "<a id=\"item-2-execution-record\"></a>",
+        "new": "<a id=\"item-4-execution-record\"></a>"
+      },
+      {
+        "old": "<a id=\"item-2-acceptance-record\"></a>",
+        "new": "<a id=\"item-4-acceptance-record\"></a>"
+      }
+    ],
+    "absent_fragments": [
+      "<a id=\"item-2\"></a>",
+      "#item-2-execution-record)",
+      "#item-2-acceptance-record)",
+      "<a id=\"item-2-execution-record\"></a>",
+      "<a id=\"item-2-acceptance-record\"></a>"
+    ]
+  }
+}

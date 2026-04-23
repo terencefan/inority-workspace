@@ -1,0 +1,22 @@
+[
+  {
+    "name": "inline-question-options",
+    "replacements": [
+      {
+        "old": "### 2. <问题主题>\n\n> Q：<...>\n>\n> A：<...>",
+        "new": "### 2. <问题主题>\n\n> Q：你要走 1/2/3 哪个入口？\n>\n> A：<...>"
+      }
+    ],
+    "expected_codes": ["E049"]
+  },
+  {
+    "name": "mixed-transfer-and-remote-exec",
+    "replacements": [
+      {
+        "old": "执行分组：<现场冻结分组标题>\n\n```bash\n...\n```",
+        "new": "执行分组：<现场冻结分组标题>\n\n```bash\nscp bundle.tgz dev3:/tmp/\nssh dev3 'tar -xf /tmp/bundle.tgz -C /srv/runbook'\n```"
+      }
+    ],
+    "expected_codes": ["E089"]
+  }
+]
