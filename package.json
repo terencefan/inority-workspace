@@ -1,0 +1,24 @@
+{
+  "name": "inority-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Workspace control-plane source repo for Codex assets, memory, and handbook tooling.",
+  "workspaces": [
+    "handbook"
+  ],
+  "scripts": {
+    "codex:install:reply-format-hook": "bash ./codex/reply-format-hook/install.sh",
+    "codex:uninstall:reply-format-hook": "bash ./codex/reply-format-hook/uninstall.sh",
+    "codex:install:workspace-memory": "bash ./codex/workspace-memory/install.sh",
+    "codex:uninstall:workspace-memory": "bash ./codex/workspace-memory/uninstall.sh",
+    "codex:install": "npm run codex:install:reply-format-hook && npm run codex:install:workspace-memory",
+    "codex:uninstall": "npm run codex:uninstall:workspace-memory && npm run codex:uninstall:reply-format-hook",
+    "handbook:dev": "npm run dev --workspace inority-handbook",
+    "handbook:build": "npm run build --workspace inority-handbook",
+    "handbook:start": "npm run start --workspace inority-handbook",
+    "handbook:typecheck": "npm run typecheck --workspace inority-handbook",
+    "handbook:service:install:wsl": "npm run service:install:wsl --workspace inority-handbook",
+    "handbook:service:uninstall:wsl": "npm run service:uninstall:wsl --workspace inority-handbook",
+    "handbook:service:status:wsl": "npm run service:status:wsl --workspace inority-handbook"
+  }
+}

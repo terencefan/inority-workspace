@@ -25,7 +25,7 @@ REQUIRED_H2 = [
     "最终验收",
     "回滚方案",
     "访谈记录",
-    "文档链接",
+    "外部链接",
 ]
 
 REQUIRED_H3_BY_H2 = {
@@ -37,17 +37,23 @@ REQUIRED_H3_BY_H2 = {
 FORBIDDEN_H2 = {"当前已决策", "当前前提", "编排策略", "参考文献", "问答记录"}
 FORBIDDEN_H3 = {"当前前提", "编排策略"}
 
-QUESTION_RE = re.compile(r"^### (\d+)\. .+$")
-NUMBERED_H3_RE = re.compile(r"^(\d+)\. (.+)$")
+NUMBERED_H3_RE = re.compile(r"^(?:[🟢🟡🔴]\s+)?(\d+)\. (.+)$")
+DATE_TOKEN_RE = re.compile(r"\b20\d{2}[-_]?(?:0[1-9]|1[0-2])[-_]?(?:0[1-9]|[12]\d|3[01])\b")
 STEP_SIGNED_EXEC_RE = re.compile(r"^#### 执行 @\S+ \d{4}-\d{2}-\d{2} \d{2}:\d{2} [A-Za-z0-9:+-]+$")
 STEP_SIGNED_ACCEPT_RE = re.compile(r"^#### 验收 @\S+ \d{4}-\d{2}-\d{2} \d{2}:\d{2} [A-Za-z0-9:+-]+$")
 RECORD_SIGNED_EXEC_RE = re.compile(r"^#### 执行记录 @\S+ \d{4}-\d{2}-\d{2} \d{2}:\d{2} [A-Za-z0-9:+-]+$")
 RECORD_SIGNED_ACCEPT_RE = re.compile(r"^#### 验收记录 @\S+ \d{4}-\d{2}-\d{2} \d{2}:\d{2} [A-Za-z0-9:+-]+$")
-REFERENCE_LINK_RE = re.compile(r"^- \[[^\]]+\]\([^)]+\)：.+$")
+EXTERNAL_LINK_HEADER_RE = re.compile(
+    r"^\|\s*(?:name|名称)\s*\|\s*(?:type|类型)\s*\|\s*(?:link|链接)\s*\|\s*desc\s*\|\s*$",
+    re.IGNORECASE,
+)
+EXTERNAL_LINK_SEPARATOR_RE = re.compile(r"^\|\s*:?-{3,}:?\s*\|\s*:?-{3,}:?\s*\|\s*:?-{3,}:?\s*\|\s*:?-{3,}:?\s*\|\s*$")
+EXTERNAL_LINK_ROW_RE = re.compile(r"^\|\s*[^|]+\s*\|\s*[^|]+\s*\|\s*\[[^\]]+\]\([^)]+\)\s*\|\s*[^|。！？.!?]+[。！？.!?]?\s*\|\s*$")
 ANSWER_OPTION_SHORTHAND_RE = re.compile(
     r"^> A：\s*(?:选项\s*`?\d+`?|选\s*`?\d+`?)(?:[。；，,\s]|$)"
 )
-QUESTION_OPTION_SLASH_RE = re.compile(r"^> Q：.*\b\d+\s*[/／]\s*\d+(?:\s*[/／]\s*\d+)+")
+INTERVIEW_TIME_RE = re.compile(r"^访谈时间：\s*\S.*$")
+QUESTION_OPTION_SLASH_RE = re.compile(r"^Q：.*\b\d+\s*[/／]\s*\d+(?:\s*[/／]\s*\d+)+")
 QUESTION_OPTION_MARKER_RE = re.compile(
     r"(?:^|[\s（(])(?:\d+[.、)）:]|[A-Za-z][.、)）:]|[一二三四五六七八九十]+[、)）:])"
 )
@@ -57,8 +63,69 @@ TRANSFER_ACTION_RE = re.compile(
 REMOTE_EXEC_ACTION_RE = re.compile(
     r"(?mi)^\s*(?:ssh|ansible(?:-playbook)?|pssh|pdsh|clush|kubectl\s+exec|docker\s+exec)\b"
 )
+OPERATION_NATURE_RE = re.compile(r"^操作性质：\s*(只读|幂等|破坏性)\s*$")
+STEP_TRAFFIC_LIGHT_RE = re.compile(r"^[🟢🟡🔴]\s+")
+OPERATION_UI = {
+    "只读": ("🟢", "[!TIP]"),
+    "幂等": ("🟡", "[!WARNING]"),
+    "破坏性": ("🔴", "[!CAUTION]"),
+}
+HOST_LOW_LEVEL_CONFIG_PATH_RE = re.compile(
+    r"(?x)"
+    r"(?:"
+    r"/etc/(?:"
+    r"netplan(?:/|$)|network(?:/|$)|NetworkManager/(?:system-connections|conf\.d)(?:/|$)|"
+    r"sysconfig/network-scripts(?:/|$)|systemd/network(?:/|$)|"
+    r"fstab|crypttab|multipath(?:\.conf|/)|lvm(?:/|\.conf)|"
+    r"cgconfig\.conf|cgrules\.conf"
+    r")|"
+    r"/etc/systemd/(?:system|user)/[^\s]*\.(?:slice|service)|"
+    r"/sys/fs/cgroup(?:/|$)"
+    r")"
+)
+HOST_CONFIG_WRITE_ACTION_RE = re.compile(
+    r"(?mi)(?:^|[|;&]\s*)(?:sudo\s+)?"
+    r"(?:tee|sed\s+-i|perl\s+-pi|cp|mv|rm|install|chmod|chown|truncate)\b"
+)
+HOST_CONFIG_REDIRECT_RE = re.compile(r">\s*(?:\S+\s+)?(?:/etc/|/sys/fs/cgroup)")
+HOST_LOW_LEVEL_MUTATION_RE = re.compile(
+    r"(?mix)^\s*(?:sudo\s+)?(?:"
+    r"ip\s+(?:link|addr|route|rule)\s+(?:add|del|delete|replace|set)|"
+    r"nmcli\s+connection\s+(?:add|modify|delete|up|down|reload)|"
+    r"netplan\s+(?:apply|try)|"
+    r"if(?:up|down)\b|"
+    r"brctl\s+(?:addbr|delbr|addif|delif)|"
+    r"ovs-vsctl\b|"
+    r"tc\s+qdisc\s+(?:add|del|delete|replace)|"
+    r"iptables(?:-legacy|-nft)?\s+(?:-[ADIFPRXN]|--append|--delete|--insert|--flush|--policy|--replace|--new-chain|--delete-chain)|"
+    r"nft\s+(?:add|delete|flush|insert|replace)|"
+    r"firewall-cmd\s+(?:--add|--remove|--reload|--permanent)|"
+    r"sysctl\s+-w\s+net\.|"
+    r"parted|fdisk|sfdisk|sgdisk|mkfs(?:\.\S+)?|wipefs|"
+    r"pvcreate|vgcreate|lvcreate|lvremove|lvextend|lvresize|resize2fs|xfs_growfs|"
+    r"mdadm\s+--create|mount|umount|swapon|swapoff|"
+    r"dd\b.*\bof=|"
+    r"systemctl\s+set-property"
+    r")(?:\b|$|(?=/))"
+)
 
 ERROR_CODE_CATALOG_PATH = Path(__file__).resolve().parent.parent.parent / "references" / "validator-error-codes.yaml"
+INCREMENTAL_DRAFT_ERROR_CODES = {
+    "E020",
+    "E021",
+    "E040",
+    "E050",
+    "E030",
+    "E060",
+    "E061",
+    "E076",
+    "E090",
+    "E091",
+    "E092",
+    "E094",
+    "E095",
+    "E100",
+}
 
 
 @dataclass
@@ -108,6 +175,12 @@ def error_message(code: str, **params: object) -> str:
     return entry["message"].format(**params)
 
 
+def filter_incremental_draft_errors(
+    errors: list[ValidationError],
+) -> list[ValidationError]:
+    return [item for item in errors if item.code not in INCREMENTAL_DRAFT_ERROR_CODES]
+
+
 def first_non_empty_line_idx(lines: list[str], start: int, end: int) -> int | None:
     for idx in range(start, end):
         if lines[idx].strip():
@@ -137,13 +210,23 @@ extract_h3_blocks = normalize_cmd.extract_h3_blocks
 extract_h4_blocks = normalize_cmd.extract_h4_blocks
 
 
-def collect_errors(text: str) -> list[ValidationError]:
+def collect_errors(text: str, *, path: Path | None = None) -> list[ValidationError]:
     lines = normalize_cmd.normalize_runbook_numbering(text).splitlines()
     errors: list[ValidationError] = []
 
     if not lines or not lines[0].startswith("# "):
         errors.append(err("E001", error_message("E001"), lines, 0 if lines else None))
         return errors
+    if DATE_TOKEN_RE.search(lines[0]):
+        errors.append(err("E105", error_message("E105"), lines, 0))
+    if path is not None and DATE_TOKEN_RE.search(path.name):
+        errors.append(
+            ValidationError(
+                code="E106",
+                message=error_message("E106"),
+                content=path.name,
+            )
+        )
 
     for idx, line in enumerate(lines):
         if line.strip() in {f"## {name}" for name in FORBIDDEN_H2}:
@@ -178,7 +261,7 @@ def collect_errors(text: str) -> list[ValidationError]:
     errors.extend(validate_plan_and_records(lines, h2_sections))
     errors.extend(validate_final_acceptance(lines, h2_sections))
     errors.extend(validate_rollback_plan(lines, h2_sections))
-    errors.extend(validate_doc_links(lines, h2_sections))
+    errors.extend(validate_external_links(lines, h2_sections))
 
     return errors
 
@@ -263,31 +346,26 @@ def validate_qa(
     if len(blocks) < 5:
         errors.append(err("E030", error_message("E030"), lines, start))
 
-    expected = 1
     for heading_idx, title, block_start, block_end in blocks:
-        match = QUESTION_RE.match(f"### {title}")
-        if not match:
+        if NUMBERED_H3_RE.match(title):
+            errors.append(err("E032", error_message("E032"), lines, heading_idx))
+        if not title.startswith("Q：") or title == "Q：":
             errors.append(err("E031", error_message("E031"), lines, heading_idx))
             continue
-        actual = int(match.group(1))
-        if actual != expected:
-            errors.append(err("E032", error_message("E032", expected=expected, actual=actual), lines, heading_idx))
-            expected = actual
-        expected += 1
+        if question_contains_options(title):
+            errors.append(err("E049", error_message("E049"), lines, heading_idx))
 
         body = [(idx, lines[idx].rstrip()) for idx in range(block_start + 1, block_end) if lines[idx].strip()]
-        if len(body) < 3:
+        if len(body) < 2:
             errors.append(err("E033", error_message("E033"), lines, heading_idx))
             continue
 
-        q_label_idx, q_label = body[0]
-        if not q_label.startswith("> Q：") or q_label == "> Q：":
-            errors.append(err("E034", error_message("E034"), lines, q_label_idx))
-        elif question_contains_options(q_label):
-            errors.append(err("E049", error_message("E049"), lines, q_label_idx))
+        q_quote_idx = next((idx for idx, (_, line) in enumerate(body) if line.startswith("> Q：")), None)
+        if q_quote_idx is not None:
+            errors.append(err("E034", error_message("E034"), lines, body[q_quote_idx][0]))
 
         a_label_pos = next(
-            (i for i, (_, line) in enumerate(body[1:], start=1) if line.startswith("> A：")),
+            (i for i, (_, line) in enumerate(body) if line.startswith("> A：")),
             None,
         )
         if a_label_pos is None:
@@ -300,20 +378,38 @@ def validate_qa(
         if ANSWER_OPTION_SHORTHAND_RE.match(a_label):
             errors.append(err("E039", error_message("E039"), lines, a_label_idx))
 
-        raw_between = [lines[idx].rstrip() for idx in range(q_label_idx + 1, a_label_idx)]
-        if ">" not in raw_between:
-            errors.append(err("E035", error_message("E035"), lines, q_label_idx))
+        body_lines = [
+            (idx, line)
+            for idx, line in body[a_label_pos + 1 :]
+            if line.strip() and not line.startswith(">")
+        ]
+        interview_time_lines = [(idx, line) for idx, line in body_lines if line.startswith("访谈时间：")]
+        if not interview_time_lines:
+            errors.append(err("E053", error_message("E053"), lines, heading_idx))
+        if any(not INTERVIEW_TIME_RE.match(line) for _, line in interview_time_lines):
+            errors.append(err("E053", error_message("E053"), lines, interview_time_lines[0][0]))
+        if len(interview_time_lines) > 1:
+            errors.append(err("E054", error_message("E054"), lines, interview_time_lines[1][0]))
+        if interview_time_lines and body_lines[0][1] != interview_time_lines[0][1]:
+            errors.append(err("E055", error_message("E055"), lines, interview_time_lines[0][0]))
 
-        if not any(line == "收敛影响：" for _, line in body):
+        impact_lines = [(idx, line) for idx, line in body_lines if not line.startswith("访谈时间：")]
+        if interview_time_lines and impact_lines:
+            interview_time_idx = interview_time_lines[0][0]
+            if interview_time_idx + 1 < len(lines) and lines[interview_time_idx + 1].strip():
+                errors.append(err("E056", error_message("E056"), lines, interview_time_idx))
+        if not impact_lines:
+            errors.append(err("E033", error_message("E033"), lines, heading_idx))
+        if any(line == "收敛影响：" for _, line in impact_lines):
             errors.append(err("E038", error_message("E038"), lines, heading_idx))
 
     return errors
 
 
-def question_contains_options(q_label: str) -> bool:
-    if QUESTION_OPTION_SLASH_RE.search(q_label):
+def question_contains_options(question_heading: str) -> bool:
+    if QUESTION_OPTION_SLASH_RE.search(question_heading):
         return True
-    question_body = q_label.removeprefix("> Q：").strip()
+    question_body = question_heading.removeprefix("Q：").strip()
     return len(QUESTION_OPTION_MARKER_RE.findall(question_body)) >= 2
 
 
@@ -420,9 +516,6 @@ def validate_plan_and_records(
     errors.extend(plan_numbered.errors)
     errors.extend(record_numbered.errors)
 
-    if plan_numbered.entries and "冻结现状" not in plan_numbered.entries[0][2]:
-        errors.append(err("E063", error_message("E063"), lines, plan_steps[0][0]))
-
     if plan_numbered.entries and record_numbered.entries:
         if len(plan_numbered.entries) != len(record_numbered.entries):
             errors.append(err("E066", error_message("E066"), lines, records[0]))
@@ -484,6 +577,9 @@ def validate_plan_step(
     index: int,
 ) -> list[ValidationError]:
     errors: list[ValidationError] = []
+    exec_natures: list[tuple[int, str]] = []
+    title_match = NUMBERED_H3_RE.match(title)
+    step_label = title_match.group(2) if title_match else title
     h4_blocks = normalize_cmd.extract_h4_blocks(lines, start + 1, end)
     h4_titles = [name for _, name, _, _ in h4_blocks]
     if "执行" not in h4_titles and not any(STEP_SIGNED_EXEC_RE.match(f"#### {name}") for name in h4_titles):
@@ -504,10 +600,35 @@ def validate_plan_step(
             errors.append(err("E074", error_message("E074", title=title, h4_title=h4_title), lines, block_start))
         if "停止条件：" not in block_text:
             errors.append(err("E075", error_message("E075", title=title, h4_title=h4_title), lines, block_start))
-        if is_accept_block and "- [ ]" not in block_text and "- [x]" not in block_text:
-            errors.append(err("E076", error_message("E076", title=title), lines, block_start))
         if is_exec_block and mixes_cross_machine_transfer_and_exec(block_text):
             errors.append(err("E089", error_message("E089", title=title, h4_title=h4_title), lines, block_start))
+        if is_exec_block:
+            nature_lines = [
+                (idx, lines[idx].strip())
+                for idx in range(block_start, block_end)
+                if lines[idx].strip().startswith("操作性质：")
+            ]
+            if not nature_lines:
+                errors.append(err("E096", error_message("E096", title=title), lines, block_start))
+            for nature_idx, nature_line in nature_lines:
+                match = OPERATION_NATURE_RE.match(nature_line)
+                if match is None:
+                    errors.append(err("E096", error_message("E096", title=title), lines, nature_idx))
+                    continue
+                nature = match.group(1)
+                exec_natures.append((nature_idx, nature))
+                expected_emoji, expected_alert = OPERATION_UI[nature]
+                pre_exec_text = "\n".join(lines[start + 1 : block_start])
+                if not title.startswith(f"{expected_emoji} "):
+                    errors.append(err("E099", error_message("E099", title=title), lines, heading_idx))
+                if expected_alert not in pre_exec_text:
+                    errors.append(err("E102", error_message("E102", title=title), lines, heading_idx))
+                if nature == "破坏性" and (
+                    "严重后果：" not in pre_exec_text or pre_exec_text.count("[!CAUTION]") < 2
+                ):
+                    errors.append(err("E103", error_message("E103", title=title), lines, heading_idx))
+            if modifies_host_low_level_config(block_text) and "破坏性" not in nature_values_in_block(nature_lines):
+                errors.append(err("E104", error_message("E104", title=title), lines, block_start))
         expected_link = f"[跳转到执行记录](#item-{index}-execution-record)" if is_exec_block else f"[跳转到验收记录](#item-{index}-acceptance-record)"
         disallowed_link = f"[跳转到验收记录](#item-{index}-acceptance-record)" if is_exec_block else f"[跳转到执行记录](#item-{index}-execution-record)"
         expected_count = block_text.count(expected_link)
@@ -517,11 +638,60 @@ def validate_plan_step(
             errors.append(err("E078", error_message("E078", title=title, h4_title=h4_title), lines, block_start))
         if disallowed_link in block_text:
             errors.append(err("E079", error_message("E079", title=title, h4_title=h4_title), lines, block_start))
+    nature_values = {nature for _, nature in exec_natures}
+    if len(nature_values) > 1:
+        first_mixed_idx = exec_natures[0][0]
+        errors.append(err("E097", error_message("E097", title=title), lines, first_mixed_idx))
     return errors
 
 
 def mixes_cross_machine_transfer_and_exec(block_text: str) -> bool:
     return bool(TRANSFER_ACTION_RE.search(block_text) and REMOTE_EXEC_ACTION_RE.search(block_text))
+
+
+def nature_values_in_block(nature_lines: list[tuple[int, str]]) -> set[str]:
+    values: set[str] = set()
+    for _, nature_line in nature_lines:
+        match = OPERATION_NATURE_RE.match(nature_line)
+        if match:
+            values.add(match.group(1))
+    return values
+
+
+def modifies_host_low_level_config(block_text: str) -> bool:
+    if HOST_LOW_LEVEL_MUTATION_RE.search(block_text):
+        return True
+    for line in block_text.splitlines():
+        if not HOST_LOW_LEVEL_CONFIG_PATH_RE.search(line):
+            continue
+        if HOST_CONFIG_WRITE_ACTION_RE.search(line) or HOST_CONFIG_REDIRECT_RE.search(line):
+            return True
+    return False
+
+
+def destructive_plan_items(
+    lines: list[str],
+    h2_sections: list[tuple[int, str]],
+) -> list[tuple[int, str, int]]:
+    plan = section_slice(h2_sections, "执行计划", len(lines))
+    if plan is None:
+        return []
+
+    items: list[tuple[int, str, int]] = []
+    for heading_idx, title, block_start, block_end in extract_h3_blocks(lines, plan[0] + 1, plan[1]):
+        match = NUMBERED_H3_RE.match(title)
+        if match is None:
+            continue
+        h4_blocks = normalize_cmd.extract_h4_blocks(lines, block_start + 1, block_end)
+        for _, h4_title, h4_start, h4_end in h4_blocks:
+            is_exec_block = h4_title == "执行" or STEP_SIGNED_EXEC_RE.match(f"#### {h4_title}") is not None
+            if not is_exec_block:
+                continue
+            block_text = "\n".join(lines[h4_start:h4_end])
+            if re.search(r"(?m)^操作性质：\s*破坏性\s*$", block_text):
+                items.append((int(match.group(1)), title, heading_idx))
+                break
+    return items
 
 
 def validate_record_step(
@@ -580,6 +750,8 @@ def validate_final_acceptance(
     ):
         if label not in body:
             errors.append(err(code, error_message(code, label=label), lines, start))
+    if "- [ ]" not in body and "- [x]" not in body:
+        errors.append(err("E076", error_message("E076"), lines, start))
     return errors
 
 
@@ -598,13 +770,16 @@ def validate_rollback_plan(
         errors.append(err("E094", error_message("E094"), lines, start))
     if "```" not in body:
         errors.append(err("E095", error_message("E095"), lines, start))
+    for item_no, title, heading_idx in destructive_plan_items(lines, h2_sections):
+        if not re.search(rf"(?m)^\s*{item_no}\.\s+\S", body):
+            errors.append(err("E098", error_message("E098", title=title, item=item_no), lines, heading_idx))
     return errors
 
 
-def validate_doc_links(
+def validate_external_links(
     lines: list[str], h2_sections: list[tuple[int, str]]
 ) -> list[ValidationError]:
-    section = section_slice(h2_sections, "文档链接", len(lines))
+    section = section_slice(h2_sections, "外部链接", len(lines))
     if section is None:
         return []
     start, end = section
@@ -612,8 +787,14 @@ def validate_doc_links(
     if not entries:
         return [err("E100", error_message("E100"), lines, start)]
     errors: list[ValidationError] = []
-    for idx, entry in entries:
-        if not REFERENCE_LINK_RE.match(entry):
+    if len(entries) < 3:
+        return [err("E101", error_message("E101"), lines, start)]
+    if not EXTERNAL_LINK_HEADER_RE.match(entries[0][1]):
+        errors.append(err("E101", error_message("E101"), lines, entries[0][0]))
+    if not EXTERNAL_LINK_SEPARATOR_RE.match(entries[1][1]):
+        errors.append(err("E101", error_message("E101"), lines, entries[1][0]))
+    for idx, entry in entries[2:]:
+        if not EXTERNAL_LINK_ROW_RE.match(entry):
             errors.append(err("E101", error_message("E101"), lines, idx))
     return errors
 
@@ -683,7 +864,7 @@ def handle(args: argparse.Namespace) -> int:
         return 2
 
     _, normalized, _ = normalize_cmd.normalize_file(path)
-    errors = collect_errors(normalized)
+    errors = collect_errors(normalized, path=path)
     if errors:
         print_fail(path, errors, args.json)
         return 1

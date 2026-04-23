@@ -43,8 +43,8 @@ class AddStepTests(unittest.TestCase):
             content = runbook_path.read_text(encoding="utf-8")
 
         self.assertIn("[runbook-add-step] inserted 检查镜像缓存", result.stdout)
-        self.assertEqual(2, content.count("### 2. 检查镜像缓存"))
-        self.assertEqual(2, content.count("### 3. <编号项标题>"))
+        self.assertEqual(2, content.count("### 🟡 2. 检查镜像缓存"))
+        self.assertEqual(2, content.count("### 🔴 3. <编号项标题>"))
         self.assertIn("[跳转到执行记录](#item-2-execution-record)", content)
         self.assertIn("<a id=\"item-2-execution-record\"></a>", content)
         self.assertEqual([], validate_cmd.collect_errors(content))
@@ -70,8 +70,40 @@ class AddStepTests(unittest.TestCase):
             self.assertEqual(0, result.returncode)
             content = runbook_path.read_text(encoding="utf-8")
 
-        self.assertEqual(2, content.count("### 3. 收尾检查"))
+        self.assertEqual(2, content.count("### 🟡 3. 收尾检查"))
         self.assertEqual([], validate_cmd.collect_errors(content))
+
+    def test_runctl_add_step_supports_blank_init_output(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            runbook_path = Path(tmpdir) / "authority.md"
+            init_result = subprocess.run(
+                [sys.executable, str(RUNCTL), "init", str(runbook_path)],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(0, init_result.returncode)
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(RUNCTL),
+                    "add-step",
+                    str(runbook_path),
+                    "--title",
+                    "冻结现状",
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+            self.assertEqual(0, result.returncode)
+            content = runbook_path.read_text(encoding="utf-8")
+
+        self.assertEqual(2, content.count("### 🟡 1. 冻结现状"))
+        self.assertIn("<a id=\"item-1-execution-record\"></a>", content)
+        self.assertEqual([], validate_cmd.filter_incremental_draft_errors(validate_cmd.collect_errors(content)))
 
 
 if __name__ == "__main__":

@@ -5,7 +5,8 @@ import re
 from pathlib import Path
 
 
-NUMBERED_H3_RE = re.compile(r"^(\d+)\. (.+)$")
+NUMBERED_H3_RE = re.compile(r"^(?:[🟢🟡🔴]\s+)?(\d+)\. (.+)$")
+STEP_TRAFFIC_LIGHT_RE = re.compile(r"^([🟢🟡🔴]\s+)")
 STEP_SIGNED_EXEC_RE = re.compile(r"^#### 执行 @\S+ \d{4}-\d{2}-\d{2} \d{2}:\d{2} [A-Za-z0-9:+-]+$")
 STEP_SIGNED_ACCEPT_RE = re.compile(r"^#### 验收 @\S+ \d{4}-\d{2}-\d{2} \d{2}:\d{2} [A-Za-z0-9:+-]+$")
 PLAN_JUMP_LINK_RE = re.compile(r"^\[跳转到(?:执行|验收)记录\]\(#item-\d+-(?:execution|acceptance)-record\)$")
@@ -71,14 +72,15 @@ def normalize_numbered_step_section(
     section_name: str,
     *,
     fix_item_tokens: bool,
-) -> None:
+) -> dict[int, int]:
     h2_sections = parse_sections(lines, 2)
     section = section_slice(h2_sections, section_name, len(lines))
     if section is None:
-        return
+        return {}
 
     section_start, section_end = section
     expected = 1
+    mapping: dict[int, int] = {}
     for heading_idx, title, block_start, block_end in extract_h3_blocks(lines, section_start + 1, section_end):
         match = NUMBERED_H3_RE.match(title)
         if match is None:
@@ -86,8 +88,11 @@ def normalize_numbered_step_section(
 
         actual = int(match.group(1))
         label = match.group(2)
+        mapping[actual] = expected
+        traffic_light = STEP_TRAFFIC_LIGHT_RE.match(title)
+        title_prefix = traffic_light.group(1) if traffic_light else ""
         newline = "\n" if lines[heading_idx].endswith("\n") else ""
-        lines[heading_idx] = f"### {expected}. {label}{newline}"
+        lines[heading_idx] = f"### {title_prefix}{expected}. {label}{newline}"
 
         if fix_item_tokens and actual != expected:
             anchor_idx = heading_idx - 1
@@ -98,6 +103,30 @@ def normalize_numbered_step_section(
             for idx in range(block_start + 1, block_end):
                 lines[idx] = replace_item_number_tokens(lines[idx], actual, expected)
         expected += 1
+    return mapping
+
+
+def normalize_rollback_item_numbers(lines: list[str], mapping: dict[int, int]) -> None:
+    if not mapping:
+        return
+
+    h2_sections = parse_sections(lines, 2)
+    section = section_slice(h2_sections, "回滚方案", len(lines))
+    if section is None:
+        return
+
+    start, end = section
+    for idx in range(start + 1, end):
+        line = lines[idx]
+        match = re.match(r"^(\s*)(\d+)(\.\s+.*)$", line)
+        if match is None:
+            continue
+        old_number = int(match.group(2))
+        new_number = mapping.get(old_number)
+        if new_number is None or new_number == old_number:
+            continue
+        lines[idx] = f"{match.group(1)}{new_number}{match.group(3)}"
+        lines[idx] = replace_item_number_tokens(lines[idx], old_number, new_number)
 
 
 def normalize_plan_jump_links(lines: list[str]) -> None:
@@ -138,9 +167,9 @@ def normalize_runbook_numbering(text: str) -> str:
     if not lines:
         return text
 
-    normalize_numbered_step_section(lines, "执行计划", fix_item_tokens=True)
+    plan_mapping = normalize_numbered_step_section(lines, "执行计划", fix_item_tokens=True)
+    normalize_rollback_item_numbers(lines, plan_mapping)
     normalize_numbered_step_section(lines, "执行记录", fix_item_tokens=True)
-    normalize_numbered_step_section(lines, "访谈记录", fix_item_tokens=False)
     normalize_plan_jump_links(lines)
     return "".join(lines)
 

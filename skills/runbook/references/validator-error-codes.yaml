@@ -19,13 +19,13 @@ E022:
 E030:
   message: "## 访谈记录 至少需要 5 条真实用户访谈"
 E031:
-  message: "## 访谈记录 下的三级标题必须是 ### N. 主题"
+  message: "## 访谈记录 下的三级标题必须是 ### Q：问题正文"
 E032:
-  message: "## 访谈记录 的编号必须连续；期望 {expected}，实际 {actual}"
+  message: "## 访谈记录 不要编号；直接写 ### Q：问题正文"
 E033:
-  message: "每条问答至少包含 Q/A 与 收敛影响"
+  message: "每条问答至少包含 ### Q：标题、quote A，以及至少一行影响面"
 E034:
-  message: "问答必须以同一行 > Q：... 开始"
+  message: "问题不要再写成 quote；直接放在 ### Q：标题里"
 E035:
   message: "Q： 和 A： 之间必须保留一个空 quote 行"
 E036:
@@ -33,11 +33,19 @@ E036:
 E037:
   message: "回答正文必须和 > A： 写在同一行"
 E038:
-  message: "每条问答后都必须有 收敛影响："
+  message: "影响面正文里不要再保留旧标签行"
 E039:
   message: "A：... 不能只写“选项 1/2/3”这类脱离上下文的简写"
 E040:
   message: "## 思维脑图 必须包含一个 dot 代码块"
+E053:
+  message: "访谈时间行必须写成非空的 访谈时间：..."
+E054:
+  message: "每条访谈最多只能有一行 访谈时间：..."
+E055:
+  message: "如果写访谈时间，它必须紧跟在 > A：... 下方"
+E056:
+  message: "访谈时间行后必须空一行，再写影响面正文"
 E041:
   message: "## 思维脑图 至少需要一条边"
 E042:
@@ -89,7 +97,7 @@ E074:
 E075:
   message: "### {title} 的 #### {h4_title} 缺少 停止条件："
 E076:
-  message: "### {title} 的 #### 验收 至少需要一个 checkbox"
+  message: "## 最终验收 至少需要一个 Markdown checkbox"
 E077:
   message: "### {title} 的 #### {h4_title} 缺少页内跳转链接"
 E078:
@@ -128,7 +136,25 @@ E094:
   message: "## 回滚方案 至少需要明确回滚边界或回滚动作"
 E095:
   message: "## 回滚方案 至少需要一个真实命令代码块"
+E096:
+  message: "### {title} 的 #### 执行 必须包含一行 操作性质：只读/幂等/破坏性"
+E097:
+  message: "### {title} 不能把只读、幂等、破坏性任意两类操作放在同一个编号项；请按操作性质拆成独立编号项"
+E098:
+  message: "### {title} 是破坏性步骤，## 回滚方案 必须包含同序号 {item}. 回滚条目"
+E099:
+  message: "### {title} 的标题灯号必须和 操作性质 一致：只读 🟢、幂等 🟡、破坏性 🔴"
 E100:
-  message: "## 文档链接 不能为空"
+  message: "## 外部链接 不能为空"
 E101:
-  message: "## 文档链接 只能使用带说明的 Markdown 列表项"
+  message: "## 外部链接 必须使用四列表格：name/type/link/desc；link 为 Markdown 链接，desc 只写一句简短作用说明"
+E102:
+  message: "### {title} 必须在 #### 执行 前写 GitHub alert：只读 [!TIP]、幂等 [!WARNING]、破坏性 [!CAUTION]"
+E103:
+  message: "### {title} 是破坏性步骤，必须额外增加一个独立 [!CAUTION] 写明 严重后果：..."
+E104:
+  message: "### {title} 直接修改宿主机网络、磁盘、cgroup 等底层配置时，操作性质必须标为破坏性"
+E105:
+  message: "runbook title 不要包含日期；日期只放父目录"
+E106:
+  message: "runbook filename 不要包含日期；日期只放父目录"

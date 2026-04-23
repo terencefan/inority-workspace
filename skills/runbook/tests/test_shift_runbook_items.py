@@ -60,7 +60,7 @@ class ShiftRunbookItemsTests(unittest.TestCase):
 
         self.assertIn("---", result.stdout)
         self.assertIn("+++ ", result.stdout)
-        self.assertIn("### 4. <编号项标题>", result.stdout)
+        self.assertIn("### 🔴 4. <编号项标题>", result.stdout)
         self.assertIn("Preview only: would open slots 2-3", result.stderr)
 
     def test_runctl_shift_items_preview_matches_existing_cli_contract(self) -> None:
@@ -86,7 +86,7 @@ class ShiftRunbookItemsTests(unittest.TestCase):
             self.assertEqual(0, result.returncode)
             self.assertEqual(self.template_text, runbook_path.read_text(encoding="utf-8"))
 
-        self.assertIn("### 4. <编号项标题>", result.stdout)
+        self.assertIn("### 🔴 4. <编号项标题>", result.stdout)
         self.assertIn("Preview only: would open slots 2-3", result.stderr)
 
     def test_in_place_cli_writes_shifted_content(self) -> None:
@@ -118,8 +118,8 @@ class ShiftRunbookItemsTests(unittest.TestCase):
 
     def test_shift_rejects_misaligned_plan_and_records(self) -> None:
         misaligned = self.template_text.replace(
-            "### 2. <编号项标题>\n\n<a id=\"item-2-execution-record\"></a>",
-            "### 2. 不对齐标题\n\n<a id=\"item-2-execution-record\"></a>",
+            "### 🔴 2. <编号项标题>\n\n<a id=\"item-2-execution-record\"></a>",
+            "### 🔴 2. 不对齐标题\n\n<a id=\"item-2-execution-record\"></a>",
             1,
         )
 

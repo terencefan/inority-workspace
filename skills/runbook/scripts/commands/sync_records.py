@@ -8,9 +8,10 @@ import commands.normalize as normalize_cmd
 import commands.validate as validate_cmd
 
 
-def build_record_block(number: int, title: str) -> str:
+def build_record_block(number: int, title: str, traffic_light: str = "") -> str:
+    title_prefix = traffic_light if traffic_light else ""
     return (
-        f"### {number}. {title}\n\n"
+        f"### {title_prefix}{number}. {title}\n\n"
         f"<a id=\"item-{number}-execution-record\"></a>\n\n"
         "#### 执行记录\n\n"
         "执行命令：\n\n"
@@ -46,7 +47,11 @@ def sync_records(text: str) -> str:
         raise ValueError("`## 执行计划` does not contain any numbered items")
 
     record_body = "".join(
-        build_record_block(int(match.group(1)), match.group(2))
+        build_record_block(
+            int(match.group(1)),
+            match.group(2),
+            title[:2] if title.startswith(("🟢 ", "🟡 ", "🔴 ")) else "",
+        )
         for _, title, _, _ in plan_blocks
         if (match := normalize_cmd.NUMBERED_H3_RE.match(title)) is not None
     )

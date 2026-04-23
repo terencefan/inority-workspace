@@ -77,6 +77,31 @@ class ValidateRunbookTests(unittest.TestCase):
         for expected in case["expected_codes"]:
             self.assertIn(expected, codes)
 
+    def test_title_must_not_include_date(self) -> None:
+        mutated = self.template_text.replace("# <runbook 标题>", "# 2026-04-23 Canary Bootstrap", 1)
+
+        codes = {item.code for item in validate_core.collect_errors(mutated)}
+
+        self.assertIn("E105", codes)
+
+    def test_filename_must_not_include_date(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            dated_dir = Path(tmpdir) / "2026-04-23"
+            dated_dir.mkdir()
+            runbook_path = dated_dir / "2026-04-23-canary-bootstrap.md"
+            runbook_path.write_text(self.template_text, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(RUNCTL), "validate", str(runbook_path), "--json"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+        self.assertEqual(1, result.returncode)
+        payload = json.loads(result.stdout)
+        codes = {item["code"] for item in payload["errors"]}
+        self.assertIn("E106", codes)
+
     def test_runctl_validate_help_lists_subcommands(self) -> None:
         result = subprocess.run(
             [sys.executable, str(RUNCTL), "--help"],

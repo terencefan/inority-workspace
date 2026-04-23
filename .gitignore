@@ -1,0 +1,18 @@
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Node dependencies and build output
+node_modules/
+dist/
+build/
+
+# Logs
+*.log
+.handbook-*.log
+
+# Local environment files
+.env
+.env.*
+!.env.example

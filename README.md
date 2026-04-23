@@ -17,7 +17,34 @@
 
 ## 开发与启动
 
-这个仓库没有单一的根级启动命令，通常按子目录工作：
+这个仓库现在可以优先从根目录统一使用 npm 管理；只有在排障、补脚本或调试单个子模块时，才需要下钻到子目录。
+
+先安装根目录依赖：
+
+```bash
+cd /home/fantengyuan/workspace/inority-workspace
+npm install
+```
+
+这个 `npm install` 会安装 root workspace 元数据，并把 `handbook/` 的依赖一并装好。
+
+常用根级入口：
+
+```bash
+npm run codex:install
+npm run codex:uninstall
+npm run handbook:dev
+npm run handbook:build
+```
+
+如果某个安装脚本需要额外参数，用 npm 的 `--` 透传：
+
+```bash
+npm run codex:install:workspace-memory -- --workspace-root /path/to/workspace
+npm run codex:install:reply-format-hook -- --codex-home /path/to/.codex
+```
+
+这个仓库没有单一的业务型根级启动命令，通常按下面几类入口工作：
 
 ### 1. 修改和维护 skills / memory
 
@@ -33,18 +60,25 @@
 
 ### 2. 安装 Codex 运行时资产
 
-当前已沉淀的安装型资产是 reply-format hook：
+当前已沉淀的安装型资产包括：
+
+- reply-format hook
+- workspace memory 安装包
 
 ```bash
-cd /home/fantengyuan/workspace/inority-workspace/codex/reply-format-hook
-bash ./install.sh
+npm run codex:install:reply-format-hook
+npm run codex:install:workspace-memory
 ```
+
+其中 `SOUL.md` / `USER.md` 会以软链接方式安装到目标 workspace 的
+`.codex/memory/`，因为它们属于可同步资产；`WORKSPACE.md` / `credential.yaml`
+和 `dairy/` 仍保持本地私有。
 
 卸载：
 
 ```bash
-cd /home/fantengyuan/workspace/inority-workspace/codex/reply-format-hook
-bash ./uninstall.sh
+npm run codex:uninstall:reply-format-hook
+npm run codex:uninstall:workspace-memory
 ```
 
 默认会安装到 `~/.codex/reply-format-hook/`，并更新 `~/.codex/hooks.json` 中对应的 hook 注册。
@@ -52,17 +86,14 @@ bash ./uninstall.sh
 ### 3. 启动本地 handbook
 
 ```bash
-cd /home/fantengyuan/workspace/inority-workspace/handbook
-npm install
-npm run dev
+npm run handbook:dev
 ```
 
 生产式本地运行：
 
 ```bash
-cd /home/fantengyuan/workspace/inority-workspace/handbook
-npm run build
-npm run start
+npm run handbook:build
+npm run handbook:start
 ```
 
 ## 架构设计
@@ -119,7 +150,7 @@ digraph G {
 |------|------|
 | `skills/` | workspace-local 的 Codex skills 源码目录，每个 skill 独立维护自己的 `SKILL.md`、脚本和参考资料 |
 | `memory/` | 跨环境可复用的 memory 源文件，例如 `SOUL.md`、`USER.md` |
-| `codex/` | 需要安装到 `~/.codex/` 或项目 `.codex/` 的运行时资产，目前已有 `reply-format-hook/` |
+| `codex/` | 需要安装到 `~/.codex/` 或项目 `.codex/` 的运行时资产，目前已有 `reply-format-hook/` 和 `workspace-memory/` |
 | `handbook/` | 本地 handbook 站点代码、运行脚本以及 `runbook/` 文档目录 |
 | `handbook/runbook/` | 执行型 runbook 文档入口，供 handbook 站点和实际运维流程消费 |
 
@@ -139,6 +170,7 @@ digraph G {
 这意味着：
 
 - 根 README 负责说明“去哪里改”
+- 根级 `package.json` 负责统一提供安装、卸载和 handbook 运行入口
 - `../.codex` 和 `~/.codex` 负责“实际怎么生效”
 - 各子目录 README 负责“具体边界内怎么用”
 
@@ -147,3 +179,4 @@ digraph G {
 - [memory 说明](./memory/README.md)
 - [handbook 说明](./handbook/README.md)
 - [reply-format hook 说明](./codex/reply-format-hook/README.md)
+- [workspace memory 说明](./codex/workspace-memory/README.md)

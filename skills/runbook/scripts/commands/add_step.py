@@ -45,9 +45,19 @@ def extract_item_blocks(lines: list[str], section_name: str) -> tuple[tuple[int,
                 "content_end": content_end,
             }
         )
-    if not blocks:
-        raise ValueError(f"`## {section_name}` does not contain any numbered items")
     return section, blocks
+
+
+def first_item_insert_index(
+    lines: list[str],
+    section: tuple[int, int],
+) -> int:
+    section_start, section_end = section
+    for idx in range(section_start + 1, section_end):
+        stripped = lines[idx].strip()
+        if stripped.startswith("- "):
+            return idx
+    return section_end
 
 
 def insertion_index(blocks: list[dict[str, int | str]], after: int) -> tuple[int, int]:
@@ -69,11 +79,16 @@ def insertion_index(blocks: list[dict[str, int | str]], after: int) -> tuple[int
 
 
 def build_plan_step(number: int, title: str) -> str:
+    traffic_light = title[:2] if title.startswith(("🟢 ", "🟡 ", "🔴 ")) else "🟡 "
+    clean_title = title[2:] if title.startswith(("🟢 ", "🟡 ", "🔴 ")) else title
     return (
         f"\n<a id=\"item-{number}\"></a>\n\n"
-        f"### {number}. {title}\n\n"
+        f"### {traffic_light}{number}. {clean_title}\n\n"
+        "> [!WARNING]\n"
+        f"> 本步骤以幂等方式执行：{clean_title}。\n\n"
         "#### 执行\n\n"
         f"[跳转到执行记录](#item-{number}-execution-record)\n\n"
+        "操作性质：幂等\n\n"
         "执行分组：<执行分组标题>\n\n"
         "```bash\n...\n```\n\n"
         "预期结果：\n\n"
@@ -83,7 +98,6 @@ def build_plan_step(number: int, title: str) -> str:
         "- <若命中停止条件或出现新的事实，必须回规划态>\n\n"
         "#### 验收\n\n"
         f"[跳转到验收记录](#item-{number}-acceptance-record)\n\n"
-        "- [ ] <通过条件>\n\n"
         "验收命令：\n\n"
         "```bash\n...\n```\n\n"
         "预期结果：\n\n"
@@ -95,8 +109,10 @@ def build_plan_step(number: int, title: str) -> str:
 
 
 def build_record_step(number: int, title: str) -> str:
+    traffic_light = title[:2] if title.startswith(("🟢 ", "🟡 ", "🔴 ")) else "🟡 "
+    clean_title = title[2:] if title.startswith(("🟢 ", "🟡 ", "🔴 ")) else title
     return (
-        f"\n### {number}. {title}\n\n"
+        f"\n### {traffic_light}{number}. {clean_title}\n\n"
         f"<a id=\"item-{number}-execution-record\"></a>\n\n"
         "#### 执行记录\n\n"
         "执行命令：\n\n"
@@ -128,9 +144,18 @@ def add_step(text: str, title: str, after: int | None) -> str:
     if plan_titles != record_titles:
         raise ValueError("`## 执行计划` and `## 执行记录` are not aligned; add-step aborted")
 
-    target_after = after if after is not None else int(plan_blocks[-1]["number"])
-    plan_insert_at, provisional_number = insertion_index(plan_blocks, target_after)
-    record_insert_at, _ = insertion_index(record_blocks, target_after)
+    plan_section, _ = extract_item_blocks(lines, "执行计划")
+    record_section, _ = extract_item_blocks(lines, "执行记录")
+    if not plan_blocks and not record_blocks:
+        if after not in (None, 0):
+            raise ValueError("`--after` must be omitted or set to 0 when no numbered items exist yet")
+        plan_insert_at = first_item_insert_index(lines, plan_section)
+        provisional_number = 1
+        record_insert_at = first_item_insert_index(lines, record_section)
+    else:
+        target_after = after if after is not None else int(plan_blocks[-1]["number"])
+        plan_insert_at, provisional_number = insertion_index(plan_blocks, target_after)
+        record_insert_at, _ = insertion_index(record_blocks, target_after)
 
     plan_block = build_plan_step(provisional_number, title)
     record_block = build_record_step(provisional_number, title)
@@ -139,8 +164,11 @@ def add_step(text: str, title: str, after: int | None) -> str:
     updated_lines = updated.splitlines(keepends=True)
 
     # Recompute record insertion point after the plan insertion has changed line offsets.
-    _, record_blocks_after_plan = extract_item_blocks(updated_lines, "执行记录")
-    record_insert_at, _ = insertion_index(record_blocks_after_plan, target_after)
+    record_section_after_plan, record_blocks_after_plan = extract_item_blocks(updated_lines, "执行记录")
+    if record_blocks_after_plan:
+        record_insert_at, _ = insertion_index(record_blocks_after_plan, target_after)
+    else:
+        record_insert_at = first_item_insert_index(updated_lines, record_section_after_plan)
     updated = "".join(updated_lines[:record_insert_at]) + record_block + "".join(updated_lines[record_insert_at:])
     return updated
 
@@ -176,7 +204,7 @@ def handle(args: argparse.Namespace) -> int:
 
     path.write_text(rewritten, encoding="utf-8")
     _, normalized, _ = normalize_cmd.normalize_file(path)
-    errors = validate_cmd.collect_errors(normalized)
+    errors = validate_cmd.filter_incremental_draft_errors(validate_cmd.collect_errors(normalized))
     if errors:
         validate_cmd.print_fail(path, errors, json_mode=False)
         return 1

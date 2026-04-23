@@ -5,12 +5,47 @@ import sys
 from pathlib import Path
 
 
-AUTHORITY_TEMPLATE = Path(__file__).resolve().parent.parent.parent / "references" / "authority-runbook-template.md"
 TITLE_PLACEHOLDER = "# <runbook 标题>"
+SKELETON_TEMPLATE = """# <runbook 标题>
+
+## 背景与现状
+
+### 背景
+
+### 现状
+
+## 目标与非目标
+
+### 目标
+
+### 非目标
+
+## 风险与收益
+
+### 风险
+
+### 收益
+
+## 思维脑图
+
+## 红线行为
+
+## 执行计划
+
+## 执行记录
+
+## 最终验收
+
+## 回滚方案
+
+## 访谈记录
+
+## 外部链接
+"""
 
 
 def render_template(*, title: str | None) -> str:
-    text = AUTHORITY_TEMPLATE.read_text(encoding="utf-8")
+    text = SKELETON_TEMPLATE
     if title is None:
         return text
 

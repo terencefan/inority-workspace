@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from commands.normalize import NUMBERED_H3_RE, extract_h3_blocks, parse_sections, section_slice
 
 
-HEADING_RE = re.compile(r"^(### )(\d+)(\. .*)$")
+HEADING_RE = re.compile(r"^(### )(?:[🟢🟡🔴]\s+)?(\d+)(\. .*)$")
 ITEM_TOKEN_RE = re.compile(r"item-(\d+)(-execution-record|-acceptance-record)?")
 
 
@@ -72,7 +72,11 @@ def replace_heading(line: str, mapping: dict[int, int]) -> str:
     new_number = mapping.get(old_number)
     if new_number is None:
         return line
-    return f"{match.group(1)}{new_number}{match.group(3)}{newline}"
+    traffic_light = ""
+    title_body = body.removeprefix(match.group(1))
+    if title_body.startswith(("🟢 ", "🟡 ", "🔴 ")):
+        traffic_light = title_body[:2]
+    return f"{match.group(1)}{traffic_light}{new_number}{match.group(3)}{newline}"
 
 
 def replace_item_tokens(line: str, mapping: dict[int, int]) -> str:

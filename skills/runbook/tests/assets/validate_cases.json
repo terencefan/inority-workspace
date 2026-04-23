@@ -3,11 +3,101 @@
     "name": "inline-question-options",
     "replacements": [
       {
-        "old": "### 2. <问题主题>\n\n> Q：<...>\n>\n> A：<...>",
-        "new": "### 2. <问题主题>\n\n> Q：你要走 1/2/3 哪个入口？\n>\n> A：<...>"
+        "old": "### Q：<...>\n\n> A：<...>",
+        "new": "### Q：你要走 1/2/3 哪个入口？\n\n> A：<...>"
       }
     ],
     "expected_codes": ["E049"]
+  },
+  {
+    "name": "interview-time-needs-blank-line-before-impact",
+    "replacements": [
+      {
+        "old": "访谈时间：<必填；例如 2026-04-23 14:30 CST>\n\n<这条回答如何改变执行路径 / 验收 / 回滚 / 非目标边界>",
+        "new": "访谈时间：<必填；例如 2026-04-23 14:30 CST>\n<这条回答如何改变执行路径 / 验收 / 回滚 / 非目标边界>"
+      }
+    ],
+    "expected_codes": ["E056"]
+  },
+  {
+    "name": "interview-time-is-required",
+    "replacements": [
+      {
+        "old": "访谈时间：<必填；例如 2026-04-23 14:30 CST>\n\n<这条回答如何改变执行路径 / 验收 / 回滚 / 非目标边界>",
+        "new": "<这条回答如何改变执行路径 / 验收 / 回滚 / 非目标边界>"
+      }
+    ],
+    "expected_codes": ["E053"]
+  },
+  {
+    "name": "execution-step-requires-operation-nature",
+    "replacements": [
+      {
+        "old": "操作性质：只读\n\n执行分组：<现场冻结分组标题>",
+        "new": "执行分组：<现场冻结分组标题>"
+      }
+    ],
+    "expected_codes": ["E096"]
+  },
+  {
+    "name": "host-low-level-config-change-must-be-destructive",
+    "replacements": [
+      {
+        "old": "执行分组：<现场冻结分组标题>\n\n```bash\n...\n```",
+        "new": "执行分组：<现场冻结分组标题>\n\n```bash\nsudo ip link set br-vm down\n```"
+      }
+    ],
+    "expected_codes": ["E104"]
+  },
+  {
+    "name": "step-title-traffic-light-matches-operation-nature",
+    "replacements": [
+      {
+        "old": "### 🟢 1. 冻结现状",
+        "new": "### 🟡 1. 冻结现状"
+      }
+    ],
+    "expected_codes": ["E099"]
+  },
+  {
+    "name": "execution-step-requires-github-alert-before-execution",
+    "replacements": [
+      {
+        "old": "> [!TIP]\n> 本步骤只读冻结当前现场状态并生成后续执行依据。\n\n#### 执行",
+        "new": "#### 执行"
+      }
+    ],
+    "expected_codes": ["E102"]
+  },
+  {
+    "name": "mixed-operation-natures-must-split-steps",
+    "replacements": [
+      {
+        "old": "操作性质：破坏性\n\n执行分组：<执行分组标题>",
+        "new": "操作性质：只读\n\n操作性质：破坏性\n\n执行分组：<执行分组标题>"
+      }
+    ],
+    "expected_codes": ["E097"]
+  },
+  {
+    "name": "destructive-caution-requires-severe-consequence",
+    "replacements": [
+      {
+        "old": "> 严重后果：<例如数据丢失、服务中断、节点不可恢复、网络隔离或业务流量中断>\n\n#### 执行",
+        "new": "#### 执行"
+      }
+    ],
+    "expected_codes": ["E103"]
+  },
+  {
+    "name": "destructive-step-requires-numbered-rollback-entry",
+    "replacements": [
+      {
+        "old": "2. <对应执行计划第 2 项的回滚边界、回滚动作和回滚后验证>\n\n回滚动作：",
+        "new": "回滚动作："
+      }
+    ],
+    "expected_codes": ["E098"]
   },
   {
     "name": "mixed-transfer-and-remote-exec",

@@ -33,6 +33,8 @@ Personal preferences for collaborating with Terence.
 
 - Add preferences and recurring facts only when they are confirmed and useful.
 - When a runbook shows rework and the lesson is reusable, record that lesson in the current day's `.codex/memory/dairy/YYYY-MM-DD.md`.
+- `tefa` can be Terence's personal alias / local context label; do not automatically treat the token itself as a workspace-wide environment term unless the active project explicitly defines it that way.
 - After `git` commit and MR creation workflows, do not switch back to the main branch automatically.
 - When Terence asks to submit or commit code, default to creating the MR in the same workflow for repositories where an MR can be created; do not stop after push unless blocked.
 - When replacing a custom file-scan path with a mature CLI such as `rg`, prefer the tool's native semantics instead of reintroducing compatibility flags that preserve the old behavior.
+- Daily note files under `.codex/memory/dairy/*.md` are approved for direct non-destructive edits without asking first; still ask before deleting, archiving, or moving diary files.

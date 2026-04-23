@@ -48,8 +48,8 @@ digraph target {
 
 ## 风险与收益
 ### 风险
-1. <Highest risk>
-2. <Next risk>
+1. <Highest still-open objective risk at finalization time>
+2. <Next still-open objective risk at finalization time>
 
 ### 收益
 1. <Highest benefit>
@@ -59,40 +59,33 @@ digraph target {
 - <Strictly forbidden action>
 
 ## 访谈记录
-### 访谈 1 - <topic>
-> Q:
-> <question text>
->
-> A:
-> <user answer with actual content only, no numeric-choice recap>
+### Q：<question text>
+> A：<user answer with actual content only, no numeric-choice recap>
 
-### 访谈 2 - <topic>
-> Q:
-> <question text>
->
-> A:
-> <user answer with actual content only, no numeric-choice recap>
+访谈时间：<required interview time>
 
-### 访谈 3 - <topic>
-> Q:
-> <question text>
->
-> A:
-> <user answer with actual content only, no numeric-choice recap>
+<impact line 1>
+<impact line 2>
 
-### 访谈 4 - <topic>
-> Q:
-> <question text>
->
-> A:
-> <user answer with actual content only, no numeric-choice recap>
+### Q：<question text>
+> A：<user answer with actual content only, no numeric-choice recap>
 
-### 访谈 5 - <topic>
-> Q:
-> <question text>
->
-> A:
-> <user answer with actual content only, no numeric-choice recap>
+<impact line 1>
+
+### Q：<question text>
+> A：<user answer with actual content only, no numeric-choice recap>
+
+<impact line 1>
+
+### Q：<question text>
+> A：<user answer with actual content only, no numeric-choice recap>
+
+<impact line 1>
+
+### Q：<question text>
+> A：<user answer with actual content only, no numeric-choice recap>
+
+<impact line 1>
 
 ## 思维脑图
 ```dot
@@ -120,8 +113,12 @@ digraph mindmap {
 ``` 
 
 ## 执行计划
-### 步骤 1 - <step title>
+### 🟢 1. <step title>
+> [!TIP]
+> This step reads the current state and records evidence for the next action.
+
 #### 执行
+操作性质：只读
 - <Exact commands or exact actions>
 - <Expected artifact or state change>
 
@@ -129,10 +126,16 @@ digraph mindmap {
 - <Exact validation commands or exact checks>
 - <Pass criteria>
 
-### 步骤 2 - <step title>
+### 🟡 2. <step title>
+> [!WARNING]
+> This step applies the target state idempotently and records whether a change was needed.
+
 #### 执行
+操作性质：幂等
 - <Exact commands or exact actions>
 - <Expected artifact or state change>
+
+- Direct host network, disk, cgroup, and similar low-level configuration changes must use `操作性质：破坏性`, even when the command is repeatable.
 
 #### 验收
 - <Exact validation commands or exact checks>
@@ -154,8 +157,9 @@ digraph mindmap {
 - <Acceptance evidence>
 
 ## 最终验收
-- <Runbook-level final acceptance checks>
-- <Completion evidence or release decision>
+- <Open a fresh, independent-context `$runbook-recon` subagent for runbook-level final acceptance>
+- <Use only evidence newly collected by that recon subagent; do not reuse existing execution or acceptance evidence>
+- <Completion evidence or release decision based on the fresh recon result>
 
 ## 参考文献
 - [<Live evidence source>](</abs/path/to/file.md:1>)

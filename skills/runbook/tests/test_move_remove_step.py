@@ -34,7 +34,7 @@ class MoveRemoveStepTests(unittest.TestCase):
             content = runbook_path.read_text(encoding="utf-8")
 
         self.assertIn("[runbook-remove-step] removed item 2", result.stdout)
-        self.assertNotIn("### 2. <编号项标题>", content)
+        self.assertNotIn("### 🔴 2. <编号项标题>", content)
         self.assertEqual([], validate_cmd.collect_errors(content))
 
     def test_runctl_move_step_reorders_existing_item(self) -> None:
@@ -77,8 +77,8 @@ class MoveRemoveStepTests(unittest.TestCase):
             content = runbook_path.read_text(encoding="utf-8")
 
         self.assertIn("[runbook-move-step] moved item 3 after 1", move_result.stdout)
-        self.assertEqual(2, content.count("### 2. 收尾检查"))
-        self.assertEqual(2, content.count("### 3. <编号项标题>"))
+        self.assertEqual(2, content.count("### 🟡 2. 收尾检查"))
+        self.assertEqual(2, content.count("### 🔴 3. <编号项标题>"))
         self.assertEqual([], validate_cmd.collect_errors(content))
 
 

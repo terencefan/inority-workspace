@@ -8,6 +8,10 @@ from pathlib import Path
 
 from test_helpers import REFERENCE_TEMPLATE, RUNCTL, load_text
 
+sys.path.insert(0, str(RUNCTL.parent))
+
+import commands.init as init_cmd
+
 
 class InitRunbookTests(unittest.TestCase):
     maxDiff = None
@@ -26,8 +30,11 @@ class InitRunbookTests(unittest.TestCase):
             )
 
             self.assertEqual(0, result.returncode)
-            self.assertEqual(self.template_text, runbook_path.read_text(encoding="utf-8"))
-            self.assertIn("[runbook-init] created", result.stdout)
+            created = runbook_path.read_text(encoding="utf-8")
+
+        self.assertNotEqual(self.template_text, created)
+        self.assertEqual(init_cmd.SKELETON_TEMPLATE, created)
+        self.assertIn("[runbook-init] created", result.stdout)
 
     def test_runctl_init_supports_title_substitution(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

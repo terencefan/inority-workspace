@@ -20,8 +20,8 @@ class SyncRecordsTests(unittest.TestCase):
         self.template_text = load_text(REFERENCE_TEMPLATE)
 
     def test_runctl_sync_records_rebuilds_record_titles_from_plan(self) -> None:
-        mutated = self.template_text.replace("### 2. <编号项标题>", "### 2. 新的执行步骤", 1)
-        mutated = mutated.replace("### 2. <编号项标题>", "### 2. 老的记录标题", 1)
+        mutated = self.template_text.replace("### 🔴 2. <编号项标题>", "### 🔴 2. 新的执行步骤", 1)
+        mutated = mutated.replace("### 🔴 2. <编号项标题>", "### 🔴 2. 老的记录标题", 1)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             runbook_path = Path(tmpdir) / "authority.md"
@@ -37,8 +37,8 @@ class SyncRecordsTests(unittest.TestCase):
             content = runbook_path.read_text(encoding="utf-8")
 
         self.assertIn("[runbook-sync-records] synchronized records", result.stdout)
-        self.assertEqual(2, content.count("### 2. 新的执行步骤"))
-        self.assertNotIn("### 2. 老的记录标题", content)
+        self.assertEqual(2, content.count("### 🔴 2. 新的执行步骤"))
+        self.assertNotIn("### 🔴 2. 老的记录标题", content)
         self.assertIn("<a id=\"item-2-execution-record\"></a>", content)
         self.assertEqual([], validate_cmd.collect_errors(content))
 
