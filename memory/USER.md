@@ -35,6 +35,7 @@ Personal preferences for collaborating with Terence.
 - For WSL elevation or system-level installation, prefer `wsl -u root` over interactive `sudo` with the current user.
 - After `git` commit and MR creation workflows, do not switch back to the main branch automatically.
 - When Terence asks to submit or commit code, default to creating the MR in the same workflow for repositories where an MR can be created; do not stop after push unless blocked.
+- For `inority-workspace`, default code-submission workflows to the `main` branch and run `git pull --rebase` before `git push`.
 - When replacing a custom file-scan path with a mature CLI such as `rg`, prefer the tool's native semantics instead of reintroducing compatibility flags that preserve the old behavior.
 - Daily note files under `.codex/memory/dairy/*.md` are approved for direct non-destructive edits without asking first; still ask before deleting, archiving, or moving diary files.
 - Default runbook storage to `inority-workspace/handbook/runbook/` unless the user chooses a different location.
