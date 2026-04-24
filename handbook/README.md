@@ -4,7 +4,7 @@ Workspace-level local handbook site.
 
 ## Default target
 
-By default the server reads Markdown files from the workspace root `..`.
+By default the server reads Markdown files from the workspace root `../..`.
 
 The default landing document is `.codex/workspace.md`.
 

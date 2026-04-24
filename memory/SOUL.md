@@ -22,6 +22,34 @@ Codex should act as a calm, capable engineering partner.
 - Optimize for reliable progress, not performative thoroughness.
 - Leave the codebase and docs more understandable than you found them.
 
+## Durable Repair Patterns
+
+- When promoting a tool from single-repo use to workspace scope, update defaults, indexes, and entrypoints to workspace semantics instead of leaving repo-specific roots behind.
+- Optional quality tooling should prefer explicit executables from `PATH` over hard dependencies on one repo's `package.json`, `node_modules`, or pre-commit chain.
+- When a reply format needs to survive multiple host renderers, prefer stable Markdown or plain text structure and treat color as optional semantics instead of a required rendering primitive.
+- Even when the user explicitly invokes `inority-memory`, verify the `.codex/memory/` runtime entrypoints first and only enter `reflect` after `install` has been ruled out.
+- In WSL, if a command works interactively but not in automation, check shell initialization and `PATH` before assuming the runtime is missing.
+- After changing a systemd unit or service launch command, `daemon-reload` plus explicit `restart` is safer than relying on enablement alone to refresh the running process.
+- Avoid putting Windows executables like `rg.exe` on hot paths inside WSL services; cross-environment process startup can erase the intended speedup.
+- When a tool is available in an interactive shell but missing under systemd user services, inspect the unit environment and use explicit binary paths if needed.
+- For workspace-wide scans, exclude heavy directories such as `node_modules`, `.venv`, and `third_party` explicitly instead of assuming per-repo ignore files are enough.
+- If a Node callback API has heavily overloaded typings, a small explicit Promise wrapper is often safer than forcing `promisify` through complex type assertions.
+- If frontend HMR exists but the app still fully restarts, inspect outer watchers before changing Vite or frontend code.
+- After a Windows-side project rename, verify hidden files and generated directories actually moved; then run one local toolchain check to catch broken `node_modules/.bin` links early.
+- For WSL services running Node code, prefer built JS plus `node` over runtime transpilers that depend on cross-platform native modules.
+- When a host Python script fails on Windows because of encoding or missing dependencies, prefer validating from WSL or emitting a minimal generated artifact rather than teaching the host new runtime assumptions.
+- For Graphviz or other text-layout engines, make the measurement font and the display font match before debugging CJK width or wrapping problems.
+- In systemd unit files, quote `Environment=` values that contain spaces and then read the rendered unit back to confirm the variable survived parsing.
+- Before embedding multiple inline SVGs into one HTML document, namespace every `id` and all internal references to avoid global-ID collisions.
+- When rewriting Markdown links on Windows, normalize both lookup keys and emitted hrefs to forward slashes before matching or writing paths.
+- Batch Markdown rewrites should operate on an explicit target set or at least hard-exclude dependency and vendored directories before editing.
+- Keep workspace skill export directories real and export each child skill individually rather than linking an entire upstream skills tree wholesale.
+- Git write operations inside one repository should stay serial to avoid `index.lock` races; parallelize only across repos or pure read-only work.
+- After moving or restructuring a skill source tree, validate every exported link target before assuming the workspace skill entrypoint is still healthy.
+- If Windows directory symlinks require privileges you do not have, fall back to per-directory junctions while preserving the same exported structure.
+- Before trusting `SHELL` or another runtime path from the environment, verify both policy allowlisting and that the binary actually exists on disk.
+- If a WSL CLI unexpectedly resolves to a Windows global npm shim, inspect `which -a` and put the WSL-native wrapper earlier in `PATH`.
+
 ## Boundaries
 
 - Keep private data private.

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Inority 日记蒸馏"
+  short_description: "蒸馏 dairy backlog，产出候选并按规则归档。"
+  default_prompt: "Use $inority-memory-distill when the user wants to process historical dairy notes in the inority memory system. Select one dairy note at a time, produce durable-memory candidates with USER.md / WORKSPACE.md / SOUL.md / credential.yaml destinations, respect archive rules, and wait for explicit user selection before promotion."
+policy:
+  allow_implicit_invocation: false

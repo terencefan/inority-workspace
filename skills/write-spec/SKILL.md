@@ -9,8 +9,8 @@ Use this skill to turn rough intent into a spec that another engineer or stakeho
 
 Default to clear boundaries, explicit assumptions, and acceptance criteria. Prefer local repository truth over invented detail.
 
-Default to writing specs in Chinese for this workspace unless the user explicitly asks for another language. Default section titles and subsection titles to Chinese as well unless the surrounding repository has a strong established convention or the user explicitly asks for English headings. Keep necessary code identifiers, API names, schema fields, protocol terms, and other precision-critical technical terms in their original language when that is clearer.
-When referring to the document type itself, default to keeping the word `spec` in English rather than translating it to `规格`, unless the user explicitly asks for that translation or the surrounding repository already has a strong fixed convention.
+Default to the user's language preference from `.codex/memory/USER.md` unless the surrounding repository has a stronger established document convention. Keep necessary code identifiers, API names, schema fields, protocol terms, and other precision-critical technical terms in their original language when that is clearer.
+When referring to the document type itself, follow the surrounding repository convention or the user's explicit wording preference.
 
 Prefer diagram-driven specs over prose-driven specs. Use diagrams as the primary medium for structure and understanding; use text to clarify, justify, constrain, or annotate what the diagrams cannot say on their own.
 
@@ -222,7 +222,7 @@ Only keep cross-section prose and formatting guidance here. Title hierarchy and 
 
 ### 全局规则
 
-- Default to Chinese prose for titles, headings, explanations, decisions, and acceptance criteria unless the user explicitly requests another language.
+- Default prose, titles, headings, explanations, decisions, and acceptance criteria to the user's language preference from `.codex/memory/USER.md`, unless the surrounding repository has a stronger established convention.
 - When naming the document or referring to its artifact type, prefer `spec` over `规格` by default in this workspace, for example `AI-Ready 数据集分级 spec` rather than `AI-Ready 数据集分级规格`, unless the user explicitly asks otherwise.
 - Keep exact identifiers in their source form when translation would reduce precision, for example code symbols, API paths, config keys, SQL field names, resource names, and protocol terms.
 - Do not pad the spec with generic sections that add no decision value.

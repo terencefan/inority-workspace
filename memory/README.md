@@ -7,7 +7,7 @@ Cross-environment reusable memory assets live in this directory.
 - `SOUL.md`: reusable operating principles
 - `USER.md`: reusable collaboration preferences
 - public runtime-facing memory entrypoints are installed into target workspaces by
-  `codex/workspace-memory/`
+  `skills/inority-memory/scripts/`
 
 ## Install Contract
 

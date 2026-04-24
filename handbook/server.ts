@@ -51,7 +51,7 @@ type WalkDirectoryOptions = {
 };
 
 const projectRoot = process.cwd();
-const workspaceRoot = path.resolve(projectRoot, "..");
+const workspaceRoot = path.resolve(projectRoot, "..", "..");
 const docsRoot = path.resolve(projectRoot, process.env.HANDBOOK_DOCS_ROOT || workspaceRoot);
 const docsRootLabel = process.env.HANDBOOK_DOCS_LABEL || path.basename(docsRoot);
 const defaultDoc = process.env.HANDBOOK_DEFAULT_DOC || ".codex/workspace.md";

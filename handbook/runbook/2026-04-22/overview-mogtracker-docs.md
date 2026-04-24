@@ -349,7 +349,7 @@ digraph mindmap {
 #### 执行 @吕布 2026-04-22 08:45 CST
 - 执行全量扫描与残留检查：`rg --files . -g "*.md"`、根目录计数、旧目录 Markdown 计数、旧链接残留检查、`specs/` 文件名正则检查。
 - 复核 `git diff --name-status -- README.md specs` 与 `git status --short`，确认变更面仍然集中在文档迁移与轻度清洗。
-- 按 workspace 规则补充两个可复用 postmortem 到 `.codex/memory.md`：Windows Markdown 链接归一化，以及批量文档改写误触 `node_modules` 的排除策略。
+- 按 workspace 规则补充两个可复用 memory reflection 到 `.codex/memory.md`：Windows Markdown 链接归一化，以及批量文档改写误触 `node_modules` 的排除策略。
 
 #### 验收 @吕布 2026-04-22 08:45 CST
 - 全量扫描结果仍为 `49` 个 Markdown；其中根目录 `2` 个，其余 `47` 个全部位于 `specs/`。

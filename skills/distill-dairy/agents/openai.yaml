@@ -1,4 +1,0 @@
-interface:
-  display_name: "Distill Dairy 蒸馏日记"
-  short_description: "Distill daily notes into memory candidates."
-  default_prompt: "Use $distill-dairy to read one dairy note under .codex/memory/dairy/, extract the highest-value long-term memory candidates, present them in the same numbered selection format as $postmortem, and after my choice archive the processed dairy note into .codex/memory/dairy/archive/."

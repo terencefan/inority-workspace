@@ -40,8 +40,8 @@ npm run handbook:build
 如果某个安装脚本需要额外参数，用 npm 的 `--` 透传：
 
 ```bash
-npm run codex:install:workspace-memory -- --workspace-root /path/to/workspace
-npm run codex:install:reply-format-hook -- --codex-home /path/to/.codex
+npm run codex:install:inority-memory -- --workspace-root /path/to/workspace
+npm run codex:install:inority-reply -- --codex-home /path/to/.codex
 ```
 
 这个仓库没有单一的业务型根级启动命令，通常按下面几类入口工作：
@@ -62,12 +62,18 @@ npm run codex:install:reply-format-hook -- --codex-home /path/to/.codex
 
 当前已沉淀的安装型资产包括：
 
-- reply-format hook
-- workspace memory 安装包
+- inority-reply hook
+- inority-memory 安装包
+
+当前与 memory 维护直接相关的 skill：
+
+- `inority-memory`
+- `inority-memory-migration`
+- `inority-reply`
 
 ```bash
-npm run codex:install:reply-format-hook
-npm run codex:install:workspace-memory
+npm run codex:install:inority-reply
+npm run codex:install:inority-memory
 ```
 
 其中 `SOUL.md` / `USER.md` 会以软链接方式安装到目标 workspace 的
@@ -77,11 +83,11 @@ npm run codex:install:workspace-memory
 卸载：
 
 ```bash
-npm run codex:uninstall:reply-format-hook
-npm run codex:uninstall:workspace-memory
+npm run codex:uninstall:inority-reply
+npm run codex:uninstall:inority-memory
 ```
 
-默认会安装到 `~/.codex/reply-format-hook/`，并更新 `~/.codex/hooks.json` 中对应的 hook 注册。
+默认会安装到 `~/.codex/inority-reply/`，并更新 `~/.codex/hooks.json` 中对应的 hook 注册。
 
 ### 3. 启动本地 handbook
 
@@ -150,7 +156,7 @@ digraph G {
 |------|------|
 | `skills/` | workspace-local 的 Codex skills 源码目录，每个 skill 独立维护自己的 `SKILL.md`、脚本和参考资料 |
 | `memory/` | 跨环境可复用的 memory 源文件，例如 `SOUL.md`、`USER.md` |
-| `codex/` | 需要安装到 `~/.codex/` 或项目 `.codex/` 的运行时资产，目前已有 `reply-format-hook/` 和 `workspace-memory/` |
+| `codex/` | 需要安装到 `~/.codex/` 或项目 `.codex/` 的运行时资产；`inority-reply` 和 `inority-memory` 的安装资源现已内聚到各自的 `skills/` 目录 |
 | `handbook/` | 本地 handbook 站点代码、运行脚本以及 `runbook/` 文档目录 |
 | `handbook/runbook/` | 执行型 runbook 文档入口，供 handbook 站点和实际运维流程消费 |
 
@@ -162,8 +168,8 @@ digraph G {
 
 1. `skills/` 和 `memory/`
    以源码形式保存在本仓库，通过软链接或稳定入口映射到 `../.codex/`。
-2. `codex/`
-   以安装包形式保存在本仓库，通过安装脚本把运行时文件写入 `~/.codex/`，例如 reply-format hook。
+2. `skills/`
+   某些 skill 自带安装资源，并通过 skill 内部脚本把运行时文件写入 `~/.codex/`，例如 `inority-reply` 和 `inority-memory`。
 3. `handbook/`
    作为本地开发服务器运行，默认从 workspace 根目录读取 Markdown 内容并对外提供浏览入口。
 
@@ -177,6 +183,10 @@ digraph G {
 ## 文档链接
 
 - [memory 说明](./memory/README.md)
+- [inority-memory skill](./skills/inority-memory/SKILL.md)
+- [inority-memory-migration skill](./skills/inority-memory-migration/SKILL.md)
 - [handbook 说明](./handbook/README.md)
-- [reply-format hook 说明](./codex/reply-format-hook/README.md)
-- [workspace memory 说明](./codex/workspace-memory/README.md)
+- [inority-reply skill](./skills/inority-reply/SKILL.md)
+- [inority-reply 安装面说明](./skills/inority-reply/references/install-surface.md)
+- [inority-memory skill](./skills/inority-memory/SKILL.md)
+- [inority-memory 安装面说明](./skills/inority-memory/references/install-surface.md)
