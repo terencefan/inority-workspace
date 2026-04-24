@@ -20,6 +20,7 @@ REQUIRED_H2 = [
     "风险与收益",
     "思维脑图",
     "红线行为",
+    "清理现场",
     "执行计划",
     "执行记录",
     "最终验收",
@@ -258,6 +259,7 @@ def collect_errors(text: str, *, path: Path | None = None) -> list[ValidationErr
     errors.extend(validate_qa(lines, h2_sections))
     errors.extend(validate_mindmap(lines, h2_sections))
     errors.extend(validate_redlines(lines, h2_sections))
+    errors.extend(validate_cleanup_section(lines, h2_sections))
     errors.extend(validate_plan_and_records(lines, h2_sections))
     errors.extend(validate_final_acceptance(lines, h2_sections))
     errors.extend(validate_rollback_plan(lines, h2_sections))
@@ -487,6 +489,30 @@ def validate_redlines(
     if bullet_count == 0:
         return [err("E050", error_message("E050"), lines, start)]
     return []
+
+
+def validate_cleanup_section(
+    lines: list[str], h2_sections: list[tuple[int, str]]
+) -> list[ValidationError]:
+    section = section_slice(h2_sections, "清理现场", len(lines))
+    if section is None:
+        return []
+    start, end = section
+    body = "\n".join(lines[start:end])
+    errors: list[ValidationError] = []
+    if parse_sections(lines[start + 1 : end], 3):
+        errors.append(err("E052", error_message("E052"), lines, start))
+    for label, code in (
+        ("清理触发条件：", "E057"),
+        ("清理命令：", "E058"),
+        ("清理完成条件：", "E059"),
+        ("恢复执行入口：", "E068"),
+    ):
+        if label not in body:
+            errors.append(err(code, error_message(code, label=label), lines, start))
+    if "```" not in body:
+        errors.append(err("E069", error_message("E069"), lines, start))
+    return errors
 
 
 def validate_plan_and_records(

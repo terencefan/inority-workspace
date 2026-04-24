@@ -40,6 +40,16 @@
     "expected_codes": ["E096"]
   },
   {
+    "name": "cleanup-section-requires-trigger-label",
+    "replacements": [
+      {
+        "old": "清理触发条件：\n\n- <哪些 stop boundary / 中断态需要先清理现场，才能恢复执行>\n- <哪些半创建 / 半下发 / 半导入状态必须先被规划态收敛成清理动作>",
+        "new": "- <哪些 stop boundary / 中断态需要先清理现场，才能恢复执行>\n- <哪些半创建 / 半下发 / 半导入状态必须先被规划态收敛成清理动作>"
+      }
+    ],
+    "expected_codes": ["E057"]
+  },
+  {
     "name": "host-low-level-config-change-must-be-destructive",
     "replacements": [
       {
