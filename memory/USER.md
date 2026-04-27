@@ -42,6 +42,7 @@ Personal preferences for collaborating with Terence.
 - For WSL elevation or system-level installation, prefer `wsl -u root` over interactive `sudo` with the current user.
 - After `git` commit and MR creation workflows, do not switch back to the main branch automatically.
 - When Terence asks to submit or commit code, default to creating the MR in the same workflow for repositories where an MR can be created; do not stop after push unless blocked.
+- When creating a PR or MR for Terence, default the title and body to Chinese unless Terence explicitly asks for another language.
 - When reporting a created PR or MR back to Terence, return it as a Markdown link in the form `[标题](链接)` by default.
 - In runbook execution, if the authority still requires a final independent read-only recon, do not stop before that final复核 is completed or explicitly blocked.
 - In the current workspace, routine edits under `MogTracker/` are pre-approved and do not require asking for permission first.
