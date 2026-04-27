@@ -1,0 +1,4 @@
+interface:
+  display_name: "Inority Clarify"
+  short_description: "Ask focused user questions to resolve path, fact, and boundary ambiguity."
+  default_prompt: "Use this skill when the active task needs one focused clarification round with the user before the parent skill can safely continue."
