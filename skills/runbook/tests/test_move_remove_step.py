@@ -10,7 +10,7 @@ from test_helpers import REFERENCE_TEMPLATE, RUNCTL, load_text
 
 sys.path.insert(0, str(RUNCTL.parent))
 
-import commands.validate as validate_cmd
+import commands.validator_client as validate_cmd
 
 
 class MoveRemoveStepTests(unittest.TestCase):
@@ -21,7 +21,7 @@ class MoveRemoveStepTests(unittest.TestCase):
 
     def test_runctl_remove_step_removes_plan_and_record_item(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            runbook_path = Path(tmpdir) / "authority.md"
+            runbook_path = Path(tmpdir) / "authority-runbook.md"
             runbook_path.write_text(self.template_text, encoding="utf-8")
             result = subprocess.run(
                 [sys.executable, str(RUNCTL), "remove-step", str(runbook_path), "--item", "2"],
@@ -39,7 +39,7 @@ class MoveRemoveStepTests(unittest.TestCase):
 
     def test_runctl_move_step_reorders_existing_item(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            runbook_path = Path(tmpdir) / "authority.md"
+            runbook_path = Path(tmpdir) / "authority-runbook.md"
             runbook_path.write_text(self.template_text, encoding="utf-8")
 
             add_result = subprocess.run(

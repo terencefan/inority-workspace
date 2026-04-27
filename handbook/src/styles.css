@@ -71,6 +71,10 @@ body {
   font-family: var(--font-sans);
 }
 
+body.image-viewer-open {
+  overflow: hidden;
+}
+
 button,
 input,
 textarea,
@@ -555,6 +559,25 @@ select {
   margin-right: 10px;
 }
 
+.markdown-body img.markdown-image {
+  cursor: zoom-in;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.markdown-body img.markdown-image:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12);
+}
+
+:root[data-theme="dark"] .markdown-body img.markdown-image:hover {
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.36);
+}
+
+.markdown-body img.markdown-image:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
 .graphviz-block {
   margin: 22px 0;
   padding: 18px;
@@ -574,6 +597,86 @@ select {
   margin: 22px 0;
   border-radius: 0;
   background: var(--error-bg);
+}
+
+.image-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 180ms ease, visibility 180ms ease;
+}
+
+.image-viewer[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.image-viewer__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 16, 24, 0.78);
+  backdrop-filter: blur(8px);
+}
+
+.image-viewer__chrome,
+.image-viewer__viewport {
+  position: relative;
+  z-index: 1;
+}
+
+.image-viewer__chrome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 24px 0;
+}
+
+.image-viewer__hint {
+  margin: 0;
+  color: #d8e2ef;
+  font-size: 13px;
+}
+
+.image-viewer__close {
+  background: rgba(18, 27, 39, 0.92);
+  color: #d8e2ef;
+  border-color: rgba(216, 226, 239, 0.2);
+}
+
+.image-viewer__viewport {
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  cursor: default;
+}
+
+.image-viewer__viewport[data-draggable="true"] {
+  cursor: grab;
+}
+
+.image-viewer__viewport[data-dragging="true"] {
+  cursor: grabbing;
+}
+
+.image-viewer__image {
+  max-width: min(92vw, 1400px);
+  max-height: calc(100vh - 120px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  transform-origin: center center;
+  will-change: transform;
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.34);
 }
 
 .empty-state {

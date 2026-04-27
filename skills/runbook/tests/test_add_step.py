@@ -10,7 +10,7 @@ from test_helpers import REFERENCE_TEMPLATE, RUNCTL, load_text
 
 sys.path.insert(0, str(RUNCTL.parent))
 
-import commands.validate as validate_cmd
+import commands.validator_client as validate_cmd
 
 
 class AddStepTests(unittest.TestCase):
@@ -21,7 +21,7 @@ class AddStepTests(unittest.TestCase):
 
     def test_runctl_add_step_inserts_plan_and_record_blocks(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            runbook_path = Path(tmpdir) / "authority.md"
+            runbook_path = Path(tmpdir) / "authority-runbook.md"
             runbook_path.write_text(self.template_text, encoding="utf-8")
             result = subprocess.run(
                 [
@@ -51,7 +51,7 @@ class AddStepTests(unittest.TestCase):
 
     def test_runctl_add_step_appends_by_default(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            runbook_path = Path(tmpdir) / "authority.md"
+            runbook_path = Path(tmpdir) / "authority-runbook.md"
             runbook_path.write_text(self.template_text, encoding="utf-8")
             result = subprocess.run(
                 [
@@ -75,7 +75,7 @@ class AddStepTests(unittest.TestCase):
 
     def test_runctl_add_step_supports_blank_init_output(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            runbook_path = Path(tmpdir) / "authority.md"
+            runbook_path = Path(tmpdir) / "authority-runbook.md"
             init_result = subprocess.run(
                 [sys.executable, str(RUNCTL), "init", str(runbook_path)],
                 capture_output=True,

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Draw Dot"
+  short_description: "Create Graphviz DOT diagrams for docs and plans."
+  default_prompt: "Use this skill to draft or refine a renderable Graphviz DOT diagram for a spec, runbook, README, or standalone explanation."

@@ -5,7 +5,10 @@ description: Write or refine product specs, technical design specs, requirement 
 
 # Write Spec
 
-Use this skill to turn rough intent into a spec that another engineer or stakeholder can review and execute.
+Use this skill to turn rough intent into a spec that another engineer or stakeholder can review and approve.
+
+A spec primarily defines the normative target state: rules, boundaries, goals, accepted interfaces, and acceptance meaning.
+It is not the execution manual for moving the current system from today's state to that target state.
 
 Default to clear boundaries, explicit assumptions, and acceptance criteria. Prefer local repository truth over invented detail.
 
@@ -13,6 +16,8 @@ Default to the user's language preference from `.codex/memory/USER.md` unless th
 When referring to the document type itself, follow the surrounding repository convention or the user's explicit wording preference.
 
 Prefer diagram-driven specs over prose-driven specs. Use diagrams as the primary medium for structure and understanding; use text to clarify, justify, constrain, or annotate what the diagrams cannot say on their own.
+
+When a spec needs a Graphviz diagram, `$write-spec` can and should use `$draw-dot` as the dedicated DOT surface instead of hand-rolling diagram structure ad hoc inside the spec flow.
 
 Make the document scroll-friendly. Structure it so a reader can keep orientation while scrolling, quickly jump between major views, and consume the content chunk by chunk instead of needing the whole document in view at once.
 
@@ -26,24 +31,34 @@ Make the document scroll-friendly. Structure it so a reader can keep orientation
    - product spec -> `references/product-spec-template.md`
    - technical spec -> `references/technical-spec-template.md`
    - interview record block -> `references/interview-record-template.md`
-3. Read the existing artifact if the user names a target file or there is already a draft spec.
-4. Read enough local context to avoid generic prose:
+   - if the spec needs `现状` / `目标` / `架构总览` or other structural diagrams, also load `$draw-dot`
+3. 如果本轮要新建或修订目标文件，先收敛文档命名：
+   - 文件名必须以 `-spec.md` 结尾
+   - 文档标题必须写成 `xxxx 设计文档`
+   - 如果现有草稿文件名或标题不符合这两个规则，先改名 / 改标题，再继续正文收敛
+4. Read the existing artifact if the user names a target file or there is already a draft spec.
+5. Read enough local context to avoid generic prose:
    - related code, docs, tickets, configs, or APIs
    - neighboring modules that reveal naming, boundaries, and constraints
    - existing conventions in the same repo
-5. 在正文定稿前，先通过真实用户问答做访谈收敛。
-6. 如果要借用 runbook 式访谈纪律，只能显式按 `$runbook` 的方式引用，不要直接挪用其他 skill 的资产；本 skill 默认沿用下面这组访谈约束：
+   - if current-state facts are needed, use them to clarify constraints and gap context, not to turn the spec into a runbook
+6. 在正文定稿前，先通过真实用户问答做访谈收敛。
+7. 如果要借用 runbook 式访谈纪律，只能显式按 `$runbook` 的方式引用，不要直接挪用其他 skill 的资产；本 skill 默认沿用下面这组访谈约束：
    - authority 定稿前，必须累计至少 `5` 轮真实用户问答
    - 每轮只问一个问题
    - 每轮只围绕一个维度，例如 `goal`、`non-goal`、`risk`、`acceptance`、`path selection`
    - 每轮提问默认给用户提供 `1.` / `2.` / `3.` 这种编号选项，优先给出 `2-3` 个互斥候选，必要时再允许用户补充其他答案
    - 给出每个选项时，下一行要紧跟该选项的推荐理由，帮助用户快速判断取舍
    - 如果关键边界还没收敛，默认动作不是先写正文，而是继续追问
-7. Make reasonable assumptions only when the remaining gaps are small, low-risk, and do not change scope, architecture, delivery risk, or the meaning of acceptance.
-8. 访谈未满 `5` 轮时，不要宣称 spec 已收敛；先继续补问，再落正文。
-9. Write the spec in a reviewable structure with concrete decisions, not brainstorming notes.
-10. Separate confirmed facts from inferred choices. Mark assumptions explicitly.
-11. If the user gives a recurring spec-writing preference during the session, update this skill or its references before finishing so the preference becomes reusable next time.
+8. Make reasonable assumptions only when the remaining gaps are small, low-risk, and do not change scope, architecture, delivery risk, or the meaning of acceptance.
+9. 访谈未满 `5` 轮时，不要宣称 spec 已收敛；先继续补问，再落正文。
+10. Write the spec in a reviewable structure with concrete decisions, not brainstorming notes.
+11. Separate confirmed facts from inferred choices. Mark assumptions explicitly.
+12. Keep execution guidance subordinate to the normative definition:
+   - spec can describe rollout constraints, migration boundaries, or a short implementation plan
+   - spec should not expand into a step-by-step operator handbook for converting current state to target state
+13. 在 authority spec 定稿前，优先用 `scripts/specctl validate <path>` 做结构校验；如果 validator 报错，先修正结构问题再继续宣称收敛。
+14. If the user gives a recurring spec-writing preference during the session, update this skill or its references before finishing so the preference becomes reusable next time.
 
 ## Default Output
 
@@ -52,7 +67,7 @@ Unless the user asks for a narrower format, include these sections:
 1. 标题和一句话摘要
 2. `背景与现状`
 3. `目标与非目标`
-4. `风险与收益`
+4. `风险与红线`
 5. `假设与约束`
 6. `架构总览`
 7. `架构分层`
@@ -67,11 +82,15 @@ Prefer the Chinese section names above when no repo-specific template exists. Re
 
 ### 标题与层级约束
 
+- 文档文件名默认必须以 `-spec.md` 结尾。
+- 文档 H1 标题默认必须写成 `xxxx 设计文档`。
+- 如果用户给了现有 spec 草稿且命名不符合这两个规则，先把文件名和标题修正，再继续正文收敛。
+
 Use exactly these content-level first-level headings by default:
 
 - `背景与现状`
 - `目标与非目标`
-- `风险与收益`
+- `风险与红线`
 - `假设与约束`
 - `架构总览`
 - `架构分层`
@@ -86,6 +105,11 @@ Within the first-level heading `假设与约束`, default to exactly these two s
 
 - `假设`
 - `约束`
+
+Within the first-level heading `风险与红线`, default to exactly these two second-level headings:
+
+- `风险`
+- `红线行为`
 
 ### `访谈记录`
 
@@ -117,10 +141,10 @@ Do not add a manual `目录` / table-of-contents section to the spec by default.
 Treat `背景与现状` as the default first content section near the beginning.
 
 - `背景与现状` answers why this document or change exists now and what the current system, workflow, topology, or behavior looks like.
-- Within `背景与现状`, default to short subsections such as:
+- Within `背景与现状`, default to exactly these subsections:
   - `背景`
   - `现状`
-  - `问题`
+- Do not introduce any additional second-level headings under `背景与现状` unless the user explicitly asks for a different structure.
 - `现状` should contain a fenced `dot` / `graphviz` diagram by default so the reader can see the current structure instead of only reading prose.
 
 ### `目标与非目标`
@@ -224,6 +248,11 @@ Only keep cross-section prose and formatting guidance here. Title hierarchy and 
 
 - Default prose, titles, headings, explanations, decisions, and acceptance criteria to the user's language preference from `.codex/memory/USER.md`, unless the surrounding repository has a stronger established convention.
 - When naming the document or referring to its artifact type, prefer `spec` over `规格` by default in this workspace, for example `AI-Ready 数据集分级 spec` rather than `AI-Ready 数据集分级规格`, unless the user explicitly asks otherwise.
+- 当生成或修订文档落盘路径时，默认使用 `<topic>-spec.md` 形态，不要落成无后缀约束的 `spec.md`、`draft.md` 或其他随意命名。
+- 当生成或修订 H1 标题时，默认使用 `<主题>设计文档` 形态，不要省略 `设计文档` 四个字。
+- spec 默认回答“目标应该是什么、边界在哪里、如何判定完成”，不要默认回答“从当前现状一步步怎么做”。
+- spec 默认不需要单独的 `收益` 章节；风险约束与禁做边界统一收敛到 `风险与红线` 一级标题下。
+- 如果用户真正需要“从现状到目标”的执行转化路径，默认切到 `$runbook`，而不是继续把 spec 加长成执行手册。
 - Keep exact identifiers in their source form when translation would reduce precision, for example code symbols, API paths, config keys, SQL field names, resource names, and protocol terms.
 - Do not pad the spec with generic sections that add no decision value.
 

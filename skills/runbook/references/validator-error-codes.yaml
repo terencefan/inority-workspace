@@ -170,3 +170,11 @@ E105:
   message: "runbook title 不要包含日期；日期只放父目录"
 E106:
   message: "runbook filename 不要包含日期；日期只放父目录"
+E107:
+  message: "runbook title 必须以 {suffix} 结尾"
+E108:
+  message: "runbook filename 必须以 {suffix} 结尾"
+E109:
+  message: "runbook 标题下必须紧跟 > [!NOTE]"
+E110:
+  message: "runbook 标题下必须紧跟一行 当前模式：`coding|operation|migration`"

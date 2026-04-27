@@ -5,8 +5,13 @@ import sys
 from pathlib import Path
 
 
-TITLE_PLACEHOLDER = "# <runbook 标题>"
-SKELETON_TEMPLATE = """# <runbook 标题>
+TITLE_PLACEHOLDER = "# <主题>执行手册"
+REQUIRED_FILENAME_SUFFIX = "-runbook.md"
+REQUIRED_TITLE_SUFFIX = "执行手册"
+SKELETON_TEMPLATE = """# <主题>执行手册
+
+> [!NOTE]
+> 当前模式：`<coding|operation|migration>`
 
 ## 背景与现状
 
@@ -30,6 +35,8 @@ SKELETON_TEMPLATE = """# <runbook 标题>
 
 ## 红线行为
 
+## 清理现场
+
 ## 执行计划
 
 ## 执行记录
@@ -52,6 +59,8 @@ def render_template(*, title: str | None) -> str:
     cleaned = title.strip()
     if not cleaned or "\n" in cleaned:
         raise ValueError("`--title` must be a single non-empty line")
+    if not cleaned.endswith(REQUIRED_TITLE_SUFFIX):
+        raise ValueError(f"`--title` must end with {REQUIRED_TITLE_SUFFIX}")
     return text.replace(TITLE_PLACEHOLDER, f"# {cleaned}", 1)
 
 
@@ -73,6 +82,12 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
 
 def handle(args: argparse.Namespace) -> int:
     path = Path(args.path).expanduser().resolve()
+    if not path.name.endswith(REQUIRED_FILENAME_SUFFIX):
+        print(
+            f"error: runbook filename must end with {REQUIRED_FILENAME_SUFFIX}: {path.name}",
+            file=sys.stderr,
+        )
+        return 1
     if path.exists() and path.is_dir():
         print(f"error: target path is a directory: {path}", file=sys.stderr)
         return 1

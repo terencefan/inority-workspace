@@ -19,7 +19,7 @@ from test_helpers import (
 sys.path.insert(0, str(SCRIPTS_DIR))
 
 from commands import sign_step as sign_step_command
-import commands.validate as validate_core
+import commands.validator_client as validate_core
 
 
 class SignRunbookStepTests(unittest.TestCase):

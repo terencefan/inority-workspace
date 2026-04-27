@@ -1,0 +1,32 @@
+E000:
+  message: "目标 spec 文件不存在：{path}"
+E001:
+  message: "首行必须是 spec 标题"
+E002:
+  message: "spec 标题必须以“设计文档”结尾"
+E003:
+  message: "spec 文件名必须以“-spec.md”结尾"
+E010:
+  message: "一级标题必须严格按默认顺序收敛为：背景与现状 / 目标与非目标 / 风险与红线 / 假设与约束 / 架构总览 / 架构分层 / 模块划分 / 验收标准 / 访谈记录 / 参考文档"
+E011:
+  message: "“背景与现状”下的二级标题必须且只能是：背景 / 现状"
+E012:
+  message: "“假设与约束”下的二级标题必须且只能是：假设 / 约束"
+E013:
+  message: "“风险与红线”下的二级标题必须且只能是：风险 / 红线行为"
+E020:
+  message: "“现状”小节必须包含 fenced `dot` 或 `graphviz` 图"
+E021:
+  message: "“目标”小节必须包含 fenced `dot` 或 `graphviz` 图"
+E022:
+  message: "“架构总览”小节必须包含 fenced `dot` 或 `graphviz` 图"
+E030:
+  message: "“访谈记录”必须至少保留 5 轮真实用户问答"
+E031:
+  message: "访谈问题行必须写成 `> Q：...`"
+E032:
+  message: "访谈记录里 `Q` 和 `A` 之间必须保留空 quote 行"
+E033:
+  message: "访谈回答行必须写成 `> A：...`"
+E034:
+  message: "每轮访谈后都必须补 `收敛影响：...`"

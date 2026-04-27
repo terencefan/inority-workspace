@@ -10,7 +10,7 @@ from test_helpers import REFERENCE_TEMPLATE, RUNCTL, load_text
 
 sys.path.insert(0, str(RUNCTL.parent))
 
-import commands.validate as validate_cmd
+import commands.validator_client as validate_cmd
 
 
 class SyncRecordsTests(unittest.TestCase):
@@ -24,7 +24,7 @@ class SyncRecordsTests(unittest.TestCase):
         mutated = mutated.replace("### 🔴 2. <编号项标题>", "### 🔴 2. 老的记录标题", 1)
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            runbook_path = Path(tmpdir) / "authority.md"
+            runbook_path = Path(tmpdir) / "authority-runbook.md"
             runbook_path.write_text(mutated, encoding="utf-8")
             result = subprocess.run(
                 [sys.executable, str(RUNCTL), "sync-records", str(runbook_path)],

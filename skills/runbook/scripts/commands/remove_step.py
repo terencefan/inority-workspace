@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 import commands.normalize as normalize_cmd
-import commands.validate as validate_cmd
+import commands.validator_client as validator_client
 
 
 def extract_item_blocks(
@@ -89,9 +89,9 @@ def handle(args: argparse.Namespace) -> int:
         return 1
 
     normalized = normalize_cmd.normalize_runbook_numbering(rewritten)
-    errors = validate_cmd.collect_errors(normalized)
+    errors = validator_client.collect_errors(normalized)
     if errors:
-        validate_cmd.print_fail(path, errors, json_mode=False)
+        validator_client.print_fail(path, errors, json_mode=False)
         return 1
 
     path.write_text(normalized, encoding="utf-8")

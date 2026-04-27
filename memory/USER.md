@@ -39,10 +39,14 @@ Personal preferences for collaborating with Terence.
 - For WSL elevation or system-level installation, prefer `wsl -u root` over interactive `sudo` with the current user.
 - After `git` commit and MR creation workflows, do not switch back to the main branch automatically.
 - When Terence asks to submit or commit code, default to creating the MR in the same workflow for repositories where an MR can be created; do not stop after push unless blocked.
+- In runbook execution, if the authority still requires a final independent read-only recon, do not stop before that final复核 is completed or explicitly blocked.
 - If enterprise Gitee PR creation returns `401`, remind Terence to log in again in Chrome before retrying the automation flow.
 - For `inority-workspace`, default code-submission workflows to the `main` branch and run `git pull --rebase` before `git push`.
 - When replacing a custom file-scan path with a mature CLI such as `rg`, prefer the tool's native semantics instead of reintroducing compatibility flags that preserve the old behavior.
 - Daily note files under `.codex/memory/dairy/*.md` are approved for direct non-destructive edits without asking first; still ask before deleting, archiving, or moving diary files.
+- When deleting workspace files, prefer moving them under `/home/fantengyuan/workspace/.recycle/` with their relative path preserved instead of permanently removing them.
+- `runctl` and `specctl` are approved for direct execution without asking first.
 - Default runbook storage to `inority-workspace/handbook/runbook/` unless the user chooses a different location.
 - Use date-partitioned runbook directories in the form `inority-workspace/handbook/runbook/YYYY-MM-DD/`.
 - For runbook `dot` diagrams in the handbook, target dark-mode-friendly output: transparent backgrounds, same-type nodes sharing colors, rounded rectangles by default, and color chosen by lowering brightness instead of washing everything out.
+- When planning or revising runbooks, if state-changing actions touch different machine layers such as `dev3`, canary hosts, and VM / guest nodes, split them into separate numbered steps instead of combining them into one item.

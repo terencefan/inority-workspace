@@ -40,6 +40,8 @@
 - product spec 模板：`references/product-spec-template.md`
 - technical spec 模板：`references/technical-spec-template.md`
 - interview record 模板：`references/interview-record-template.md`
+- validator 错误码：`references/validator-error-codes.yaml`
+- CLI：`scripts/specctl validate <path>`
 
 ## 相关文件 | Related Files
 
@@ -52,3 +54,5 @@
 | `references/product-spec-template.md` | product spec 模板 |
 | `references/technical-spec-template.md` | technical spec 模板 |
 | `references/interview-record-template.md` | 访谈记录模板 |
+| `references/validator-error-codes.yaml` | spec validator 错误码目录 |
+| `scripts/specctl` | `specctl` CLI 入口 |

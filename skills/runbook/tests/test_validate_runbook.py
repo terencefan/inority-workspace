@@ -12,7 +12,7 @@ from test_helpers import ASSETS_DIR, ERROR_CODE_CATALOG, RUNCTL, REFERENCE_TEMPL
 
 sys.path.insert(0, str(SCRIPTS_DIR))
 
-import commands.validate as validate_core
+import commands.validator_client as validate_core
 
 
 class ValidateRunbookTests(unittest.TestCase):
@@ -28,7 +28,9 @@ class ValidateRunbookTests(unittest.TestCase):
         self.assertEqual([], validate_core.collect_errors(self.template_text))
 
     def test_error_code_catalog_covers_runtime_codes(self) -> None:
-        runtime_codes = set(re.findall(r'"(E\d{3})"', load_text(SCRIPTS_DIR / "commands" / "validate.py")))
+        runtime_codes = set(re.findall(r'"(E\d{3})"', load_text(SCRIPTS_DIR / "commands" / "validator_client.py")))
+        runtime_codes.update(re.findall(r'"(E\d{3})"', load_text(SCRIPTS_DIR / "commands" / "validate_cmd.py")))
+        runtime_codes.update(re.findall(r'"(E\d{3})"', load_text(SCRIPTS_DIR / "commands" / "validate.mjs")))
         runtime_codes.add("E000")
         catalog = validate_core.load_error_catalog()
 
@@ -78,7 +80,7 @@ class ValidateRunbookTests(unittest.TestCase):
             self.assertIn(expected, codes)
 
     def test_title_must_not_include_date(self) -> None:
-        mutated = self.template_text.replace("# <runbook 标题>", "# 2026-04-23 Canary Bootstrap", 1)
+        mutated = self.template_text.replace("# <主题>执行手册", "# 2026-04-23 Canary Bootstrap 执行手册", 1)
 
         codes = {item.code for item in validate_core.collect_errors(mutated)}
 
@@ -101,6 +103,48 @@ class ValidateRunbookTests(unittest.TestCase):
         payload = json.loads(result.stdout)
         codes = {item["code"] for item in payload["errors"]}
         self.assertIn("E106", codes)
+
+    def test_title_must_end_with_required_suffix(self) -> None:
+        mutated = self.template_text.replace("# <主题>执行手册", "# Canary Bootstrap", 1)
+
+        codes = {item.code for item in validate_core.collect_errors(mutated)}
+
+        self.assertIn("E107", codes)
+
+    def test_filename_must_end_with_required_suffix(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            runbook_path = Path(tmpdir) / "canary-bootstrap.md"
+            runbook_path.write_text(self.template_text, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(RUNCTL), "validate", str(runbook_path), "--json"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+        self.assertEqual(1, result.returncode)
+        payload = json.loads(result.stdout)
+        codes = {item["code"] for item in payload["errors"]}
+        self.assertIn("E108", codes)
+
+    def test_mode_note_must_exist_under_title(self) -> None:
+        mutated = self.template_text.replace("> [!NOTE]\n> 当前模式：`<coding|operation|migration>`\n\n", "", 1)
+
+        codes = {item.code for item in validate_core.collect_errors(mutated)}
+
+        self.assertIn("E109", codes)
+        self.assertIn("E110", codes)
+
+    def test_mode_note_must_use_supported_mode(self) -> None:
+        mutated = self.template_text.replace(
+            "> 当前模式：`<coding|operation|migration>`",
+            "> 当前模式：`unknown`",
+            1,
+        )
+
+        codes = {item.code for item in validate_core.collect_errors(mutated)}
+
+        self.assertIn("E110", codes)
 
     def test_runctl_validate_help_lists_subcommands(self) -> None:
         result = subprocess.run(
@@ -130,7 +174,7 @@ class ValidateRunbookTests(unittest.TestCase):
                 mutated = apply_replacements(self.template_text, case["replacements"])
 
                 with tempfile.TemporaryDirectory() as tmpdir:
-                    runbook_path = Path(tmpdir) / f"{case_name}.md"
+                    runbook_path = Path(tmpdir) / f"{case_name}-runbook.md"
                     runbook_path.write_text(mutated, encoding="utf-8")
                     result = subprocess.run(
                         [sys.executable, str(RUNCTL), "normalize", str(runbook_path)],
@@ -160,7 +204,7 @@ class ValidateRunbookTests(unittest.TestCase):
                 mutated = apply_replacements(self.template_text, case["replacements"])
 
                 with tempfile.TemporaryDirectory() as tmpdir:
-                    runbook_path = Path(tmpdir) / f"{case_name}.md"
+                    runbook_path = Path(tmpdir) / f"{case_name}-runbook.md"
                     runbook_path.write_text(mutated, encoding="utf-8")
                     result = subprocess.run(
                         [sys.executable, str(RUNCTL), "validate", str(runbook_path)],

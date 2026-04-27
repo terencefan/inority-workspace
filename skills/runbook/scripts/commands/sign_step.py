@@ -8,18 +8,14 @@ from pathlib import Path
 
 from commands.normalize import normalize_runbook_numbering
 from commands.shift_items import render_diff
-from commands.validate import (
-    NUMBERED_H3_RE,
+from commands.normalize import NUMBERED_H3_RE, extract_h3_blocks, extract_h4_blocks, parse_sections, section_slice
+from commands.validator_client import (
     RECORD_SIGNED_ACCEPT_RE,
     RECORD_SIGNED_EXEC_RE,
     STEP_SIGNED_ACCEPT_RE,
     STEP_SIGNED_EXEC_RE,
-    extract_h3_blocks,
-    extract_h4_blocks,
-    parse_sections,
-    print_fail,
-    section_slice,
     collect_errors,
+    print_fail,
 )
 
 

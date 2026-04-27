@@ -1,4 +1,7 @@
-# <runbook 标题>
+# <主题>执行手册
+
+> [!NOTE]
+> 当前模式：`<coding|operation|migration>`
 
 ## 背景与现状
 
@@ -38,6 +41,7 @@ digraph current {
 
 - <目标状态>
 - <成功定义 / handoff 边界>
+- authority source： [<spec 设计文档>.md](./<spec-设计文档>.md)
 
 ```dot
 digraph target {
@@ -150,6 +154,10 @@ digraph runbook_mindmap {
 - <本章节由规划态维护；执行记录只保留恢复后的成功路径，不在 `## 执行记录` 里累计中断分支的失败清理尝试>
 
 ## 执行计划
+
+- 如果当前模式是 `coding`，第一个编号项必须写成 `保证工作区干净`。
+- 如果当前模式是 `operation` 或 `migration`，第一个编号项必须写成 `冻结现场`。
+- 下方示例默认按 `operation` / `migration` 模式展示首项骨架；`coding` 模式请把首项替换成“保证工作区干净”的对应检查与验收。
 
 <a id="item-1"></a>
 
@@ -354,6 +362,7 @@ digraph runbook_mindmap {
 - `## 执行记录` 下的每个步骤标题都必须使用与 `## 执行计划` 完全一致的 `### N. 标题`。
 - `## 执行记录` 只保留恢复后的成功路径；中断后为恢复执行而新增的现场清理动作，由规划态写进 `## 清理现场`，不要把失败清理分支继续累积进成功路径记录里。
 - 未执行 / 未验收前，只保留未签名的 `#### 执行记录` / `#### 验收记录`。
+- 交付 runbook 时，即使规划态已经做过只读 reconnaissance，也不要预签名；这些证据应留在 `### 现状`、风险或 `## 访谈记录`，记录区保持未签名占位态。
 - 真正回填证据时，再改成签名形态：
   - `#### 执行记录 @名字 YYYY-MM-DD HH:MM TZ`
   - `#### 验收记录 @名字 YYYY-MM-DD HH:MM TZ`
@@ -472,6 +481,7 @@ digraph runbook_mindmap {
 
 | name | type | link | desc |
 | --- | --- | --- | --- |
+| <authority spec / 上游 authority> | 文档 | [<path>-spec.md](./<path>-spec.md) | 如果本 runbook 派生自 spec，这里放唯一 authority source。 |
 | <上游 authority / 前置文档> | 文档 | [<path>.md](./<path>.md) | 说明该文档的直接作用。 |
 | <Ansible playbook / Python 脚本 / 模板文件> | 资源 | [<path>](./<path>) | 说明该资源在执行中的作用。 |
 | <旁路参考 / 相关设计文档> | 文档 | [<path>.md](./<path>.md) | 说明该参考如何约束边界。 |

@@ -9,6 +9,14 @@
 
 它只负责规划，不负责直接执行编号项，也不负责执行态验收。执行相关的职责由 `runbook-solo`、`runbook-team` 以及各 phase 子 skill 承担。
 
+按规划类型，`runbook` 只分为三种主类型：
+
+- `coding`
+- `operation`
+- `migration`
+
+主 rollout 需要先判型，再按需加载对应子文档，并在加载时说明“加载了什么、为什么加载”。
+
 ## 职责边界 | Responsibilities
 
 负责：
@@ -39,9 +47,9 @@
 常用命令：
 
 ```bash
-python3 scripts/runctl init <runbook.md>
-python3 scripts/runctl validate <runbook.md>
-python3 scripts/runctl normalize <runbook.md>
+python3 scripts/runctl init <topic>-runbook.md --title "<主题>执行手册"
+python3 scripts/runctl validate <topic>-runbook.md
+python3 scripts/runctl normalize <topic>-runbook.md
 ```
 
 ## 相关文件 | Related Files
@@ -53,6 +61,9 @@ python3 scripts/runctl normalize <runbook.md>
 | `agents/openai.yaml` | skill 展示名与调用元数据 |
 | `references/authority-runbook-template.md` | authority runbook 标准模板 |
 | `references/runbook-template.md` | 常规 runbook 模板 |
+| `references/coding-runbook.md` | coding 类型 runbook 的子文档 |
+| `references/operation-runbook.md` | operation 类型 runbook 的子文档 |
+| `references/migration-runbook.md` | migration 类型 runbook 的子文档 |
 | `references/validator-error-codes.yaml` | `runctl validate` 的错误码与解释 |
 | `scripts/runctl` | runbook 初始化、编辑、规范化、校验的统一入口 |
 | `tests/` | `runctl` 子命令与规则的回归测试 |

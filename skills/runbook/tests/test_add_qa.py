@@ -11,7 +11,7 @@ from test_helpers import REFERENCE_TEMPLATE, RUNCTL, load_text
 
 sys.path.insert(0, str(RUNCTL.parent))
 
-import commands.validate as validate_cmd
+import commands.validator_client as validate_cmd
 
 
 class AddQaTests(unittest.TestCase):
@@ -22,7 +22,7 @@ class AddQaTests(unittest.TestCase):
 
     def test_runctl_add_qa_appends_structured_interview_entry(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            runbook_path = Path(tmpdir) / "authority.md"
+            runbook_path = Path(tmpdir) / "authority-runbook.md"
             runbook_path.write_text(self.template_text, encoding="utf-8")
             result = subprocess.run(
                 [
@@ -57,7 +57,7 @@ class AddQaTests(unittest.TestCase):
 
     def test_runctl_add_qa_supports_explicit_interview_time(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            runbook_path = Path(tmpdir) / "authority.md"
+            runbook_path = Path(tmpdir) / "authority-runbook.md"
             runbook_path.write_text(self.template_text, encoding="utf-8")
             result = subprocess.run(
                 [
@@ -88,7 +88,7 @@ class AddQaTests(unittest.TestCase):
 
     def test_runctl_add_qa_supports_blank_init_output(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            runbook_path = Path(tmpdir) / "authority.md"
+            runbook_path = Path(tmpdir) / "authority-runbook.md"
             init_result = subprocess.run(
                 [sys.executable, str(RUNCTL), "init", str(runbook_path)],
                 capture_output=True,

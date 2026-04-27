@@ -1,0 +1,112 @@
+[
+  {
+    "name": "title-suffix",
+    "replacements": [
+      {
+        "old": "# 示例平台接入设计文档",
+        "new": "# 示例平台接入方案"
+      }
+    ],
+    "expected_codes": ["E002"]
+  },
+  {
+    "name": "heading-order",
+    "replacements": [
+      {
+        "old": "# 风险与红线\n\n## 风险",
+        "new": "# 假设与约束\n\n## 风险"
+      }
+    ],
+    "expected_codes": ["E010"]
+  },
+  {
+    "name": "background-extra-subheading",
+    "replacements": [
+      {
+        "old": "## 现状\n\n说明当前系统结构、实现限制或运行痛点。\n",
+        "new": "## 现状\n\n说明当前系统结构、实现限制或运行痛点。\n\n## 问题\n\n这里不允许新增问题小节。\n"
+      }
+    ],
+    "expected_codes": ["E011"]
+  },
+  {
+    "name": "missing-current-dot",
+    "replacements": [
+      {
+        "old": "```dot\n",
+        "new": "```txt\n"
+      }
+    ],
+    "expected_codes": ["E020"]
+  },
+  {
+    "name": "missing-target-dot",
+    "replacements": [
+      {
+        "old": "```graphviz\n",
+        "new": "```txt\n"
+      }
+    ],
+    "expected_codes": ["E021"]
+  },
+  {
+    "name": "missing-overview-dot",
+    "replacements": [
+      {
+        "old": "# 架构总览\n\n> 先建立端到端链路、组件关系或运行位置的整体模型。\n\n```dot\n",
+        "new": "# 架构总览\n\n> 先建立端到端链路、组件关系或运行位置的整体模型。\n\n```txt\n"
+      }
+    ],
+    "expected_codes": ["E022"]
+  },
+  {
+    "name": "missing-interview-round",
+    "replacements": [
+      {
+        "old": "> Q：这份 spec 是否需要显式记录红线行为？\n>\n>\n> A：需要，尤其是不能绕过现有鉴权边界。\n\n收敛影响：把安全边界写进“红线行为”，避免评审时遗漏。\n",
+        "new": ""
+      }
+    ],
+    "expected_codes": ["E030"]
+  },
+  {
+    "name": "question-prefix",
+    "replacements": [
+      {
+        "old": "> Q：这次变更是否只覆盖接入链路，不触碰鉴权模型？",
+        "new": "Q：这次变更是否只覆盖接入链路，不触碰鉴权模型？"
+      }
+    ],
+    "expected_codes": ["E030", "E031"]
+  },
+  {
+    "name": "missing-blank-quote-line",
+    "replacements": [
+      {
+        "old": "> Q：这次变更是否只覆盖接入链路，不触碰鉴权模型？\n>\n>\n> A：是，本轮只覆盖接入链路，鉴权模型保持不变。",
+        "new": "> Q：这次变更是否只覆盖接入链路，不触碰鉴权模型？\n> A：是，本轮只覆盖接入链路，鉴权模型保持不变。"
+      }
+    ],
+    "expected_codes": ["E032"]
+  },
+  {
+    "name": "answer-prefix",
+    "replacements": [
+      {
+        "old": "> A：是，本轮只覆盖接入链路，鉴权模型保持不变。",
+        "new": "A：是，本轮只覆盖接入链路，鉴权模型保持不变。"
+      }
+    ],
+    "expected_codes": ["E033"]
+  },
+  {
+    "name": "missing-convergence-impact",
+    "replacements": [
+      {
+        "old": "收敛影响：把鉴权模型从本轮范围里明确排除，避免 scope 漂移。\n\n",
+        "new": "\n"
+      }
+    ],
+    "expected_codes": ["E034"]
+  }
+]

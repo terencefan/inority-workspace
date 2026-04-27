@@ -11,7 +11,7 @@ from . import normalize as normalize_cmd
 from . import shift_items as shift_items_cmd
 from . import sign_step as sign_step_cmd
 from . import sync_records as sync_records_cmd
-from . import validate as validate_cmd
+from . import validate_cmd as validate_cmd
 
 
 def build_parser(prog: str = "runctl") -> argparse.ArgumentParser:
