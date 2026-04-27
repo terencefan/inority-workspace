@@ -38,6 +38,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const node_http_1 = __importDefault(require("node:http"));
 const node_child_process_1 = require("node:child_process");
+const node_crypto_1 = require("node:crypto");
 const node_fs_1 = require("node:fs");
 const node_os_1 = __importDefault(require("node:os"));
 const node_path_1 = __importDefault(require("node:path"));
@@ -59,6 +60,7 @@ const LEGACY_DOC_ROUTE_PREFIX = "/workspace";
 const IGNORED_DIRECTORY_NAMES = new Set([".git", "node_modules", ".venv", "third_party"]);
 const graphvizFontFamily = process.env.HANDBOOK_GRAPHVIZ_FONT || "sans-serif";
 const GRAPHVIZ_RENDER_MAX_BUFFER = 8 * 1024 * 1024;
+const serverStartedAt = Date.now();
 let vizPromise;
 let graphvizDotBinaryPromise;
 let rgBinaryPromise;
@@ -132,6 +134,14 @@ function sendJson(res, statusCode, payload) {
 function sendText(res, statusCode, contentType, body) {
     const payload = Buffer.from(body, "utf8");
     sendBuffer(res, statusCode, `${contentType}; charset=utf-8`, payload);
+}
+function hashStrings(values) {
+    const hash = (0, node_crypto_1.createHash)("sha1");
+    for (const value of values) {
+        hash.update(value);
+        hash.update("\n");
+    }
+    return hash.digest("hex");
 }
 function normalizeDocPath(inputPath = "") {
     const normalized = node_path_1.default.posix.normalize(String(inputPath).replace(/\\/g, "/")).replace(/^\/+/, "");
@@ -232,18 +242,159 @@ async function resolveRgBinary() {
     }
     return rgBinaryPromise;
 }
+function collectTreePaths(nodes, output = []) {
+    for (const node of nodes) {
+        output.push(`${node.type}:${node.path}`);
+        if (node.type === "directory") {
+            collectTreePaths(node.children, output);
+        }
+    }
+    return output;
+}
+async function readFileStamp(filePath) {
+    try {
+        const stats = await node_fs_1.promises.stat(filePath);
+        if (!stats.isFile()) {
+            return null;
+        }
+        return {
+            mtimeMs: stats.mtimeMs,
+            path: filePath,
+        };
+    }
+    catch (error) {
+        if (hasCode(error, "ENOENT")) {
+            return null;
+        }
+        throw error;
+    }
+}
+async function walkFiles(rootDir, extensions, output = []) {
+    let entries;
+    try {
+        entries = await node_fs_1.promises.readdir(rootDir, { withFileTypes: true });
+    }
+    catch (error) {
+        if (hasCode(error, "ENOENT")) {
+            return output;
+        }
+        throw error;
+    }
+    for (const entry of entries) {
+        const absolutePath = node_path_1.default.join(rootDir, entry.name);
+        if (entry.isDirectory()) {
+            await walkFiles(absolutePath, extensions, output);
+            continue;
+        }
+        if (!entry.isFile()) {
+            continue;
+        }
+        if (!extensions.has(node_path_1.default.extname(entry.name).toLowerCase())) {
+            continue;
+        }
+        const stamp = await readFileStamp(absolutePath);
+        if (stamp) {
+            output.push(stamp);
+        }
+    }
+    return output;
+}
+async function getAppVersion() {
+    const extensions = new Set([".ts", ".js", ".css", ".html"]);
+    const watchTargets = isDev
+        ? [
+            node_path_1.default.join(projectRoot, "server.ts"),
+            node_path_1.default.join(projectRoot, "index.html"),
+            node_path_1.default.join(projectRoot, "vite.config.ts"),
+            node_path_1.default.join(projectRoot, "tsconfig.json"),
+            node_path_1.default.join(projectRoot, "tsconfig.server.json"),
+        ]
+        : [
+            node_path_1.default.join(projectRoot, "dist"),
+            node_path_1.default.join(projectRoot, "build-server"),
+            node_path_1.default.join(projectRoot, "server.ts"),
+            node_path_1.default.join(projectRoot, "index.html"),
+        ];
+    const stamps = [
+        {
+            mtimeMs: serverStartedAt,
+            path: `server-start:${serverStartedAt}`,
+        },
+    ];
+    for (const target of watchTargets) {
+        try {
+            const stats = await node_fs_1.promises.stat(target);
+            if (stats.isDirectory()) {
+                await walkFiles(target, extensions, stamps);
+                continue;
+            }
+            if (stats.isFile()) {
+                stamps.push({
+                    mtimeMs: stats.mtimeMs,
+                    path: target,
+                });
+            }
+        }
+        catch (error) {
+            if (hasCode(error, "ENOENT")) {
+                continue;
+            }
+            throw error;
+        }
+    }
+    return hashStrings(stamps
+        .sort((left, right) => left.path.localeCompare(right.path))
+        .map(stamp => `${stamp.path}:${stamp.mtimeMs}`));
+}
+async function getLiveReloadState(requestedPath) {
+    const tree = await getTree();
+    const appVersion = await getAppVersion();
+    const treeVersion = hashStrings(collectTreePaths(tree));
+    const normalizedPath = normalizeDocPath(requestedPath || defaultDoc);
+    const { absolutePath, relativePath } = resolveDocPath(normalizedPath);
+    const stamp = await readFileStamp(absolutePath);
+    return {
+        appVersion,
+        docExists: Boolean(stamp),
+        docPath: relativePath,
+        docVersion: stamp ? `${stamp.mtimeMs}` : "",
+        treeVersion,
+    };
+}
 async function walkMarkdownFiles(rootDir, options, currentRelativePath = "") {
     const currentDirectory = currentRelativePath ? node_path_1.default.join(rootDir, currentRelativePath) : rootDir;
+    const currentRealPath = await node_fs_1.promises.realpath(currentDirectory);
+    options.visitedDirectories ||= new Set();
+    if (options.visitedDirectories.has(currentRealPath)) {
+        return [];
+    }
+    options.visitedDirectories.add(currentRealPath);
     const entries = await node_fs_1.promises.readdir(currentDirectory, { withFileTypes: true });
     const results = [];
     for (const entry of entries) {
         const entryRelativePath = currentRelativePath ? node_path_1.default.posix.join(currentRelativePath, entry.name) : entry.name;
-        if (entry.isDirectory()) {
+        if (entry.isDirectory() || entry.isSymbolicLink()) {
             if (options.ignoreDirectories.has(entry.name)) {
                 continue;
             }
-            results.push(...(await walkMarkdownFiles(rootDir, options, entryRelativePath)));
-            continue;
+            try {
+                const entryAbsolutePath = node_path_1.default.join(rootDir, entryRelativePath);
+                const stats = await node_fs_1.promises.stat(entryAbsolutePath);
+                if (stats.isDirectory()) {
+                    results.push(...(await walkMarkdownFiles(rootDir, options, entryRelativePath)));
+                    continue;
+                }
+                if (stats.isFile() && entry.name.toLowerCase().endsWith(".md")) {
+                    results.push(entryRelativePath.replace(/\\/g, "/"));
+                    continue;
+                }
+            }
+            catch (error) {
+                if (hasCode(error, "ENOENT")) {
+                    continue;
+                }
+                throw error;
+            }
         }
         if (entry.isFile() && entry.name.toLowerCase().endsWith(".md")) {
             results.push(entryRelativePath.replace(/\\/g, "/"));
@@ -256,24 +407,35 @@ async function listMarkdownFilesWithRg() {
     if (!rgBinary) {
         return walkMarkdownFiles(docsRoot, { ignoreDirectories: IGNORED_DIRECTORY_NAMES });
     }
-    const { stdout } = await runExecFile(rgBinary, [
-        "--files",
-        "--hidden",
-        "-g",
-        "*.md",
-        "-g",
-        "!**/.git/**",
-        "-g",
-        "!**/node_modules/**",
-        "-g",
-        "!**/.venv/**",
-        "-g",
-        "!third_party/**",
-    ], {
-        cwd: docsRoot,
-        maxBuffer: 16 * 1024 * 1024,
-        windowsHide: true,
-    });
+    let stdout = "";
+    try {
+        const result = await runExecFile(rgBinary, [
+            "-L",
+            "--files",
+            "--hidden",
+            "-g",
+            "*.md",
+            "-g",
+            "!**/.git/**",
+            "-g",
+            "!**/node_modules/**",
+            "-g",
+            "!**/.venv/**",
+            "-g",
+            "!third_party/**",
+        ], {
+            cwd: docsRoot,
+            maxBuffer: 16 * 1024 * 1024,
+            windowsHide: true,
+        });
+        stdout = result.stdout;
+    }
+    catch {
+        return walkMarkdownFiles(docsRoot, {
+            ignoreDirectories: IGNORED_DIRECTORY_NAMES,
+            visitedDirectories: new Set(),
+        });
+    }
     return stdout
         .split(/\r?\n/)
         .map(line => line.trim())
@@ -400,6 +562,62 @@ function createMarkdownRenderer(docPath) {
             return `<pre><code class="hljs">${escapeHtml(code)}</code></pre>`;
         },
     }).use(markdown_it_task_lists_1.default, { enabled: true, label: true, labelAfter: true });
+    const ALERT_TYPES = new Map([
+        ["NOTE", { className: "note", label: "Note" }],
+        ["TIP", { className: "tip", label: "Tip" }],
+        ["IMPORTANT", { className: "important", label: "Important" }],
+        ["WARNING", { className: "warning", label: "Warning" }],
+        ["CAUTION", { className: "caution", label: "Caution" }],
+    ]);
+    md.core.ruler.push("github_alerts", state => {
+        const AlertToken = state.Token;
+        for (let idx = 0; idx < state.tokens.length; idx += 1) {
+            const token = state.tokens[idx];
+            if (token.type !== "blockquote_open") {
+                continue;
+            }
+            const paragraphOpen = state.tokens[idx + 1];
+            const inline = state.tokens[idx + 2];
+            const paragraphClose = state.tokens[idx + 3];
+            if (paragraphOpen?.type !== "paragraph_open" ||
+                inline?.type !== "inline" ||
+                paragraphClose?.type !== "paragraph_close") {
+                continue;
+            }
+            const lines = String(inline.content || "").split("\n");
+            const firstLine = lines[0] || "";
+            const alertMatch = firstLine.match(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\](?:[ \t]+(.*))?$/i);
+            if (!alertMatch) {
+                continue;
+            }
+            const alert = ALERT_TYPES.get(alertMatch[1].toUpperCase());
+            if (!alert) {
+                continue;
+            }
+            token.attrJoin("class", `markdown-alert markdown-alert-${alert.className}`);
+            token.attrSet("data-alert-type", alert.className);
+            const titleOpen = new AlertToken("paragraph_open", "p", 1);
+            titleOpen.attrJoin("class", "markdown-alert-title");
+            const titleInline = new AlertToken("inline", "", 0);
+            titleInline.content = alert.label;
+            titleInline.children = [(() => {
+                    const child = new AlertToken("text", "", 0);
+                    child.content = alert.label;
+                    return child;
+                })()];
+            const titleClose = new AlertToken("paragraph_close", "p", -1);
+            state.tokens.splice(idx + 1, 0, titleOpen, titleInline, titleClose);
+            idx += 3;
+            const remainder = [alertMatch[2] || "", ...lines.slice(1)].join("\n").trim();
+            if (!remainder) {
+                state.tokens.splice(idx + 1, 3);
+                continue;
+            }
+            const parsedInline = md.parseInline(remainder, state.env)[0];
+            inline.content = remainder;
+            inline.children = parsedInline?.children || [];
+        }
+    });
     const defaultLinkOpen = md.renderer.rules.link_open ||
         function renderToken(tokens, idx, options, _env, self) {
             return self.renderToken(tokens, idx, options);
@@ -453,17 +671,42 @@ async function renderGraphviz(code) {
     }
 }
 async function renderMarkdown(docPath, markdownSource) {
-    const placeholders = [];
-    const sourceWithPlaceholders = markdownSource.replace(/```(?:dot|graphviz|gv)\s*\r?\n([\s\S]*?)```/gi, (_, code) => {
-        const token = `GRAPHVIZ_PLACEHOLDER_${placeholders.length}`;
-        placeholders.push({ token, code });
+    const graphvizPlaceholders = [];
+    const mermaidPlaceholders = [];
+    const svgPlaceholders = [];
+    const sourceWithPlaceholders = markdownSource
+        .replace(/```(?:dot|graphviz|gv)\s*\r?\n([\s\S]*?)```/gi, (_, code) => {
+        const token = `GRAPHVIZ_PLACEHOLDER_${graphvizPlaceholders.length}`;
+        graphvizPlaceholders.push({ token, code });
+        return `${token}\n`;
+    })
+        .replace(/```svg\s*\r?\n([\s\S]*?)```/gi, (_, code) => {
+        const token = `SVG_PLACEHOLDER_${svgPlaceholders.length}`;
+        svgPlaceholders.push({ token, code });
+        return `${token}\n`;
+    })
+        .replace(/```mermaid\s*\r?\n([\s\S]*?)```/gi, (_, code) => {
+        const token = `MERMAID_PLACEHOLDER_${mermaidPlaceholders.length}`;
+        mermaidPlaceholders.push({ token, code });
         return `${token}\n`;
     });
     const renderer = createMarkdownRenderer(docPath);
     const env = {};
     let html = renderer.render(sourceWithPlaceholders, env);
-    for (const placeholder of placeholders) {
+    for (const placeholder of graphvizPlaceholders) {
         const rendered = await renderGraphviz(placeholder.code);
+        html = html.replace(`<p>${placeholder.token}</p>`, rendered).replace(placeholder.token, rendered);
+    }
+    for (const placeholder of mermaidPlaceholders) {
+        const encoded = Buffer.from(placeholder.code, "utf8").toString("base64");
+        const rendered = `<div class="mermaid-block" data-mermaid-source="${encoded}"><pre class="mermaid-fallback"><code>${escapeHtml(placeholder.code)}</code></pre></div>`;
+        html = html.replace(`<p>${placeholder.token}</p>`, rendered).replace(placeholder.token, rendered);
+    }
+    for (const placeholder of svgPlaceholders) {
+        const normalized = placeholder.code.trim();
+        const rendered = normalized.toLowerCase().startsWith("<svg")
+            ? `<div class="svg-block">${uniquifyInlineSvgIds(normalized)}</div>`
+            : `<pre class="graphviz-error"><code>${escapeHtml("SVG fence must start with <svg ...>")}</code></pre>`;
         html = html.replace(`<p>${placeholder.token}</p>`, rendered).replace(placeholder.token, rendered);
     }
     const titleMatch = markdownSource.match(/^#\s+(.+)$/m);
@@ -524,6 +767,19 @@ function isDocAppRoute(requestPath) {
         requestPath === LEGACY_DOC_ROUTE_PREFIX ||
         requestPath.startsWith(`${LEGACY_DOC_ROUTE_PREFIX}/`));
 }
+function shouldServeAppFallback(requestPath) {
+    if (requestPath === "/" || isDocAppRoute(requestPath)) {
+        return true;
+    }
+    if (requestPath.startsWith("/@") ||
+        requestPath.startsWith("/node_modules/") ||
+        requestPath.startsWith("/src/") ||
+        requestPath.startsWith("/api/")) {
+        return false;
+    }
+    const lastSegment = requestPath.split("/").pop() || "";
+    return !lastSegment.includes(".");
+}
 function maybeRedirectLegacyDocRoute(requestPath, res) {
     if (requestPath !== LEGACY_DOC_ROUTE_PREFIX && !requestPath.startsWith(`${LEGACY_DOC_ROUTE_PREFIX}/`)) {
         return false;
@@ -537,6 +793,12 @@ async function handleApiRequest(requestUrl, res) {
     if (requestUrl.pathname === "/api/tree") {
         const tree = await getTree();
         sendJson(res, 200, { root: docsRootLabel, tree, defaultDoc });
+        return true;
+    }
+    if (requestUrl.pathname === "/api/live") {
+        const requestedPath = requestUrl.searchParams.get("path") || defaultDoc;
+        const payload = await getLiveReloadState(requestedPath);
+        sendJson(res, 200, payload);
         return true;
     }
     if (requestUrl.pathname === "/api/doc") {
@@ -583,6 +845,13 @@ async function serveDevClient(vite, req, res, requestUrl) {
     }
     await runViteMiddleware(vite, req, res);
     if (!res.writableEnded) {
+        if (shouldServeAppFallback(requestUrl.pathname)) {
+            const templatePath = node_path_1.default.join(projectRoot, "index.html");
+            const template = await node_fs_1.promises.readFile(templatePath, "utf8");
+            const html = await vite.transformIndexHtml(requestUrl.pathname, template);
+            sendText(res, 200, "text/html", html);
+            return;
+        }
         sendText(res, 404, "text/plain", "Not found");
     }
 }
@@ -590,7 +859,7 @@ async function serveBuiltClient(res, requestUrl) {
     if (maybeRedirectLegacyDocRoute(requestUrl.pathname, res)) {
         return;
     }
-    if (isDocAppRoute(requestUrl.pathname)) {
+    if (shouldServeAppFallback(requestUrl.pathname)) {
         await serveFile(res, node_path_1.default.join(distRoot, "index.html"));
         return;
     }

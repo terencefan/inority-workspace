@@ -5,7 +5,7 @@ SERVICE_NAME="inority-handbook"
 LEGACY_SERVICE_NAME="inority-runbook"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-WORKSPACE_ROOT="$(cd "${PROJECT_ROOT}/.." && pwd)"
+WORKSPACE_ROOT="$(cd "${PROJECT_ROOT}/../.." && pwd)"
 SYSTEMD_USER_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/systemd/user"
 SERVICE_PATH="${SYSTEMD_USER_DIR}/${SERVICE_NAME}.service"
 LEGACY_SERVICE_PATH="${SYSTEMD_USER_DIR}/${LEGACY_SERVICE_NAME}.service"
@@ -30,8 +30,9 @@ resolve_node_path() {
 }
 
 NODE_PATH="$(resolve_node_path || true)"
+NPM_PATH=""
+NODE_DIR=""
 RG_PATH="$(command -v rg || true)"
-SERVER_ENTRY_PATH="${PROJECT_ROOT}/build-server/server.js"
 RG_ENVIRONMENT_LINE=""
 
 if [[ -n "${RG_PATH}" ]]; then
@@ -44,12 +45,11 @@ if [[ -z "${NODE_PATH}" ]]; then
   exit 1
 fi
 
-echo "Building frontend with Vite..."
-npm run build
-
-if [[ ! -f "${SERVER_ENTRY_PATH}" ]]; then
-  echo "Built server entry is missing."
-  echo "Run npm run build successfully first, then rerun this script."
+NPM_PATH="${NODE_PATH%/node}/npm"
+NODE_DIR="$(dirname "${NODE_PATH}")"
+if [[ ! -x "${NPM_PATH}" ]]; then
+  echo "npm is not available next to ${NODE_PATH}."
+  echo "Install npm inside WSL first, then rerun this script."
   exit 1
 fi
 
@@ -71,13 +71,11 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=simple
-WorkingDirectory=${PROJECT_ROOT}
-ExecStart=${NODE_PATH} ${SERVER_ENTRY_PATH}
+WorkingDirectory=${WORKSPACE_ROOT}/inority-workspace
+ExecStart=${NPM_PATH} run handbook:dev
 Restart=always
 RestartSec=5
-Environment=HANDBOOK_DOCS_ROOT=${WORKSPACE_ROOT}
-Environment=HANDBOOK_DEFAULT_DOC=.codex/workspace.md
-Environment=HANDBOOK_PORT=4177
+Environment=PATH=${NODE_DIR}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 Environment="HANDBOOK_GRAPHVIZ_FONT=Noto Sans CJK SC"
 ${RG_ENVIRONMENT_LINE}
 

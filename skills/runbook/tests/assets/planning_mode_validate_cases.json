@@ -1,0 +1,35 @@
+[
+  {
+    "name": "missing_required_section",
+    "mode": "operation",
+    "mutations": [
+      {
+        "old": "## 风险收敛提醒",
+        "new": "## 其他说明"
+      }
+    ],
+    "expected_codes": ["E201"]
+  },
+  {
+    "name": "unexpected_h3_heading",
+    "mode": "operation",
+    "mutations": [
+      {
+        "old": "## 规划重点\n",
+        "new": "## 规划重点\n\n### 额外小节\n"
+      }
+    ],
+    "expected_codes": ["E202"]
+  },
+  {
+    "name": "section_requires_bullets",
+    "mode": "operation",
+    "mutations": [
+      {
+        "old": "## 执行计划偏好\n\n- 优先按时间和环境边界拆编号项，不要按代码目录拆\n- 尽量把“只读冻结”“破坏性变更”“验收观察”“回滚演练”分成独立编号项\n- 如果跨多台主机，优先按主机边界或控制面边界拆项，不要把上传、远端执行、验证揉进一个大项\n- 如有原生 no-op 入口，默认在前置项显式保留一次 dry-run / plan 结果\n",
+        "new": "## 执行计划偏好\n\n这里故意改成段落，触发 bullet 校验。\n"
+      }
+    ],
+    "expected_codes": ["E204"]
+  }
+]

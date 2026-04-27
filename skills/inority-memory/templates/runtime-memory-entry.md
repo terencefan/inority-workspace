@@ -1,10 +1,25 @@
-# memory/README.md
+# memory/MEMORY.md
 
 This directory stores long-lived context files plus local-only notes under
 `.codex/memory/`.
 
-Agents should treat this `README.md` as the canonical runtime entrypoint for the
+Agents should treat this `MEMORY.md` as the canonical runtime entrypoint for the
 inority-memory system before reading individual memory files.
+
+Before reading memory files, tell the user that you are loading memory context
+and what you are about to read.
+
+## Loading Order
+
+- Read `USER.md` for user preferences and collaboration defaults.
+- Read `SOUL.md` for enduring agent operating principles and reusable repair
+  patterns.
+- Read `WORKSPACE.md` for the index of repositories, active work, and
+  workspace-local conventions.
+- Read the most recent two files under `dairy/` when recent context would
+  materially help the task.
+- Read `credential.yaml` only when the task requires credentials, external
+  access, or secret names.
 
 ## Purpose
 
@@ -18,8 +33,7 @@ inority-memory system before reading individual memory files.
 
 - `SOUL.md`: agent operating style, managed from `inority-workspace/memory/SOUL.md`
 - `USER.md`: personal preferences, managed from `inority-workspace/memory/USER.md`
-- `README.md`: runtime-facing memory index, managed from
-  `inority-workspace/skills/inority-memory/`
+- `MEMORY.md`: workspace-local runtime-facing memory index
 - `WORKSPACE.md`: workspace-local structure, conventions, and environment rules
 - `credential.yaml`: local-only credential assets
 - `dairy/YYYY-MM-DD.md`: daily notes for one date

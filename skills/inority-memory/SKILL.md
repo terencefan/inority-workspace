@@ -13,6 +13,11 @@ This is the workspace-default runtime-governance skill for the inority memory sy
 
 Follow workspace reply-format rules from `.codex/memory/USER.md`. Do not duplicate local reply-template policy here.
 
+Treat `.codex/memory/MEMORY.md` as the canonical runtime entrypoint for the
+inority-memory system. Workspace `AGENTS.md` should point agents there first,
+and `MEMORY.md` defines the follow-on loading order for the rest of
+`.codex/memory/`.
+
 ## Use This Skill When
 
 - the workspace does not have an initialized `.codex/memory/` runtime yet
@@ -35,6 +40,7 @@ Enter install mode if `.codex/memory/` is missing or missing required runtime en
 Treat these as the required runtime entrypoints for considering the workspace initialized:
 
 - `.codex/memory/`
+- `.codex/memory/MEMORY.md`
 - `.codex/memory/USER.md`
 - `.codex/memory/SOUL.md`
 - `.codex/memory/WORKSPACE.md`
@@ -79,10 +85,16 @@ Instead:
 
 ## Memory Model
 
-Treat `.codex/memory/` as the runtime entrypoint and `inority-workspace/` as the maintained source for reusable assets.
+Treat `.codex/memory/MEMORY.md` as the runtime entrypoint and
+`inority-workspace/` as the maintained source for reusable assets.
+
+`MEMORY.md` owns the loading order and boundaries for the rest of
+`.codex/memory/`. `AGENTS.md` should not duplicate that detailed sequence.
 
 ### Durable Files
 
+- `.codex/memory/MEMORY.md`
+  Workspace-local runtime-facing memory index and loading-order contract for the memory system.
 - `.codex/memory/USER.md`
   Personal preferences, reply contracts, collaboration defaults, and durable user-specific workflow choices.
 - `.codex/memory/SOUL.md`

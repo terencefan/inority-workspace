@@ -25,6 +25,9 @@ Personal preferences for collaborating with Terence.
 
 - In docs, keep blockquotes concise; prefer a single sentence, and if multiple sentences are necessary, split them across lines rather than packing them into one long quote.
 - In global architecture or spec documents, avoid machine-local details such as local paths, current workstation context, or host-specific operational state; keep those in the appropriate `.codex/memory/` files instead.
+- When a spec involves interactions with external components, add a diagram to make the interaction boundaries and flow explicit.
+- When a spec involves UI, include at least one Mermaid low-fidelity wireframe diagram.
+- When a document is intended to render inside the handbook, Mermaid diagrams used there must be renderable in the handbook pipeline.
 - For metric naming in docs and specs, treat bare `duration` as milliseconds by default; avoid unit suffixes such as `_seconds` unless a different unit is intentionally required.
 - When diagrams use numeric labels or step numbers, order them from left to right first, then top to bottom.
 
@@ -40,13 +43,16 @@ Personal preferences for collaborating with Terence.
 - After `git` commit and MR creation workflows, do not switch back to the main branch automatically.
 - When Terence asks to submit or commit code, default to creating the MR in the same workflow for repositories where an MR can be created; do not stop after push unless blocked.
 - In runbook execution, if the authority still requires a final independent read-only recon, do not stop before that final复核 is completed or explicitly blocked.
+- In the current workspace, routine edits under `MogTracker/` are pre-approved and do not require asking for permission first.
 - If enterprise Gitee PR creation returns `401`, remind Terence to log in again in Chrome before retrying the automation flow.
 - For `inority-workspace`, default code-submission workflows to the `main` branch and run `git pull --rebase` before `git push`.
 - When replacing a custom file-scan path with a mature CLI such as `rg`, prefer the tool's native semantics instead of reintroducing compatibility flags that preserve the old behavior.
 - Daily note files under `.codex/memory/dairy/*.md` are approved for direct non-destructive edits without asking first; still ask before deleting, archiving, or moving diary files.
 - When deleting workspace files, prefer moving them under `/home/fantengyuan/workspace/.recycle/` with their relative path preserved instead of permanently removing them.
 - `runctl` and `specctl` are approved for direct execution without asking first.
-- Default runbook storage to `inority-workspace/handbook/runbook/` unless the user chooses a different location.
-- Use date-partitioned runbook directories in the form `inority-workspace/handbook/runbook/YYYY-MM-DD/`.
-- For runbook `dot` diagrams in the handbook, target dark-mode-friendly output: transparent backgrounds, same-type nodes sharing colors, rounded rectangles by default, and color chosen by lowering brightness instead of washing everything out.
-- When planning or revising runbooks, if state-changing actions touch different machine layers such as `dev3`, canary hosts, and VM / guest nodes, split them into separate numbered steps instead of combining them into one item.
+- Default runbook storage to each target project's `docs/runbook/` unless the user chooses a different location.
+- Default spec storage to each target project's `docs/specs/` unless the user chooses a different location.
+- Use date-partitioned runbook directories in the form `<project>/docs/runbook/YYYY-MM-DD/`.
+- For `dot` diagrams in this workspace, target dark-mode-friendly output: transparent backgrounds, filled node backgrounds by default, same-type nodes sharing colors, rounded rectangles by default, and color chosen by lowering brightness instead of washing everything out.
+- For dark-mode-oriented `dot` diagrams, prefer light high-contrast edge colors by default instead of dark gray connectors; pure white is acceptable, but a slightly softened near-white is usually better.
+- Treat `spec` and `runbook` as separate artifacts by default: `spec` defines the target state, while `runbook` describes the execution path from current state to that target.

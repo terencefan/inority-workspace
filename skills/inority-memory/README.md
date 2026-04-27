@@ -19,12 +19,12 @@
 
 运行时入口约定：
 
-- `.codex/memory/README.md` 是 inority-memory 体系的 canonical runtime entrypoint
+- `.codex/memory/MEMORY.md` 是 inority-memory 体系的 canonical runtime entrypoint
 - workspace 的 `AGENTS.md` 应先读这个入口，再决定是否继续读取具体 memory 文件
 
 Runtime entrypoint contract:
 
-- `.codex/memory/README.md` is the canonical runtime entrypoint for the inority-memory system
+- `.codex/memory/MEMORY.md` is the canonical runtime entrypoint for the inority-memory system
 - workspace `AGENTS.md` should point agents there before they read individual memory files
 
 ## 职责边界 | Responsibilities
@@ -96,6 +96,7 @@ node scripts/check-workspace.mjs
 初始化所需的最低 runtime 入口：
 
 - `.codex/memory/`
+- `.codex/memory/MEMORY.md`
 - `.codex/memory/USER.md`
 - `.codex/memory/SOUL.md`
 - `.codex/memory/WORKSPACE.md`
@@ -105,6 +106,7 @@ node scripts/check-workspace.mjs
 Required runtime entrypoints for considering the workspace initialized:
 
 - `.codex/memory/`
+- `.codex/memory/MEMORY.md`
 - `.codex/memory/USER.md`
 - `.codex/memory/SOUL.md`
 - `.codex/memory/WORKSPACE.md`
@@ -156,6 +158,6 @@ When extending `inority-memory`, prefer these constraints:
 | `scripts/install.mjs` | 跨平台初始化或修复 `.codex/memory/` runtime |
 | `scripts/uninstall.mjs` | 跨平台清理受管理的 install 资产，不触碰本地私有 memory 内容 |
 | `scripts/check-workspace.mjs` | 复核 `.codex/memory/` runtime 是否完整，并检查 `AGENTS.md` 是否仍引用旧入口 |
-| `templates/runtime-memory-readme.md` | runtime 侧 `README.md` 模板 |
+| `templates/runtime-memory-entry.md` | runtime 侧 `MEMORY.md` 模板 |
 | `templates/WORKSPACE.template.md` | 本地 `WORKSPACE.md` 初始化模板 |
 | `templates/credential.template.yaml` | 本地 `credential.yaml` 初始化模板 |

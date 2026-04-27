@@ -1,4 +1,4 @@
 interface:
   display_name: "Write Spec"
   short_description: "Draft product and technical specs from concrete requirements."
-  default_prompt: "Use this skill to turn rough requirements into a clear, reviewable spec with assumptions, scope, and acceptance criteria."
+  default_prompt: "Use this skill to turn rough requirements into a clear, reviewable spec with assumptions, scope, boundaries, and a crisp target-state design."
