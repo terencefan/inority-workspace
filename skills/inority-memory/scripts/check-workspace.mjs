@@ -136,7 +136,7 @@ export function runCheck(options = {}) {
 
   validateManagedLink(results, path.join(memoryDir, "SOUL.md"), path.join(SOURCE_MEMORY_DIR, "SOUL.md"));
   validateManagedLink(results, path.join(memoryDir, "USER.md"), path.join(SOURCE_MEMORY_DIR, "USER.md"));
-  validateManagedLink(results, path.join(memoryDir, "README.md"), path.join(TEMPLATES_DIR, "runtime-memory-readme.md"));
+  validateLocalFile(results, path.join(memoryDir, "MEMORY.md"));
 
   validateLocalFile(results, path.join(memoryDir, "WORKSPACE.md"));
   validateLocalFile(results, path.join(memoryDir, "credential.yaml"));
@@ -167,7 +167,7 @@ export function runCheck(options = {}) {
     pushResult(results, "warn", "agents-missing", "AGENTS.md is missing", { path: agentsPath });
   } else {
     pushResult(results, "ok", "agents-present", "AGENTS.md exists", { path: agentsPath });
-    const requiredReference = ".codex/memory/README.md";
+    const requiredReference = ".codex/memory/MEMORY.md";
     const requiredLines = lineNumbersContaining(agentsPath, requiredReference);
     if (requiredLines.length === 0) {
       pushResult(

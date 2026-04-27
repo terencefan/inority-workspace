@@ -11,7 +11,6 @@ import {
   isoNow,
   mkdirp,
   parseFlagArgs,
-  timestampStamp,
   writeManifest,
 } from "./lib.mjs";
 
@@ -25,14 +24,17 @@ export function runInstall(options = {}) {
   const workspaceRoot = path.resolve(options.workspaceRoot ?? DEFAULT_WORKSPACE_ROOT);
   const memoryDir = path.join(workspaceRoot, ".codex", "memory");
   const manifestPath = path.join(memoryDir, ".inority-memory-install.jsonl");
-  const timestamp = timestampStamp();
 
   mkdirp(memoryDir);
   mkdirp(path.join(memoryDir, "dairy", "archive"));
 
+  const timestamp = new Date().toISOString();
   const backupSoul = ensureManagedLink(path.join(SOURCE_MEMORY_DIR, "SOUL.md"), path.join(memoryDir, "SOUL.md"), timestamp);
   const backupUser = ensureManagedLink(path.join(SOURCE_MEMORY_DIR, "USER.md"), path.join(memoryDir, "USER.md"), timestamp);
-  const backupReadme = ensureManagedLink(path.join(TEMPLATES_DIR, "runtime-memory-readme.md"), path.join(memoryDir, "README.md"), timestamp);
+  const memoryFile = path.join(memoryDir, "MEMORY.md");
+  if (!fs.existsSync(memoryFile)) {
+    fs.copyFileSync(path.join(TEMPLATES_DIR, "runtime-memory-entry.md"), memoryFile);
+  }
 
   const workspaceFile = path.join(memoryDir, "WORKSPACE.md");
   if (!fs.existsSync(workspaceFile)) {
@@ -50,10 +52,8 @@ export function runInstall(options = {}) {
     MEMORY_DIR: memoryDir,
     MANAGED_SOUL_SOURCE: path.join(SOURCE_MEMORY_DIR, "SOUL.md"),
     MANAGED_USER_SOURCE: path.join(SOURCE_MEMORY_DIR, "USER.md"),
-    MANAGED_README_SOURCE: path.join(TEMPLATES_DIR, "runtime-memory-readme.md"),
     BACKUP_SOUL: backupSoul,
     BACKUP_USER: backupUser,
-    BACKUP_README: backupReadme,
   });
 
   return { workspaceRoot, memoryDir };
@@ -73,8 +73,8 @@ function main() {
   process.stdout.write(`Installed inority-memory package.
   workspace_root: ${workspaceRoot}
   memory_dir: ${memoryDir}
-  managed_files: SOUL.md USER.md README.md
-  local_only_files: WORKSPACE.md credential.yaml dairy/
+  managed_files: SOUL.md USER.md
+  local_only_files: MEMORY.md WORKSPACE.md credential.yaml dairy/
 `);
 }
 

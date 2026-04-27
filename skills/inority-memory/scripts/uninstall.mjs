@@ -26,7 +26,6 @@ export function runUninstall(options = {}) {
 
   restoreOrRemove(path.join(memoryDir, "SOUL.md"), path.join(SOURCE_MEMORY_DIR, "SOUL.md"), manifest.BACKUP_SOUL);
   restoreOrRemove(path.join(memoryDir, "USER.md"), path.join(SOURCE_MEMORY_DIR, "USER.md"), manifest.BACKUP_USER);
-  restoreOrRemove(path.join(memoryDir, "README.md"), path.join(TEMPLATES_DIR, "runtime-memory-readme.md"), manifest.BACKUP_README);
   fs.rmSync(manifestPath, { force: true });
 
   return { workspaceRoot, memoryDir };
@@ -46,7 +45,7 @@ function main() {
   process.stdout.write(`Uninstalled inority-memory package.
   workspace_root: ${workspaceRoot}
   memory_dir: ${memoryDir}
-  preserved_local_only_files: WORKSPACE.md credential.yaml dairy/
+  preserved_local_only_files: MEMORY.md WORKSPACE.md credential.yaml dairy/
 `);
 }
 

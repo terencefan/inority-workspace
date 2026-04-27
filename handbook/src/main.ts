@@ -1,8 +1,9 @@
 import "./styles.css";
-import markdownDarkHref from "github-markdown-css/github-markdown-dark.css?url";
-import markdownLightHref from "github-markdown-css/github-markdown.css?url";
-import highlightDarkHref from "highlight.js/styles/github-dark.css?url";
-import highlightLightHref from "highlight.js/styles/github.css?url";
+import markdownDarkCss from "github-markdown-css/github-markdown-dark.css?inline";
+import markdownLightCss from "github-markdown-css/github-markdown.css?inline";
+import highlightDarkCss from "highlight.js/styles/github-dark.css?inline";
+import highlightLightCss from "highlight.js/styles/github.css?inline";
+import mermaid from "mermaid";
 
 type DirectoryNode = {
   type: "directory";
@@ -32,11 +33,29 @@ type DocResponse = {
   title?: string;
 };
 
+type LiveReloadResponse = {
+  appVersion: string;
+  docExists: boolean;
+  docPath: string;
+  docVersion: string;
+  treeVersion: string;
+};
+
+type RouteState =
+  | {
+      kind: "doc";
+      docPath: string;
+    }
+  | {
+      kind: "not-found";
+      requestedPath: string;
+    };
+
 type ThemeName = "light" | "dark";
 
 type ThemeDefinition = {
-  markdownHref: string;
-  highlightHref: string;
+  markdownCss: string;
+  highlightCss: string;
   toggleLabel: string;
 };
 
@@ -44,6 +63,8 @@ type AppState = {
   tree: TreeNode[];
   activeDoc: string | null;
   defaultDoc: string;
+  recentDocs: string[];
+  recentDocTitles: Record<string, string>;
   rootLabel?: string;
   theme: ThemeName;
   directoryCollapsed: boolean;
@@ -56,21 +77,7 @@ type TocItem = {
   text: string;
 };
 
-type ImageViewerState = {
-  isOpen: boolean;
-  scale: number;
-  translateX: number;
-  translateY: number;
-  minScale: number;
-  maxScale: number;
-  baseWidth: number;
-  baseHeight: number;
-  isDragging: boolean;
-  dragStartX: number;
-  dragStartY: number;
-  dragOriginX: number;
-  dragOriginY: number;
-};
+type DiagramKind = "graphviz" | "mermaid" | "svg";
 
 function mustElement<T extends HTMLElement>(id: string) {
   const element = document.getElementById(id);
@@ -81,6 +88,8 @@ function mustElement<T extends HTMLElement>(id: string) {
 }
 
 const treeRoot = mustElement<HTMLElement>("tree");
+const treeShell = mustElement<HTMLElement>("tree-shell");
+const quickAccessRoot = mustElement<HTMLElement>("quick-access");
 const preview = mustElement<HTMLElement>("preview");
 const tocRoot = mustElement<HTMLElement>("toc");
 const breadcrumb = mustElement<HTMLElement>("breadcrumb");
@@ -90,8 +99,8 @@ const copyLinkButton = mustElement<HTMLButtonElement>("copy-link");
 const directoryToggleButton = mustElement<HTMLButtonElement>("directory-toggle");
 const tocToggleButton = mustElement<HTMLButtonElement>("toc-toggle");
 const themeToggleButton = mustElement<HTMLButtonElement>("theme-toggle");
-const markdownThemeLink = mustElement<HTMLLinkElement>("markdown-theme");
-const highlightThemeLink = mustElement<HTMLLinkElement>("highlight-theme");
+const markdownThemeStyle = mustElement<HTMLStyleElement>("markdown-theme");
+const highlightThemeStyle = mustElement<HTMLStyleElement>("highlight-theme");
 const workspaceGrid = (() => {
   const element = document.querySelector<HTMLElement>(".workspace-grid");
   if (!element) {
@@ -99,58 +108,26 @@ const workspaceGrid = (() => {
   }
   return element;
 })();
-const imageViewerOverlay = document.createElement("div");
-imageViewerOverlay.className = "image-viewer";
-imageViewerOverlay.setAttribute("aria-hidden", "true");
-imageViewerOverlay.dataset.open = "false";
-imageViewerOverlay.innerHTML = `
-  <div class="image-viewer__backdrop" data-role="backdrop"></div>
-  <div class="image-viewer__chrome">
-    <p class="image-viewer__hint">滚轮缩放，拖拽移动，Esc 关闭</p>
-    <button type="button" class="ghost-button image-viewer__close" data-role="close">关闭</button>
-  </div>
-  <div class="image-viewer__viewport" data-role="viewport">
-    <img class="image-viewer__image" alt="" />
-  </div>
-`;
-document.body.appendChild(imageViewerOverlay);
-const imageViewerViewport = (() => {
-  const element = imageViewerOverlay.querySelector<HTMLElement>("[data-role='viewport']");
-  if (!element) {
-    throw new Error("Missing required image viewer viewport");
-  }
-  return element;
-})();
-const imageViewerImage = (() => {
-  const element = imageViewerOverlay.querySelector<HTMLImageElement>(".image-viewer__image");
-  if (!element) {
-    throw new Error("Missing required image viewer image");
-  }
-  element.draggable = false;
-  return element;
-})();
-const imageViewerCloseButton = (() => {
-  const element = imageViewerOverlay.querySelector<HTMLButtonElement>("[data-role='close']");
-  if (!element) {
-    throw new Error("Missing required image viewer close button");
-  }
-  return element;
-})();
 
 const THEME_STORAGE_KEY = "inority-handbook-theme";
 const DIRECTORY_COLLAPSED_STORAGE_KEY = "inority-handbook-directory-collapsed";
 const TOC_COLLAPSED_STORAGE_KEY = "inority-handbook-toc-collapsed";
+const RECENT_DOCS_STORAGE_KEY = "inority-handbook-recent-docs";
+const RECENT_DOC_TITLES_STORAGE_KEY = "inority-handbook-recent-doc-titles";
 const DOC_ROUTE_PREFIX = "/docs";
 const LEGACY_DOC_ROUTE_PREFIX = "/workspace";
+const LIVE_RELOAD_INTERVAL_MS = 1200;
+const MAX_RECENT_DOCS = 5;
+const ZOOMABLE_DIAGRAM_SELECTOR = ".graphviz-block, .mermaid-block, .svg-block";
 const THEMES: Record<ThemeName, ThemeDefinition> = {
   light: {
-    markdownHref: markdownLightHref,
-    highlightHref: highlightLightHref,
+    markdownCss: markdownLightCss,
+    highlightCss: highlightLightCss,
     toggleLabel: "Dark mode",
   },
   dark: {
-    markdownHref: markdownDarkHref,
-    highlightHref: highlightDarkHref,
+    markdownCss: markdownDarkCss,
+    highlightCss: highlightDarkCss,
     toggleLabel: "Light mode",
   },
 };
@@ -159,20 +136,116 @@ const state: AppState = {
   tree: [],
   activeDoc: null,
   defaultDoc: "Panels.md",
+  recentDocs: [],
+  recentDocTitles: {},
   directoryCollapsed: false,
   theme: "light",
   tocCollapsed: false,
 };
-const imageViewerState: ImageViewerState = {
-  isOpen: false,
+let lastLiveReloadState: LiveReloadResponse | null = null;
+let liveReloadTimer: number | null = null;
+let tocScrollFrame: number | null = null;
+let mermaidInitialized = false;
+let lastFocusedDiagramTrigger: HTMLElement | null = null;
+
+const diagramModal = document.createElement("div");
+diagramModal.className = "diagram-modal";
+diagramModal.hidden = true;
+diagramModal.innerHTML = `
+  <div class="diagram-modal-backdrop" data-close-diagram-modal="true"></div>
+  <div class="diagram-modal-shell" role="dialog" aria-modal="true" aria-labelledby="diagram-modal-title">
+    <div class="diagram-modal-header">
+      <p id="diagram-modal-title" class="diagram-modal-title">Diagram Preview</p>
+      <div class="diagram-modal-toolbar">
+        <button type="button" class="diagram-modal-zoom-out ghost-button" aria-label="缩小">
+          -
+        </button>
+        <button type="button" class="diagram-modal-zoom-reset ghost-button" aria-label="重置缩放">
+          100%
+        </button>
+        <button type="button" class="diagram-modal-zoom-in ghost-button" aria-label="放大">
+          +
+        </button>
+        <button type="button" class="diagram-modal-close ghost-button" aria-label="关闭放大预览" data-close-diagram-modal="true">
+          关闭
+        </button>
+      </div>
+    </div>
+    <div class="diagram-modal-body">
+      <div class="diagram-modal-viewport">
+        <img class="diagram-modal-image" alt="" />
+      </div>
+    </div>
+  </div>
+`;
+document.body.appendChild(diagramModal);
+
+const diagramModalTitle = (() => {
+  const element = diagramModal.querySelector<HTMLElement>(".diagram-modal-title");
+  if (!element) {
+    throw new Error("Missing required element: .diagram-modal-title");
+  }
+  return element;
+})();
+
+const diagramModalImage = (() => {
+  const element = diagramModal.querySelector<HTMLImageElement>(".diagram-modal-image");
+  if (!element) {
+    throw new Error("Missing required element: .diagram-modal-image");
+  }
+  return element;
+})();
+
+const diagramModalViewport = (() => {
+  const element = diagramModal.querySelector<HTMLElement>(".diagram-modal-viewport");
+  if (!element) {
+    throw new Error("Missing required element: .diagram-modal-viewport");
+  }
+  return element;
+})();
+
+const diagramModalCloseButton = (() => {
+  const element = diagramModal.querySelector<HTMLButtonElement>(".diagram-modal-close");
+  if (!element) {
+    throw new Error("Missing required element: .diagram-modal-close");
+  }
+  return element;
+})();
+
+const diagramModalZoomOutButton = (() => {
+  const element = diagramModal.querySelector<HTMLButtonElement>(".diagram-modal-zoom-out");
+  if (!element) {
+    throw new Error("Missing required element: .diagram-modal-zoom-out");
+  }
+  return element;
+})();
+
+const diagramModalZoomInButton = (() => {
+  const element = diagramModal.querySelector<HTMLButtonElement>(".diagram-modal-zoom-in");
+  if (!element) {
+    throw new Error("Missing required element: .diagram-modal-zoom-in");
+  }
+  return element;
+})();
+
+const diagramModalZoomResetButton = (() => {
+  const element = diagramModal.querySelector<HTMLButtonElement>(".diagram-modal-zoom-reset");
+  if (!element) {
+    throw new Error("Missing required element: .diagram-modal-zoom-reset");
+  }
+  return element;
+})();
+
+const DIAGRAM_MODAL_MIN_SCALE = 0.5;
+const DIAGRAM_MODAL_MAX_SCALE = 6;
+const DIAGRAM_MODAL_SCALE_STEP = 0.18;
+
+const diagramModalState = {
   scale: 1,
   translateX: 0,
   translateY: 0,
-  minScale: 1,
-  maxScale: 6,
-  baseWidth: 0,
-  baseHeight: 0,
-  isDragging: false,
+  dragging: false,
+  dragPointerId: -1,
   dragStartX: 0,
   dragStartY: 0,
   dragOriginX: 0,
@@ -188,35 +261,37 @@ function buildDocRoute(docPath: string) {
   return encodedPath ? `${DOC_ROUTE_PREFIX}/${encodedPath}` : DOC_ROUTE_PREFIX;
 }
 
-function getDocPathFromLocation() {
+function getRouteStateFromLocation(): RouteState {
   const pathname = window.location.pathname.replace(/\/+$/, "");
   if (pathname === DOC_ROUTE_PREFIX || pathname === "") {
-    return state.defaultDoc;
+    return { kind: "doc", docPath: state.defaultDoc };
   }
   if (pathname === LEGACY_DOC_ROUTE_PREFIX) {
-    return state.defaultDoc;
+    return { kind: "doc", docPath: state.defaultDoc };
   }
   if (!pathname.startsWith(`${DOC_ROUTE_PREFIX}/`)) {
     if (!pathname.startsWith(`${LEGACY_DOC_ROUTE_PREFIX}/`)) {
-      return state.defaultDoc;
+      return { kind: "not-found", requestedPath: window.location.pathname || "/" };
     }
-    return pathname
-      .slice(LEGACY_DOC_ROUTE_PREFIX.length + 1)
+    return {
+      kind: "doc",
+      docPath: pathname
+        .slice(LEGACY_DOC_ROUTE_PREFIX.length + 1)
+        .split("/")
+        .filter(Boolean)
+        .map(segment => decodeURIComponent(segment))
+        .join("/"),
+    };
+  }
+  return {
+    kind: "doc",
+    docPath: pathname
+      .slice(DOC_ROUTE_PREFIX.length + 1)
       .split("/")
       .filter(Boolean)
       .map(segment => decodeURIComponent(segment))
-      .join("/");
-  }
-  return pathname
-    .slice(DOC_ROUTE_PREFIX.length + 1)
-    .split("/")
-    .filter(Boolean)
-    .map(segment => decodeURIComponent(segment))
-    .join("/");
-}
-
-function getCurrentDoc() {
-  return getDocPathFromLocation();
+      .join("/"),
+  };
 }
 
 function setCurrentDoc(docPath: string, { replace = false } = {}) {
@@ -235,8 +310,236 @@ function setStatus(message: string) {
   tocRoot.innerHTML = `<div class="empty-state">${message}</div>`;
 }
 
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value));
+function decodeMermaidSource(encodedSource: string) {
+  try {
+    return window.atob(encodedSource);
+  } catch {
+    return "";
+  }
+}
+
+function escapeHtml(text: string) {
+  return text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function getDiagramKind(block: Element): DiagramKind | null {
+  if (block.classList.contains("graphviz-block")) {
+    return "graphviz";
+  }
+  if (block.classList.contains("mermaid-block")) {
+    return "mermaid";
+  }
+  if (block.classList.contains("svg-block")) {
+    return "svg";
+  }
+  return null;
+}
+
+function getDiagramLabel(kind: DiagramKind) {
+  switch (kind) {
+    case "graphviz":
+      return "DOT Diagram";
+    case "mermaid":
+      return "Mermaid Diagram";
+    case "svg":
+      return "SVG Diagram";
+  }
+}
+
+function svgToDataUri(svg: SVGSVGElement) {
+  const serialized = new XMLSerializer().serializeToString(svg);
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serialized)}`;
+}
+
+function clampDiagramModalScale(scale: number) {
+  return Math.min(DIAGRAM_MODAL_MAX_SCALE, Math.max(DIAGRAM_MODAL_MIN_SCALE, scale));
+}
+
+function updateDiagramModalTransform() {
+  diagramModalImage.style.transform = `translate(${diagramModalState.translateX}px, ${diagramModalState.translateY}px) scale(${diagramModalState.scale})`;
+  diagramModalViewport.dataset.dragging = diagramModalState.dragging ? "true" : "false";
+  diagramModalViewport.dataset.movable = diagramModalState.scale > 1 ? "true" : "false";
+  diagramModalZoomResetButton.textContent = `${Math.round(diagramModalState.scale * 100)}%`;
+}
+
+function resetDiagramModalView() {
+  diagramModalState.scale = 1;
+  diagramModalState.translateX = 0;
+  diagramModalState.translateY = 0;
+  diagramModalState.dragging = false;
+  diagramModalState.dragPointerId = -1;
+  updateDiagramModalTransform();
+}
+
+function stopDiagramModalDrag() {
+  diagramModalState.dragging = false;
+  diagramModalState.dragPointerId = -1;
+  updateDiagramModalTransform();
+}
+
+function zoomDiagramModalAt(clientX: number, clientY: number, nextScale: number) {
+  const clampedScale = clampDiagramModalScale(nextScale);
+  const previousScale = diagramModalState.scale;
+  if (clampedScale === previousScale) {
+    return;
+  }
+
+  const viewportRect = diagramModalViewport.getBoundingClientRect();
+  const offsetX = clientX - viewportRect.left - viewportRect.width / 2;
+  const offsetY = clientY - viewportRect.top - viewportRect.height / 2;
+  const ratio = clampedScale / previousScale;
+
+  diagramModalState.translateX = offsetX - (offsetX - diagramModalState.translateX) * ratio;
+  diagramModalState.translateY = offsetY - (offsetY - diagramModalState.translateY) * ratio;
+  diagramModalState.scale = clampedScale;
+
+  if (diagramModalState.scale <= 1) {
+    diagramModalState.translateX = 0;
+    diagramModalState.translateY = 0;
+  }
+
+  updateDiagramModalTransform();
+}
+
+function stepDiagramModalZoom(direction: 1 | -1) {
+  const viewportRect = diagramModalViewport.getBoundingClientRect();
+  zoomDiagramModalAt(
+    viewportRect.left + viewportRect.width / 2,
+    viewportRect.top + viewportRect.height / 2,
+    diagramModalState.scale + direction * DIAGRAM_MODAL_SCALE_STEP,
+  );
+}
+
+function closeDiagramModal() {
+  if (diagramModal.hidden) {
+    return;
+  }
+
+  stopDiagramModalDrag();
+  resetDiagramModalView();
+  diagramModal.hidden = true;
+  document.body.classList.remove("diagram-modal-open");
+  diagramModalImage.removeAttribute("src");
+  diagramModalImage.style.removeProperty("transform");
+
+  if (lastFocusedDiagramTrigger) {
+    lastFocusedDiagramTrigger.focus();
+  }
+}
+
+function openDiagramModal(block: HTMLElement) {
+  const svg = block.querySelector<SVGSVGElement>("svg");
+  const kind = getDiagramKind(block);
+  if (!svg || !kind) {
+    return;
+  }
+
+  lastFocusedDiagramTrigger = block;
+  diagramModalTitle.textContent = getDiagramLabel(kind);
+  diagramModalImage.src = svgToDataUri(svg);
+  diagramModalImage.alt = `${getDiagramLabel(kind)} enlarged preview`;
+  resetDiagramModalView();
+  diagramModal.hidden = false;
+  document.body.classList.add("diagram-modal-open");
+  diagramModalCloseButton.focus();
+}
+
+function enhanceZoomableDiagrams() {
+  const blocks = Array.from(preview.querySelectorAll<HTMLElement>(ZOOMABLE_DIAGRAM_SELECTOR));
+  for (const block of blocks) {
+    const kind = getDiagramKind(block);
+    const hasSvg = !!block.querySelector("svg");
+    if (!kind || !hasSvg) {
+      block.removeAttribute("tabindex");
+      block.removeAttribute("role");
+      block.removeAttribute("aria-label");
+      delete block.dataset.zoomable;
+      continue;
+    }
+
+    block.dataset.zoomable = "true";
+    block.tabIndex = 0;
+    block.setAttribute("role", "button");
+    block.setAttribute("aria-label", `${getDiagramLabel(kind)}. Click to enlarge.`);
+    block.title = "点击放大";
+  }
+}
+
+async function renderMermaidDiagrams() {
+  const blocks = Array.from(preview.querySelectorAll<HTMLElement>(".mermaid-block[data-mermaid-source]"));
+  if (blocks.length === 0) {
+    return;
+  }
+
+  if (!mermaidInitialized) {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: state.theme === "dark" ? "dark" : "default",
+      securityLevel: "strict",
+    });
+    mermaidInitialized = true;
+  } else {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: state.theme === "dark" ? "dark" : "default",
+      securityLevel: "strict",
+    });
+  }
+
+  let diagramIndex = 0;
+  for (const block of blocks) {
+    const encodedSource = block.dataset.mermaidSource || "";
+    const source = decodeMermaidSource(encodedSource);
+    if (!source) {
+      continue;
+    }
+
+    const renderId = `mermaid-diagram-${diagramIndex++}`;
+    try {
+      const { svg } = await mermaid.render(renderId, source);
+      block.innerHTML = svg;
+      block.dataset.mermaidRendered = "true";
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      block.innerHTML = `<pre class="mermaid-error"><code>${escapeHtml(message)}</code></pre>`;
+      block.dataset.mermaidRendered = "error";
+    }
+  }
+
+  enhanceZoomableDiagrams();
+}
+
+function renderNotFound(requestedPath: string) {
+  state.activeDoc = null;
+  renderTree();
+  renderQuickAccess();
+  docTitle.textContent = "404";
+  document.title = "404 · Inority Handbook";
+  breadcrumb.textContent = `404 / ${requestedPath}`;
+  preview.innerHTML = `
+    <section class="not-found" aria-labelledby="not-found-title">
+      <p class="not-found-code">404</p>
+      <h1 id="not-found-title">没有找到这个页面或文档</h1>
+      <p class="not-found-copy">当前请求路径不存在，或者对应的 Markdown 文档还没有纳入 handbook。</p>
+      <div class="not-found-request">
+        <span>Requested</span>
+        <code>${requestedPath}</code>
+      </div>
+      <div class="not-found-actions">
+        <a class="not-found-link" href="${buildDocRoute(state.defaultDoc)}" data-doc-path="${state.defaultDoc}">回到默认文档</a>
+      </div>
+    </section>
+  `;
+  tocRoot.innerHTML = `
+    <div class="empty-state">
+      这个路径没有可用 TOC。可以回到默认文档，或者从左侧目录重新进入。
+    </div>
+  `;
 }
 
 function getPreferredTheme(): ThemeName {
@@ -256,8 +559,8 @@ function applyTheme(theme: ThemeName, { persist = false } = {}) {
   const themeDefinition = THEMES[theme];
   state.theme = theme;
   document.documentElement.dataset.theme = theme;
-  markdownThemeLink.href = themeDefinition.markdownHref;
-  highlightThemeLink.href = themeDefinition.highlightHref;
+  markdownThemeStyle.textContent = themeDefinition.markdownCss;
+  highlightThemeStyle.textContent = themeDefinition.highlightCss;
   setButtonLabel(themeToggleButton, themeDefinition.toggleLabel);
   if (persist) {
     window.localStorage.setItem(THEME_STORAGE_KEY, theme);
@@ -266,6 +569,94 @@ function applyTheme(theme: ThemeName, { persist = false } = {}) {
 
 function getStoredCollapsedState(key: string) {
   return window.localStorage.getItem(key) === "true";
+}
+
+function getStoredRecentDocs() {
+  try {
+    const raw = window.localStorage.getItem(RECENT_DOCS_STORAGE_KEY);
+    if (!raw) {
+      return [];
+    }
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed.filter((item): item is string => typeof item === "string" && item.length > 0).slice(0, MAX_RECENT_DOCS);
+  } catch {
+    return [];
+  }
+}
+
+function persistRecentDocs() {
+  window.localStorage.setItem(RECENT_DOCS_STORAGE_KEY, JSON.stringify(state.recentDocs));
+}
+
+function getStoredRecentDocTitles() {
+  try {
+    const raw = window.localStorage.getItem(RECENT_DOC_TITLES_STORAGE_KEY);
+    if (!raw) {
+      return {};
+    }
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return {};
+    }
+    return Object.fromEntries(
+      Object.entries(parsed).filter((entry): entry is [string, string] => typeof entry[0] === "string" && typeof entry[1] === "string"),
+    );
+  } catch {
+    return {};
+  }
+}
+
+function persistRecentDocTitles() {
+  window.localStorage.setItem(RECENT_DOC_TITLES_STORAGE_KEY, JSON.stringify(state.recentDocTitles));
+}
+
+function getDocLabel(docPath: string) {
+  const parts = docPath.split("/").filter(Boolean);
+  return parts[parts.length - 1] || docPath;
+}
+
+function renderQuickAccess() {
+  quickAccessRoot.innerHTML = "";
+
+  if (state.recentDocs.length === 0) {
+    quickAccessRoot.innerHTML = `<div class="empty-state">最近访问的文件会出现在这里。</div>`;
+    return;
+  }
+
+  for (const docPath of state.recentDocs) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `quick-access-item${state.activeDoc === docPath ? " active" : ""}`;
+    button.dataset.path = docPath;
+    const displayTitle = state.recentDocTitles[docPath] || getDocLabel(docPath);
+    button.innerHTML = `
+      <span class="quick-access-name">${displayTitle}</span>
+      <span class="quick-access-path">${docPath}</span>
+    `;
+    button.addEventListener("click", () => {
+      void navigateToDoc(docPath);
+    });
+    quickAccessRoot.appendChild(button);
+  }
+}
+
+function updateRecentDocs(docPath: string) {
+  if (state.recentDocs.includes(docPath)) {
+    persistRecentDocs();
+    renderQuickAccess();
+    return;
+  }
+  state.recentDocs = [docPath, ...state.recentDocs].slice(0, MAX_RECENT_DOCS);
+  persistRecentDocs();
+  renderQuickAccess();
+}
+
+function updateRecentDocTitle(docPath: string, title: string) {
+  state.recentDocTitles[docPath] = title;
+  persistRecentDocTitles();
 }
 
 function applyLayoutState({ persist = false } = {}) {
@@ -291,7 +682,13 @@ function buildTreeNode(node: TreeNode, parentElement: HTMLElement, filterText: s
     const button = document.createElement("button");
     button.type = "button";
     button.className = `tree-file${state.activeDoc === node.path ? " active" : ""}`;
-    button.textContent = node.name.replace(/\.md$/i, "");
+    button.innerHTML = `
+      <span class="tree-row">
+        <span class="tree-spacer" aria-hidden="true"></span>
+        <span class="tree-icon tree-icon-file" aria-hidden="true"></span>
+        <span class="tree-label">${node.name}</span>
+      </span>
+    `;
     button.dataset.path = node.path;
     button.addEventListener("click", () => {
       void navigateToDoc(node.path);
@@ -306,7 +703,13 @@ function buildTreeNode(node: TreeNode, parentElement: HTMLElement, filterText: s
   const toggle = document.createElement("button");
   toggle.type = "button";
   toggle.className = "tree-folder";
-  toggle.textContent = node.name;
+  toggle.innerHTML = `
+    <span class="tree-row">
+      <span class="tree-chevron" aria-hidden="true"></span>
+      <span class="tree-icon tree-icon-folder" aria-hidden="true"></span>
+      <span class="tree-label">${node.name}</span>
+    </span>
+  `;
 
   const children = document.createElement("div");
   children.className = "tree-children";
@@ -337,12 +740,19 @@ function renderTree() {
   for (const node of state.tree) {
     buildTreeNode(node, treeRoot, filterText);
   }
+  syncTreeScrollHint();
 }
 
 function renderBreadcrumb(docPath: string) {
   const rootLabel = state.rootLabel || "docs";
   const parts = [rootLabel, ...docPath.split("/")];
   breadcrumb.textContent = parts.join(" / ");
+}
+
+function syncTreeScrollHint() {
+  const maxScrollTop = treeRoot.scrollHeight - treeRoot.clientHeight;
+  treeShell.dataset.scrollTopHint = treeRoot.scrollTop > 2 ? "true" : "false";
+  treeShell.dataset.scrollBottomHint = maxScrollTop - treeRoot.scrollTop > 2 ? "true" : "false";
 }
 
 function getTocItems() {
@@ -377,92 +787,60 @@ function renderToc() {
   updateActiveToc();
 }
 
-function measureViewerBaseSize() {
-  if (!imageViewerImage.naturalWidth || !imageViewerImage.naturalHeight) {
-    imageViewerState.baseWidth = 0;
-    imageViewerState.baseHeight = 0;
-    return;
-  }
-  const viewportRect = imageViewerViewport.getBoundingClientRect();
-  const maxWidth = Math.max(160, viewportRect.width - 48);
-  const maxHeight = Math.max(160, viewportRect.height - 48);
-  const fitScale = Math.min(1, maxWidth / imageViewerImage.naturalWidth, maxHeight / imageViewerImage.naturalHeight);
-  imageViewerState.baseWidth = imageViewerImage.naturalWidth * fitScale;
-  imageViewerState.baseHeight = imageViewerImage.naturalHeight * fitScale;
-}
-
-function clampViewerTranslation() {
-  const viewportRect = imageViewerViewport.getBoundingClientRect();
-  const scaledWidth = imageViewerState.baseWidth * imageViewerState.scale;
-  const scaledHeight = imageViewerState.baseHeight * imageViewerState.scale;
-  const limitX = Math.max(0, (scaledWidth - viewportRect.width) / 2);
-  const limitY = Math.max(0, (scaledHeight - viewportRect.height) / 2);
-  imageViewerState.translateX = clamp(imageViewerState.translateX, -limitX, limitX);
-  imageViewerState.translateY = clamp(imageViewerState.translateY, -limitY, limitY);
-}
-
-function applyImageViewerTransform() {
-  clampViewerTranslation();
-  imageViewerImage.style.transform = `translate(${imageViewerState.translateX}px, ${imageViewerState.translateY}px) scale(${imageViewerState.scale})`;
-  imageViewerViewport.dataset.draggable = imageViewerState.scale > imageViewerState.minScale ? "true" : "false";
-}
-
-function resetImageViewerTransform() {
-  imageViewerState.scale = imageViewerState.minScale;
-  imageViewerState.translateX = 0;
-  imageViewerState.translateY = 0;
-  applyImageViewerTransform();
-}
-
-function closeImageViewer() {
-  imageViewerState.isOpen = false;
-  imageViewerState.isDragging = false;
-  imageViewerOverlay.dataset.open = "false";
-  imageViewerOverlay.setAttribute("aria-hidden", "true");
-  imageViewerViewport.dataset.dragging = "false";
-  document.body.classList.remove("image-viewer-open");
-  imageViewerImage.removeAttribute("src");
-  imageViewerImage.alt = "";
-  resetImageViewerTransform();
-}
-
-function openImageViewer(source: HTMLImageElement) {
-  imageViewerState.isOpen = true;
-  imageViewerState.isDragging = false;
-  imageViewerOverlay.dataset.open = "true";
-  imageViewerOverlay.setAttribute("aria-hidden", "false");
-  imageViewerViewport.dataset.dragging = "false";
-  document.body.classList.add("image-viewer-open");
-  imageViewerImage.src = source.currentSrc || source.src;
-  imageViewerImage.alt = source.alt || "";
-  imageViewerCloseButton.focus();
-  const handleLoaded = () => {
-    measureViewerBaseSize();
-    resetImageViewerTransform();
-  };
-  if (imageViewerImage.complete && imageViewerImage.naturalWidth > 0) {
-    handleLoaded();
-    return;
-  }
-  imageViewerImage.addEventListener("load", handleLoaded, { once: true });
-}
-
-function enhancePreviewImages() {
-  for (const image of preview.querySelectorAll<HTMLImageElement>(".markdown-body img")) {
-    image.classList.add("markdown-image");
-    image.dataset.zoomable = "true";
-    image.draggable = false;
-    image.setAttribute("tabindex", "0");
-    image.setAttribute("role", "button");
-    image.setAttribute("aria-label", image.alt ? `放大图片：${image.alt}` : "放大图片");
-  }
-}
-
-function updateActiveToc() {
-  const currentHash = decodeURIComponent(window.location.hash.replace(/^#/, ""));
+function updateActiveToc(activeId = decodeURIComponent(window.location.hash.replace(/^#/, ""))) {
   const links = tocRoot.querySelectorAll<HTMLElement>(".toc-link");
   for (const link of links) {
-    link.classList.toggle("active", link.dataset.target === currentHash);
+    link.classList.toggle("active", link.dataset.target === activeId);
+  }
+}
+
+function getStickyOffsetPx() {
+  return Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sticky-offset")) || 0;
+}
+
+function getCurrentVisibleHeadingId() {
+  const headings = Array.from(preview.querySelectorAll<HTMLElement>("h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]"));
+  if (headings.length === 0) {
+    return "";
+  }
+
+  const threshold = getStickyOffsetPx() + 20;
+  let activeId = headings[0]?.id || "";
+
+  for (const heading of headings) {
+    const { top } = heading.getBoundingClientRect();
+    if (top <= threshold) {
+      activeId = heading.id;
+      continue;
+    }
+    break;
+  }
+
+  return activeId;
+}
+
+function syncTocToScroll() {
+  const activeId = getCurrentVisibleHeadingId();
+  updateActiveToc(activeId);
+}
+
+function queueTocScrollSync() {
+  if (tocScrollFrame !== null) {
+    window.cancelAnimationFrame(tocScrollFrame);
+  }
+  tocScrollFrame = window.requestAnimationFrame(() => {
+    tocScrollFrame = null;
+    syncTocToScroll();
+  });
+}
+
+function setHash(hash: string, { replace = true } = {}) {
+  const url = new URL(window.location.href);
+  url.hash = hash ? `#${encodeURIComponent(hash)}` : "";
+  if (replace) {
+    window.history.replaceState(window.history.state, "", url);
+  } else {
+    window.history.pushState(window.history.state, "", url);
   }
 }
 
@@ -477,47 +855,108 @@ async function loadTree() {
   state.rootLabel = payload.root || "docs";
 }
 
+async function pollLiveReload() {
+  const routeState = getRouteStateFromLocation();
+  const docPath = routeState.kind === "doc" ? routeState.docPath : state.defaultDoc;
+  const response = await fetch(`/api/live?path=${encodeURIComponent(docPath)}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new Error("live reload unavailable");
+  }
+  const nextState = (await response.json()) as LiveReloadResponse;
+
+  if (lastLiveReloadState === null) {
+    lastLiveReloadState = nextState;
+    return;
+  }
+
+  if (nextState.appVersion !== lastLiveReloadState.appVersion) {
+    window.location.reload();
+    return;
+  }
+
+  if (nextState.treeVersion !== lastLiveReloadState.treeVersion) {
+    await loadTree();
+    renderTree();
+  }
+
+  if (routeState.kind === "doc") {
+    if (!nextState.docExists) {
+      renderNotFound(buildDocRoute(routeState.docPath));
+    } else if (nextState.docVersion !== lastLiveReloadState.docVersion) {
+      await loadDoc(routeState.docPath, { replace: true, syncRoute: false });
+    }
+  }
+
+  lastLiveReloadState = nextState;
+}
+
+function startLiveReload() {
+  if (liveReloadTimer !== null) {
+    window.clearInterval(liveReloadTimer);
+  }
+
+  void pollLiveReload().catch(() => {});
+  liveReloadTimer = window.setInterval(() => {
+    void pollLiveReload().catch(() => {});
+  }, LIVE_RELOAD_INTERVAL_MS);
+}
+
 function scrollToHash() {
   const hash = decodeURIComponent(window.location.hash.replace(/^#/, ""));
   if (!hash) {
     window.scrollTo({ top: 0, behavior: "auto" });
-    updateActiveToc();
+    queueTocScrollSync();
     return;
   }
   const target = document.getElementById(hash);
   if (target) {
     target.scrollIntoView({ block: "start" });
   }
-  updateActiveToc();
+  updateActiveToc(hash);
 }
 
-async function loadDoc(docPath: string, { replace = false } = {}) {
-  closeImageViewer();
+async function loadDoc(docPath: string, { replace = false, syncRoute = true } = {}) {
   state.activeDoc = docPath;
   renderTree();
+  renderQuickAccess();
   setStatus("Loading...");
 
   const response = await fetch(`/api/doc?path=${encodeURIComponent(docPath)}`);
   if (!response.ok) {
-    setStatus("文档不存在。");
+    if (syncRoute) {
+      setCurrentDoc(docPath, { replace });
+    }
+    renderNotFound(buildDocRoute(docPath));
     return;
   }
 
   const payload = (await response.json()) as DocResponse;
   if (payload.error) {
-    setStatus(payload.error);
+    if (syncRoute) {
+      setCurrentDoc(docPath, { replace });
+    }
+    renderNotFound(buildDocRoute(docPath));
     return;
   }
 
   const resolvedPath = payload.path || docPath;
   const nextTitle = payload.title || docPath;
+  state.activeDoc = resolvedPath;
+  updateRecentDocTitle(resolvedPath, nextTitle);
   docTitle.textContent = nextTitle;
   document.title = `${nextTitle} · Inority Handbook`;
   renderBreadcrumb(resolvedPath);
   preview.innerHTML = payload.html || "";
-  enhancePreviewImages();
+  await renderMermaidDiagrams();
+  enhanceZoomableDiagrams();
+  updateRecentDocs(resolvedPath);
+  renderTree();
   renderToc();
-  setCurrentDoc(resolvedPath, { replace });
+  if (syncRoute) {
+    setCurrentDoc(resolvedPath, { replace });
+  }
   scrollToHash();
 }
 
@@ -533,6 +972,7 @@ function isInternalDocLink(anchor: HTMLAnchorElement) {
 
 async function navigateToDoc(docPath: string, options = {}) {
   window.location.hash = "";
+  lastLiveReloadState = null;
   await loadDoc(docPath, options);
 }
 
@@ -542,16 +982,13 @@ preview.addEventListener("click", event => {
     return;
   }
 
-  const image = target.closest("img[data-zoomable='true']");
-  if (image instanceof HTMLImageElement) {
-    event.preventDefault();
-    event.stopPropagation();
-    openImageViewer(image);
-    return;
-  }
-
   const anchor = target.closest("a");
   if (!(anchor instanceof HTMLAnchorElement) || !isInternalDocLink(anchor)) {
+    const diagramBlock = target.closest<HTMLElement>(ZOOMABLE_DIAGRAM_SELECTOR);
+    if (diagramBlock?.dataset.zoomable === "true") {
+      event.preventDefault();
+      openDiagramModal(diagramBlock);
+    }
     return;
   }
 
@@ -579,94 +1016,47 @@ preview.addEventListener("click", event => {
 
 preview.addEventListener("keydown", event => {
   const target = event.target;
-  if (!(target instanceof HTMLImageElement) || target.dataset.zoomable !== "true") {
+  if (!(target instanceof HTMLElement)) {
     return;
   }
+
+  const diagramBlock = target.closest<HTMLElement>(ZOOMABLE_DIAGRAM_SELECTOR);
+  if (!diagramBlock || diagramBlock.dataset.zoomable !== "true") {
+    return;
+  }
+
   if (event.key !== "Enter" && event.key !== " ") {
     return;
   }
+
   event.preventDefault();
-  openImageViewer(target);
+  openDiagramModal(diagramBlock);
 });
 
-imageViewerOverlay.addEventListener("click", event => {
+tocRoot.addEventListener("click", event => {
   const target = event.target;
   if (!(target instanceof Element)) {
     return;
   }
-  if (target.closest("[data-role='close']") || target.closest("[data-role='backdrop']")) {
-    closeImageViewer();
-  }
-});
 
-imageViewerViewport.addEventListener(
-  "wheel",
-  event => {
-    if (!imageViewerState.isOpen) {
-      return;
-    }
-    event.preventDefault();
-    const viewportRect = imageViewerViewport.getBoundingClientRect();
-    const pointerX = event.clientX - viewportRect.left - viewportRect.width / 2;
-    const pointerY = event.clientY - viewportRect.top - viewportRect.height / 2;
-    const previousScale = imageViewerState.scale;
-    const nextScale = clamp(previousScale * (event.deltaY < 0 ? 1.12 : 1 / 1.12), imageViewerState.minScale, imageViewerState.maxScale);
-    if (nextScale === previousScale) {
-      return;
-    }
-    imageViewerState.translateX = pointerX - (nextScale / previousScale) * (pointerX - imageViewerState.translateX);
-    imageViewerState.translateY = pointerY - (nextScale / previousScale) * (pointerY - imageViewerState.translateY);
-    imageViewerState.scale = nextScale;
-    if (nextScale === imageViewerState.minScale) {
-      imageViewerState.translateX = 0;
-      imageViewerState.translateY = 0;
-    }
-    applyImageViewerTransform();
-  },
-  { passive: false },
-);
-
-imageViewerViewport.addEventListener("pointerdown", event => {
-  if (!imageViewerState.isOpen || imageViewerState.scale <= imageViewerState.minScale) {
+  const anchor = target.closest("a.toc-link");
+  if (!(anchor instanceof HTMLAnchorElement)) {
     return;
   }
-  imageViewerState.isDragging = true;
-  imageViewerState.dragStartX = event.clientX;
-  imageViewerState.dragStartY = event.clientY;
-  imageViewerState.dragOriginX = imageViewerState.translateX;
-  imageViewerState.dragOriginY = imageViewerState.translateY;
-  imageViewerViewport.dataset.dragging = "true";
-  imageViewerViewport.setPointerCapture(event.pointerId);
-});
 
-imageViewerViewport.addEventListener("pointermove", event => {
-  if (!imageViewerState.isDragging) {
-    return;
-  }
-  imageViewerState.translateX = imageViewerState.dragOriginX + (event.clientX - imageViewerState.dragStartX);
-  imageViewerState.translateY = imageViewerState.dragOriginY + (event.clientY - imageViewerState.dragStartY);
-  applyImageViewerTransform();
-});
-
-function stopImageViewerDrag(pointerId?: number) {
-  imageViewerState.isDragging = false;
-  imageViewerViewport.dataset.dragging = "false";
-  if (pointerId !== undefined && imageViewerViewport.hasPointerCapture(pointerId)) {
-    imageViewerViewport.releasePointerCapture(pointerId);
-  }
-}
-
-imageViewerViewport.addEventListener("pointerup", event => {
-  stopImageViewerDrag(event.pointerId);
-});
-
-imageViewerViewport.addEventListener("pointercancel", event => {
-  stopImageViewerDrag(event.pointerId);
+  event.preventDefault();
+  const hash = anchor.dataset.target || decodeURIComponent(anchor.hash.replace(/^#/, ""));
+  setHash(hash);
+  scrollToHash();
 });
 
 treeSearch.addEventListener("input", () => {
   renderTree();
 });
+
+treeRoot.addEventListener("scroll", () => {
+  syncTreeScrollHint();
+}, { passive: true });
 
 copyLinkButton.addEventListener("click", async () => {
   await navigator.clipboard.writeText(window.location.href);
@@ -689,10 +1079,110 @@ tocToggleButton.addEventListener("click", () => {
 themeToggleButton.addEventListener("click", () => {
   const nextTheme: ThemeName = state.theme === "dark" ? "light" : "dark";
   applyTheme(nextTheme, { persist: true });
+  void renderMermaidDiagrams();
+});
+
+diagramModal.addEventListener("click", event => {
+  const target = event.target;
+  if (!(target instanceof Element)) {
+    return;
+  }
+
+  if (target.closest("[data-close-diagram-modal='true']")) {
+    closeDiagramModal();
+  }
+});
+
+diagramModalViewport.addEventListener("wheel", event => {
+  if (diagramModal.hidden) {
+    return;
+  }
+
+  event.preventDefault();
+  const direction = event.deltaY < 0 ? 1 : -1;
+  zoomDiagramModalAt(
+    event.clientX,
+    event.clientY,
+    diagramModalState.scale + direction * DIAGRAM_MODAL_SCALE_STEP,
+  );
+}, { passive: false });
+
+diagramModalViewport.addEventListener("pointerdown", event => {
+  if (diagramModalState.scale <= 1) {
+    return;
+  }
+
+  if (!(event.target instanceof Element) || !event.target.closest(".diagram-modal-image")) {
+    return;
+  }
+
+  event.preventDefault();
+  diagramModalState.dragging = true;
+  diagramModalState.dragPointerId = event.pointerId;
+  diagramModalState.dragStartX = event.clientX;
+  diagramModalState.dragStartY = event.clientY;
+  diagramModalState.dragOriginX = diagramModalState.translateX;
+  diagramModalState.dragOriginY = diagramModalState.translateY;
+  diagramModalViewport.setPointerCapture(event.pointerId);
+  updateDiagramModalTransform();
+});
+
+diagramModalViewport.addEventListener("pointermove", event => {
+  if (!diagramModalState.dragging || diagramModalState.dragPointerId !== event.pointerId) {
+    return;
+  }
+
+  event.preventDefault();
+  diagramModalState.translateX = diagramModalState.dragOriginX + (event.clientX - diagramModalState.dragStartX);
+  diagramModalState.translateY = diagramModalState.dragOriginY + (event.clientY - diagramModalState.dragStartY);
+  updateDiagramModalTransform();
+});
+
+diagramModalViewport.addEventListener("pointerup", event => {
+  if (diagramModalState.dragPointerId === event.pointerId && diagramModalViewport.hasPointerCapture(event.pointerId)) {
+    diagramModalViewport.releasePointerCapture(event.pointerId);
+  }
+  if (diagramModalState.dragPointerId === event.pointerId) {
+    stopDiagramModalDrag();
+  }
+});
+
+diagramModalViewport.addEventListener("pointercancel", event => {
+  if (diagramModalState.dragPointerId === event.pointerId && diagramModalViewport.hasPointerCapture(event.pointerId)) {
+    diagramModalViewport.releasePointerCapture(event.pointerId);
+  }
+  if (diagramModalState.dragPointerId === event.pointerId) {
+    stopDiagramModalDrag();
+  }
+});
+
+diagramModalViewport.addEventListener("dblclick", event => {
+  event.preventDefault();
+  resetDiagramModalView();
+});
+
+diagramModalZoomInButton.addEventListener("click", () => {
+  stepDiagramModalZoom(1);
+});
+
+diagramModalZoomOutButton.addEventListener("click", () => {
+  stepDiagramModalZoom(-1);
+});
+
+diagramModalZoomResetButton.addEventListener("click", () => {
+  resetDiagramModalView();
 });
 
 window.addEventListener("popstate", () => {
-  void loadDoc(getCurrentDoc(), { replace: true });
+  closeDiagramModal();
+  const routeState = getRouteStateFromLocation();
+  if (routeState.kind === "not-found") {
+    renderNotFound(routeState.requestedPath);
+    lastLiveReloadState = null;
+    return;
+  }
+  lastLiveReloadState = null;
+  void loadDoc(routeState.docPath, { replace: true, syncRoute: false });
 });
 
 window.addEventListener("hashchange", () => {
@@ -700,26 +1190,34 @@ window.addEventListener("hashchange", () => {
 });
 
 window.addEventListener("keydown", event => {
-  if (event.key === "Escape" && imageViewerState.isOpen) {
-    closeImageViewer();
+  if (event.key === "Escape") {
+    closeDiagramModal();
   }
 });
 
-window.addEventListener("resize", () => {
-  if (!imageViewerState.isOpen) {
-    return;
-  }
-  measureViewerBaseSize();
-  applyImageViewerTransform();
-});
+window.addEventListener("scroll", () => {
+  queueTocScrollSync();
+}, { passive: true });
 
 async function boot() {
   state.directoryCollapsed = getStoredCollapsedState(DIRECTORY_COLLAPSED_STORAGE_KEY);
   state.tocCollapsed = getStoredCollapsedState(TOC_COLLAPSED_STORAGE_KEY);
+  state.recentDocs = getStoredRecentDocs();
+  state.recentDocTitles = getStoredRecentDocTitles();
   applyTheme(getPreferredTheme());
   applyLayoutState();
+  renderQuickAccess();
+  const routeState = getRouteStateFromLocation();
+  if (routeState.kind === "not-found") {
+    renderNotFound(routeState.requestedPath);
+    await loadTree();
+    renderTree();
+    startLiveReload();
+    return;
+  }
   await loadTree();
-  await loadDoc(getCurrentDoc(), { replace: true });
+  await loadDoc(routeState.docPath, { replace: true, syncRoute: false });
+  startLiveReload();
 }
 
 void boot().catch(error => {

@@ -2,7 +2,7 @@
 
 Central install surface for the inority-style workspace `.codex/memory` system.
 
-Installed workspaces should treat `.codex/memory/README.md` as the canonical
+Installed workspaces should treat `.codex/memory/MEMORY.md` as the canonical
 runtime entrypoint for the memory system, and their `AGENTS.md` should point
 agents there before they read individual memory files.
 
@@ -11,12 +11,16 @@ and installs them into a target workspace:
 
 - `SOUL.md`
 - `USER.md`
-- `README.md`
+- `MEMORY.md`
 
 Syncable assets must stay link-installed:
 
 - `SOUL.md`: symlink to `inority-workspace/memory/SOUL.md`
 - `USER.md`: symlink to `inority-workspace/memory/USER.md`
+
+Workspace-local runtime files stay as independent regular files:
+
+- `MEMORY.md`: copied from the runtime template only when missing
 
 Sensitive workspace-local content stays local and is never sourced from this repo:
 
@@ -61,16 +65,16 @@ Legacy `.sh` wrappers may still exist for shell-native workflows, but the docume
 
 - `SOUL.md` and `USER.md` are symlinked to the maintained source files in
   `inority-workspace/memory/`.
-- `README.md` is symlinked to the managed runtime-facing memory README template
-  in this package.
-- The installed `README.md` is the intended runtime entrypoint that workspace
+- `MEMORY.md` is a workspace-local regular file. Install seeds it from the
+  runtime template only when missing; it is not link-managed after that.
+- The installed `MEMORY.md` is the intended runtime entrypoint that workspace
   `AGENTS.md` should reference.
 - `WORKSPACE.md` is created only if missing, from a sanitized template.
 - `credential.yaml` is created only if missing, from a sanitized template.
 - `dairy/` and `dairy/archive/` are created only if missing.
 - Uninstall removes only the managed symlinks and restores any backed-up public
-  files; it does not delete local `WORKSPACE.md`, `credential.yaml`, or diary
-  notes.
+  files; it does not delete local `MEMORY.md`, `WORKSPACE.md`, `credential.yaml`,
+  or diary notes.
 - `check-workspace.mjs` verifies required runtime entrypoints, managed symlink
   targets, local-only files, `dairy/archive/`, legacy root-level `.codex/*.md`
   leftovers, and stale `AGENTS.md` references to old entrypoints.

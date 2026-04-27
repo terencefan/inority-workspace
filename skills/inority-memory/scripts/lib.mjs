@@ -111,7 +111,7 @@ export function linkFileCrossPlatform(sourcePath, targetPath) {
     fs.symlinkSync(sourcePath, targetPath, "file");
     return;
   } catch (error) {
-    if (process.platform === "win32") {
+    if (process.platform === "win32" || ["EROFS", "EPERM", "EACCES"].includes(error?.code)) {
       try {
         fs.linkSync(sourcePath, targetPath);
         return;

@@ -4,8 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Inority Handbook</title>
-    <link id="markdown-theme" rel="stylesheet" />
-    <link id="highlight-theme" rel="stylesheet" />
+    <style id="markdown-theme"></style>
+    <style id="highlight-theme"></style>
   </head>
   <body>
     <div class="app-shell">
@@ -16,7 +16,7 @@
         </div>
 
         <div class="topbar-meta">
-          <h2 id="doc-title">Loading...</h2>
+          <h2 id="doc-title">Inority Handbook</h2>
         </div>
 
         <div class="topbar-actions">
@@ -47,18 +47,35 @@
       </header>
 
       <main class="workspace-grid">
-        <aside class="panel panel-directory">
-          <div class="panel-header">
-            <h3>Directory</h3>
-            <p>当前文档根目录</p>
-          </div>
+        <aside class="sidebar-left">
+          <section class="panel panel-quick-access">
+            <div class="panel-header">
+              <h3>Quick Access</h3>
+              <p>最近访问的 5 个文件</p>
+            </div>
 
-          <label class="search">
-            <span>筛选</span>
-            <input id="tree-search" type="search" placeholder="文件名 / 目录名" />
-          </label>
+            <nav id="quick-access" class="quick-access" aria-label="最近访问文件">
+              <div class="empty-state">最近访问的文件会出现在这里。</div>
+            </nav>
+          </section>
 
-          <nav id="tree" class="tree" aria-label="文档目录"></nav>
+          <section class="panel panel-directory">
+            <div class="panel-header">
+              <h3>Directory</h3>
+              <p>当前文档根目录</p>
+            </div>
+
+            <label class="search">
+              <span>筛选</span>
+              <input id="tree-search" type="search" placeholder="文件名 / 目录名" />
+            </label>
+
+            <div id="tree-shell" class="tree-shell" data-scroll-top-hint="false" data-scroll-bottom-hint="false">
+              <div class="tree-scroll-hint tree-scroll-hint-top" aria-hidden="true"></div>
+              <nav id="tree" class="tree" aria-label="文档目录"></nav>
+              <div class="tree-scroll-hint tree-scroll-hint-bottom" aria-hidden="true"></div>
+            </div>
+          </section>
         </aside>
 
         <section class="panel panel-document">
