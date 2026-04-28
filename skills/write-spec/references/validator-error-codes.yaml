@@ -20,6 +20,8 @@ E021:
   message: "“目标”小节必须包含 fenced `dot` 或 `graphviz` 图"
 E022:
   message: "“架构总览”小节必须包含 fenced `dot` 或 `graphviz` 图"
+E023:
+  message: "dot 图节点必须显式声明 filled + fillcolor，避免无背景节点"
 E030:
   message: "“访谈记录”必须至少保留 5 轮真实用户问答"
 E031:
@@ -30,3 +32,9 @@ E033:
   message: "访谈回答行必须写成 `> A：...`"
 E034:
   message: "每轮访谈后都必须补 `收敛影响：...`"
+E041:
+  message: "“外部链接”不能为空"
+E042:
+  message: "“外部链接”至少需要一条 Markdown 链接"
+E043:
+  message: "外部链接不可达：{href}"

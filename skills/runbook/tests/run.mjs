@@ -163,7 +163,7 @@ await runCase("validate cli help and pass output", async () => {
 await runCase("normalize and validate commands rewrite files", async () => {
   for (const [caseName, fixture] of Object.entries(normalizeCases)) {
     await withTempDir("runbook-normalize-", async (dir) => {
-      const runbookPath = path.join(dir, `${caseName}.md`);
+      const runbookPath = path.join(dir, `${caseName}-runbook.md`);
       writeFileSync(runbookPath, applyReplacements(templateText, fixture.replacements), "utf8");
       let result = await runRunctl(["normalize", runbookPath]);
       assert.equal(result.status, 0);
@@ -177,7 +177,7 @@ await runCase("normalize and validate commands rewrite files", async () => {
 
 await runCase("add-step and add-qa workflows", async () => {
   await withTempDir("runbook-add-", async (dir) => {
-    const runbookPath = path.join(dir, "authority.md");
+    const runbookPath = path.join(dir, "authority-runbook.md");
     writeFileSync(runbookPath, templateText, "utf8");
     let result = await runRunctl(["add-step", runbookPath, "--title", "检查镜像缓存", "--after", "1"]);
     assert.equal(result.status, 0);
@@ -190,7 +190,7 @@ await runCase("add-step and add-qa workflows", async () => {
   });
 
   await withTempDir("runbook-add-blank-", async (dir) => {
-    const runbookPath = path.join(dir, "authority.md");
+    const runbookPath = path.join(dir, "authority-runbook.md");
     let result = await runRunctl(["init", runbookPath]);
     assert.equal(result.status, 0);
     result = await runRunctl(["add-step", runbookPath, "--title", "冻结现状"]);

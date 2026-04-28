@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { normalizeFile, normalizeRunbookNumbering } from "./normalize.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,7 +33,7 @@ const REQUIRED_H3_BY_H2 = {
 const FORBIDDEN_H2 = new Set(["当前已决策", "当前前提", "编排策略", "参考文献", "问答记录"]);
 const FORBIDDEN_H3 = new Set(["当前前提", "编排策略"]);
 
-const NUMBERED_H3_RE = /^(?:(?:🟢|🟡|🔴)\s+)?(\d+)\. (.+)$/u;
+export const NUMBERED_H3_RE = /^(?:(?:🟢|🟡|🔴)\s+)?(\d+)\. (.+)$/u;
 const DATE_TOKEN_RE = /\b20\d{2}[-_]?(?:0[1-9]|1[0-2])[-_]?(?:0[1-9]|[12]\d|3[01])\b/;
 const RUNBOOK_FILENAME_SUFFIX = "-runbook.md";
 const RUNBOOK_TITLE_SUFFIX = "执行手册";
@@ -63,8 +64,29 @@ const HOST_CONFIG_REDIRECT_RE = />\s*(?:\S+\s+)?(?:\/etc\/|\/sys\/fs\/cgroup)/;
 const HOST_LOW_LEVEL_MUTATION_RE = /^\s*(?:sudo\s+)?(?:ip\s+(?:link|addr|route|rule)\s+(?:add|del|delete|replace|set)|nmcli\s+connection\s+(?:add|modify|delete|up|down|reload)|netplan\s+(?:apply|try)|if(?:up|down)\b|brctl\s+(?:addbr|delbr|addif|delif)|ovs-vsctl\b|tc\s+qdisc\s+(?:add|del|delete|replace)|iptables(?:-legacy|-nft)?\s+(?:-[ADIFPRXN]|--append|--delete|--insert|--flush|--policy|--replace|--new-chain|--delete-chain)|nft\s+(?:add|delete|flush|insert|replace)|firewall-cmd\s+(?:--add|--remove|--reload|--permanent)|sysctl\s+-w\s+net\.|parted|fdisk|sfdisk|sgdisk|mkfs(?:\.\S+)?|wipefs|pvcreate|vgcreate|lvcreate|lvremove|lvextend|lvresize|resize2fs|xfs_growfs|mdadm\s+--create|mount|umount|swapon|swapoff|dd\b.*\bof=|systemctl\s+set-property)(?:\b|$|(?=\/))/gim;
 
 let errorCatalogCache = null;
+const INCREMENTAL_DRAFT_ERROR_CODES = new Set([
+  "E020",
+  "E021",
+  "E040",
+  "E050",
+  "E030",
+  "E060",
+  "E061",
+  "E057",
+  "E058",
+  "E059",
+  "E068",
+  "E069",
+  "E076",
+  "E090",
+  "E091",
+  "E092",
+  "E094",
+  "E095",
+  "E100",
+]);
 
-function loadErrorCatalog() {
+export function loadErrorCatalog() {
   if (errorCatalogCache !== null) {
     return errorCatalogCache;
   }
@@ -94,7 +116,7 @@ function loadErrorCatalog() {
   return catalog;
 }
 
-function errorMessage(code, params = {}) {
+export function errorMessage(code, params = {}) {
   const entry = loadErrorCatalog()[code];
   if (!entry || typeof entry.message !== "string") {
     throw new Error(`missing error catalog entry for ${code}`);
@@ -843,7 +865,7 @@ function validatePlanAndRecords(lines, h2Sections) {
   return errors;
 }
 
-function collectErrors(text, pathValue = null) {
+function collectErrorsCore(text, pathValue = null) {
   const lines = text.split(/\r?\n/);
   const errors = [];
 
@@ -931,7 +953,79 @@ function collectErrors(text, pathValue = null) {
   return errors;
 }
 
-function main() {
+export function collectErrors(text, pathValue = null) {
+  return collectErrorsCore(normalizeRunbookNumbering(text), pathValue);
+}
+
+export function filterIncrementalDraftErrors(errors) {
+  return errors.filter((item) => !INCREMENTAL_DRAFT_ERROR_CODES.has(item.code));
+}
+
+function buildNaturalLanguageSummary(errors) {
+  const summary = [`本次扫描共发现 ${errors.length} 个问题，当前 runbook 还不能进入执行态`];
+  errors.forEach((item, index) => {
+    const location = item.line == null ? "某处" : `第 ${item.line} 行`;
+    let detail = `${location}需要修正：${item.message}`;
+    if (item.content) {
+      detail += ` 当前命中的内容是：${item.content}`;
+    }
+    summary.push(`${index + 1}. ${detail}`);
+  });
+  summary.push("请先按以上问题修正文档，再重新运行 runctl validate");
+  return summary;
+}
+
+export function printPass(filePath, jsonMode = false) {
+  if (jsonMode) {
+    console.log(JSON.stringify({ status: "pass", path: `${filePath}`, errors: [] }, null, 2));
+    return;
+  }
+  console.log(`[runbook-validator] PASS ${filePath}`);
+}
+
+export function printFail(filePath, errors, jsonMode = false) {
+  const summary = buildNaturalLanguageSummary(errors);
+  if (jsonMode) {
+    console.log(JSON.stringify({
+      status: "fail",
+      path: `${filePath}`,
+      errors,
+      natural_language_summary: summary.join("\n"),
+      natural_language_items: summary,
+    }, null, 2));
+    return;
+  }
+  console.log(`[runbook-validator] FAIL ${filePath}`);
+  errors.forEach((item) => {
+    const location = item.line == null ? "" : ` line ${item.line}`;
+    console.log(`- ${item.code}${location}: ${item.message}`);
+    if (item.content) {
+      console.log(`  content: ${item.content}`);
+    }
+  });
+  console.log("\n[runbook-validator] 自然语言总结");
+  summary.forEach((line) => {
+    console.log(`- ${line}`);
+  });
+}
+
+export async function handleValidate(args) {
+  const filePath = path.resolve(args.path);
+  if (!fs.existsSync(filePath)) {
+    printFail(filePath, [{ code: "E000", message: errorMessage("E000", { path: filePath }), line: null, content: null }], args.json);
+    return 2;
+  }
+  const { normalized } = await normalizeFile(filePath);
+  const errors = collectErrorsCore(normalized, filePath);
+  if (errors.length > 0) {
+    printFail(filePath, errors, args.json);
+    return 1;
+  }
+  printPass(filePath, args.json);
+  return 0;
+}
+
+export function main() {
   const args = process.argv.slice(2);
   if (!args.includes("--stdin-json")) {
     console.error("usage: node validate.mjs --stdin-json");
@@ -942,13 +1036,17 @@ function main() {
   const payload = input.trim() ? JSON.parse(input) : {};
   const text = typeof payload.text === "string" ? payload.text : "";
   const pathValue = typeof payload.path === "string" && payload.path ? path.resolve(payload.path) : null;
-  const errors = collectErrors(text, pathValue);
+  const errors = collectErrorsCore(text, pathValue);
   process.stdout.write(JSON.stringify({ errors }, null, 2));
 }
 
-try {
-  main();
-} catch (error) {
-  console.error(error instanceof Error ? error.stack || error.message : String(error));
-  process.exit(1);
+export { RECORD_SIGNED_EXEC_RE, RECORD_SIGNED_ACCEPT_RE };
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  try {
+    main();
+  } catch (error) {
+    console.error(error instanceof Error ? error.stack || error.message : String(error));
+    process.exit(1);
+  }
 }
