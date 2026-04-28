@@ -33,12 +33,11 @@ const REQUIRED_H3_BY_H2 = {
 const FORBIDDEN_H2 = new Set(["当前已决策", "当前前提", "编排策略", "参考文献", "问答记录"]);
 const FORBIDDEN_H3 = new Set(["当前前提", "编排策略"]);
 
-export const NUMBERED_H3_RE = /^(?:(?:🟢|🟡|🔴)\s+)?(\d+)\. (.+)$/u;
+const NUMBERED_H3_RE = /^(?:(?:🟢|🟡|🔴)\s+)?(\d+)\. (.+)$/u;
 const DATE_TOKEN_RE = /\b20\d{2}[-_]?(?:0[1-9]|1[0-2])[-_]?(?:0[1-9]|[12]\d|3[01])\b/;
 const RUNBOOK_FILENAME_SUFFIX = "-runbook.md";
 const RUNBOOK_TITLE_SUFFIX = "执行手册";
-const VALID_TEMPLATE_BASENAMES = new Set(["runbook-template.md"]);
-const RUNBOOK_MODE_PLACEHOLDERS = new Set(["> 当前模式：`<coding|operation|migration>`"]);
+const RUNBOOK_MODE_PLACEHOLDER = "> 当前模式：`<coding|operation|migration>`";
 const RUNBOOK_MODE_RE = /^> 当前模式：`(coding|operation|migration)`$/;
 const STEP_SIGNED_EXEC_RE = /^#### 执行 @\S+ \d{4}-\d{2}-\d{2} \d{2}:\d{2} [A-Za-z0-9:+-]+$/;
 const STEP_SIGNED_ACCEPT_RE = /^#### 验收 @\S+ \d{4}-\d{2}-\d{2} \d{2}:\d{2} [A-Za-z0-9:+-]+$/;
@@ -63,16 +62,13 @@ const HOST_LOW_LEVEL_CONFIG_PATH_RE = /(?:\/etc\/(?:netplan(?:\/|$)|network(?:\/
 const HOST_CONFIG_WRITE_ACTION_RE = /(?:^|[|;&]\s*)(?:sudo\s+)?(?:tee|sed\s+-i|perl\s+-pi|cp|mv|rm|install|chmod|chown|truncate)\b/gim;
 const HOST_CONFIG_REDIRECT_RE = />\s*(?:\S+\s+)?(?:\/etc\/|\/sys\/fs\/cgroup)/;
 const HOST_LOW_LEVEL_MUTATION_RE = /^\s*(?:sudo\s+)?(?:ip\s+(?:link|addr|route|rule)\s+(?:add|del|delete|replace|set)|nmcli\s+connection\s+(?:add|modify|delete|up|down|reload)|netplan\s+(?:apply|try)|if(?:up|down)\b|brctl\s+(?:addbr|delbr|addif|delif)|ovs-vsctl\b|tc\s+qdisc\s+(?:add|del|delete|replace)|iptables(?:-legacy|-nft)?\s+(?:-[ADIFPRXN]|--append|--delete|--insert|--flush|--policy|--replace|--new-chain|--delete-chain)|nft\s+(?:add|delete|flush|insert|replace)|firewall-cmd\s+(?:--add|--remove|--reload|--permanent)|sysctl\s+-w\s+net\.|parted|fdisk|sfdisk|sgdisk|mkfs(?:\.\S+)?|wipefs|pvcreate|vgcreate|lvcreate|lvremove|lvextend|lvresize|resize2fs|xfs_growfs|mdadm\s+--create|mount|umount|swapon|swapoff|dd\b.*\bof=|systemctl\s+set-property)(?:\b|$|(?=\/))/gim;
-
-let errorCatalogCache = null;
-const INCREMENTAL_DRAFT_ERROR_CODES = new Set([
+const INCREMENTAL_DRAFT_IGNORED_CODES = new Set([
+  "E001",
   "E020",
   "E021",
+  "E030",
   "E040",
   "E050",
-  "E030",
-  "E060",
-  "E061",
   "E057",
   "E058",
   "E059",
@@ -82,12 +78,15 @@ const INCREMENTAL_DRAFT_ERROR_CODES = new Set([
   "E090",
   "E091",
   "E092",
-  "E094",
   "E095",
   "E100",
+  "E107",
+  "E110",
 ]);
 
-export function loadErrorCatalog() {
+let errorCatalogCache = null;
+
+function loadErrorCatalog() {
   if (errorCatalogCache !== null) {
     return errorCatalogCache;
   }
@@ -117,7 +116,7 @@ export function loadErrorCatalog() {
   return catalog;
 }
 
-export function errorMessage(code, params = {}) {
+function errorMessage(code, params = {}) {
   const entry = loadErrorCatalog()[code];
   if (!entry || typeof entry.message !== "string") {
     throw new Error(`missing error catalog entry for ${code}`);
@@ -150,14 +149,7 @@ function firstNonEmptyLineIdx(lines, start, end) {
 function parseSections(lines, level) {
   const prefix = `${"#".repeat(level)} `;
   const sections = [];
-  let inFence = false;
   lines.forEach((line, idx) => {
-    if (/^```/.test(line.trim())) {
-      inFence = !inFence;
-    }
-    if (inFence) {
-      return;
-    }
     if (line.startsWith(prefix)) {
       sections.push([idx, line.slice(prefix.length).trim()]);
     }
@@ -873,10 +865,10 @@ function validatePlanAndRecords(lines, h2Sections) {
   return errors;
 }
 
-function collectErrorsCore(text, pathValue = null) {
-  const lines = text.split(/\r?\n/);
+function collectErrors(text, pathValue = null) {
+  const normalizedText = normalizeRunbookNumbering(text);
+  const lines = normalizedText.split(/\r?\n/);
   const errors = [];
-  const templateBasename = pathValue == null ? null : path.basename(pathValue);
 
   if (lines.length === 0 || !lines[0].startsWith("# ")) {
     errors.push(err("E001", lines, lines.length > 0 ? 0 : null));
@@ -895,7 +887,7 @@ function collectErrorsCore(text, pathValue = null) {
   const modeIdx = noteIdx == null ? null : firstNonEmptyLineIdx(lines, noteIdx + 1, lines.length);
   if (
     modeIdx == null ||
-    (!RUNBOOK_MODE_PLACEHOLDERS.has(lines[modeIdx].trim()) && !RUNBOOK_MODE_RE.test(lines[modeIdx].trim()))
+    (lines[modeIdx].trim() !== RUNBOOK_MODE_PLACEHOLDER && !RUNBOOK_MODE_RE.test(lines[modeIdx].trim()))
   ) {
     errors.push(err("E110", lines, modeIdx));
   }
@@ -907,23 +899,7 @@ function collectErrorsCore(text, pathValue = null) {
       content: path.basename(pathValue),
     });
   }
-  if (pathValue != null && !VALID_TEMPLATE_BASENAMES.has(path.basename(pathValue)) && !path.basename(pathValue).endsWith(RUNBOOK_FILENAME_SUFFIX)) {
-    errors.push({
-      code: "E108",
-      message: errorMessage("E108", { suffix: RUNBOOK_FILENAME_SUFFIX }),
-      line: null,
-      content: path.basename(pathValue),
-    });
-  }
-
-  let inFence = false;
   lines.forEach((line, idx) => {
-    if (/^```/.test(line.trim())) {
-      inFence = !inFence;
-    }
-    if (inFence) {
-      return;
-    }
     if (FORBIDDEN_H2.has(line.trim().slice(3)) && line.trim().startsWith("## ")) {
       errors.push(err("E002", lines, idx, null, { title: line.trim().slice(3) }));
     }
@@ -969,79 +945,81 @@ function collectErrorsCore(text, pathValue = null) {
   return errors;
 }
 
-export function collectErrors(text, pathValue = null) {
-  return collectErrorsCore(normalizeRunbookNumbering(text), pathValue);
+function filterIncrementalDraftErrors(errors) {
+  return (Array.isArray(errors) ? errors : []).filter((item) => !INCREMENTAL_DRAFT_IGNORED_CODES.has(item?.code));
 }
 
-export function filterIncrementalDraftErrors(errors) {
-  return errors.filter((item) => !INCREMENTAL_DRAFT_ERROR_CODES.has(item.code));
-}
-
-function buildNaturalLanguageSummary(errors) {
-  const summary = [`本次扫描共发现 ${errors.length} 个问题，当前 runbook 还不能进入执行态`];
-  errors.forEach((item, index) => {
-    const location = item.line == null ? "某处" : `第 ${item.line} 行`;
-    let detail = `${location}需要修正：${item.message}`;
-    if (item.content) {
-      detail += ` 当前命中的内容是：${item.content}`;
-    }
-    summary.push(`${index + 1}. ${detail}`);
-  });
-  summary.push("请先按以上问题修正文档，再重新运行 runctl validate");
-  return summary;
-}
-
-export function printPass(filePath, jsonMode = false) {
-  if (jsonMode) {
-    console.log(JSON.stringify({ status: "pass", path: `${filePath}`, errors: [] }, null, 2));
-    return;
+function printFail(targetPath, errors, includeSummary = true) {
+  const items = Array.isArray(errors) ? errors : [];
+  if (includeSummary) {
+    console.error(`validation failed: ${targetPath}`);
   }
-  console.log(`[runbook-validator] PASS ${filePath}`);
-}
-
-export function printFail(filePath, errors, jsonMode = false) {
-  const summary = buildNaturalLanguageSummary(errors);
-  if (jsonMode) {
-    console.log(JSON.stringify({
-      status: "fail",
-      path: `${filePath}`,
-      errors,
-      natural_language_summary: summary.join("\n"),
-      natural_language_items: summary,
-    }, null, 2));
-    return;
-  }
-  console.log(`[runbook-validator] FAIL ${filePath}`);
-  errors.forEach((item) => {
-    const location = item.line == null ? "" : ` line ${item.line}`;
-    console.log(`- ${item.code}${location}: ${item.message}`);
-    if (item.content) {
-      console.log(`  content: ${item.content}`);
+  for (const error of items) {
+    const linePart = error?.line == null ? "" : `:${error.line}`;
+    console.error(`${targetPath}${linePart} [${error.code}] ${error.message}`);
+    if (error?.content) {
+      console.error(`  ${error.content}`);
     }
-  });
-  console.log("\n[runbook-validator] 自然语言总结");
-  summary.forEach((line) => {
-    console.log(`- ${line}`);
-  });
+  }
 }
 
-export async function handleValidate(args) {
+async function handleValidate(args) {
   const filePath = path.resolve(args.path);
-  if (!fs.existsSync(filePath)) {
-    printFail(filePath, [{ code: "E000", message: errorMessage("E000", { path: filePath }), line: null, content: null }], args.json);
-    return 2;
-  }
-  const { normalized } = await normalizeFile(filePath);
-  const errors = collectErrorsCore(normalized, filePath);
-  if (errors.length > 0) {
-    printFail(filePath, errors, args.json);
+  try {
+    const { normalized, changed } = await normalizeFile(filePath);
+    const errors = collectErrors(normalized, filePath);
+    if (errors.length > 0) {
+      if (args.json) {
+        process.stdout.write(
+          `${JSON.stringify(
+            {
+              status: "fail",
+              path: filePath,
+              changed,
+              errors,
+              natural_language_summary: `runbook 校验失败，共 ${errors.length} 个问题。`,
+              natural_language_items: errors.map((item) =>
+                item.line == null ? `[${item.code}] ${item.message}` : `第 ${item.line} 行 [${item.code}] ${item.message}`,
+              ),
+            },
+            null,
+            2,
+          )}\n`,
+        );
+      } else {
+        printFail(filePath, errors, true);
+      }
+      return 1;
+    }
+
+    if (args.json) {
+      process.stdout.write(`${JSON.stringify({ status: "pass", path: filePath, changed, errors: [] }, null, 2)}\n`);
+    } else {
+      const normalizeNote = changed ? " (auto-normalized)" : "";
+      console.log(`[runbook-validator] PASS ${filePath}${normalizeNote}`);
+    }
+    return 0;
+  } catch (error) {
+    if (args.json) {
+      process.stdout.write(
+        `${JSON.stringify(
+          {
+            status: "error",
+            path: filePath,
+            message: error instanceof Error ? error.message : String(error),
+          },
+          null,
+          2,
+        )}\n`,
+      );
+    } else {
+      console.error(`error: ${error instanceof Error ? error.message : String(error)}`);
+    }
     return 1;
   }
-  printPass(filePath, args.json);
-  return 0;
 }
 
-export function main() {
+function main() {
   const args = process.argv.slice(2);
   if (!args.includes("--stdin-json")) {
     console.error("usage: node validate.mjs --stdin-json");
@@ -1052,13 +1030,23 @@ export function main() {
   const payload = input.trim() ? JSON.parse(input) : {};
   const text = typeof payload.text === "string" ? payload.text : "";
   const pathValue = typeof payload.path === "string" && payload.path ? path.resolve(payload.path) : null;
-  const errors = collectErrorsCore(text, pathValue);
+  const errors = collectErrors(text, pathValue);
   process.stdout.write(JSON.stringify({ errors }, null, 2));
 }
 
-export { RECORD_SIGNED_EXEC_RE, RECORD_SIGNED_ACCEPT_RE };
+export {
+  NUMBERED_H3_RE,
+  RECORD_SIGNED_ACCEPT_RE,
+  RECORD_SIGNED_EXEC_RE,
+  collectErrors,
+  errorMessage,
+  filterIncrementalDraftErrors,
+  handleValidate,
+  loadErrorCatalog,
+  printFail,
+};
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
   try {
     main();
   } catch (error) {

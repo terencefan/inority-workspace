@@ -7,21 +7,19 @@ E002:
 E003:
   message: "spec 文件名必须以“-spec.md”结尾"
 E010:
-  message: "一级标题必须严格按默认顺序收敛为：背景与现状 / 目标与非目标 / 风险与红线 / 假设与约束 / 架构总览 / 架构分层 / 模块划分 / 验收标准 / 访谈记录 / 参考文档"
+  message: "内容级二级标题必须严格按默认顺序收敛为：背景与现状 / 目标与非目标 / 风险与红线 / 边界与契约 / 架构总览 / 架构分层 / 模块划分 / 验收标准 / 访谈记录 / 参考文档"
 E011:
-  message: "“背景与现状”下的二级标题必须且只能是：背景 / 现状"
-E012:
-  message: "“假设与约束”下的二级标题必须且只能是：假设 / 约束"
+  message: "“背景与现状”下的三级标题必须且只能是：背景 / 现状"
 E013:
-  message: "“风险与红线”下的二级标题必须且只能是：风险 / 红线行为"
+  message: "“风险与红线”下的三级标题必须且只能是：风险 / 红线行为"
+E014:
+  message: "“边界与契约”下只允许一层子标题，不允许继续下钻到四级标题"
 E020:
-  message: "“现状”小节必须包含 fenced `dot` 或 `graphviz` 图"
+  message: "“现状”三级小节必须包含 fenced `dot` 或 `graphviz` 图"
 E021:
-  message: "“目标”小节必须包含 fenced `dot` 或 `graphviz` 图"
+  message: "“目标”三级小节必须包含 fenced `dot` 或 `graphviz` 图"
 E022:
-  message: "“架构总览”小节必须包含 fenced `dot` 或 `graphviz` 图"
-E023:
-  message: "dot 图节点必须显式声明 filled + fillcolor，避免无背景节点"
+  message: "“架构总览”二级小节必须包含 fenced `dot` 或 `graphviz` 图"
 E030:
   message: "“访谈记录”必须至少保留 5 轮真实用户问答"
 E031:
@@ -32,9 +30,3 @@ E033:
   message: "访谈回答行必须写成 `> A：...`"
 E034:
   message: "每轮访谈后都必须补 `收敛影响：...`"
-E041:
-  message: "“外部链接”不能为空"
-E042:
-  message: "“外部链接”至少需要一条 Markdown 链接"
-E043:
-  message: "外部链接不可达：{href}"

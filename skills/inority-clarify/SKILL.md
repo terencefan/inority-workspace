@@ -1,11 +1,11 @@
 ---
 name: inority-clarify
-description: Use when the active skill needs to ask the user a focused clarification question, confirm a path or option, resolve materially different choices, or verify a fact before continuing. This skill governs user-facing clarification rounds for specs, runbooks, and other planning work.
+description: Use when the active skill needs to ask the user a focused clarification question, confirm a path or option, resolve materially different choices, verify a fact before continuing, or present recommendation options that require the user to pick or endorse one. This skill governs user-facing clarification rounds for specs, runbooks, and other planning work.
 ---
 
 # Inority Clarify
 
-Use this skill when the current task cannot safely continue without asking the user to clarify a fact, choose a path, confirm a boundary, or approve one option over another.
+Use this skill when the current task cannot safely continue without asking the user to clarify a fact, choose a path, confirm a boundary, approve one option over another, or explicitly endorse one of several recommendations the agent is proposing.
 
 This skill is the shared clarification surface for other skills. It does not own the parent artifact. The caller still owns:
 
@@ -18,6 +18,7 @@ This skill is the shared clarification surface for other skills. It does not own
 - uncertainty is still materially affecting scope, design, risk, acceptance, or execution shape
 - multiple viable options exist and different choices would change downstream work
 - the agent needs the user to confirm a path rather than letting the model decide silently
+- the agent is about to recommend a concrete approach, refactor, or tradeoff-sensitive direction and wants the user to approve or choose among recommendations explicitly
 - current facts are incomplete, stale, contradictory, or likely wrong
 - the active skill requires real user Q/A before the artifact can be considered converged
 
@@ -40,14 +41,18 @@ Do not use this skill for:
    - `risk`
    - `rollback`
    - `acceptance`
+   - `recommendation choice`
 5. When helpful, present `2-4` mutually exclusive options instead of an open-ended prompt.
-6. After each option, add one short reason so the tradeoff is legible.
-7. Once the user answers, hand control back to the parent skill to update the artifact or continue planning.
+6. Prefer explicit numbered options such as `1/2/3` when the choice set is already visible, instead of yes/no phrasing.
+7. After each option, add one short reason so the tradeoff is legible.
+8. Once the user answers, hand control back to the parent skill to update the artifact or continue planning.
 
 ## Question Rules
 
 - Prefer one question per round.
 - Prefer closed options over open-ended prompts when the real choice set is already visible.
+- Prefer `1/2/3`-style numbered options over yes/no questions when the decision is really among multiple concrete paths.
+- When proposing recommendations, do not present them as a hidden default. Surface them as explicit numbered options and make the tradeoff legible.
 - Do not hide a material decision inside vague wording such as “确认一下” or “看下怎么做”.
 - Do not silently choose between materially different paths on the user's behalf.
 - If the answer would change implementation, rollout, acceptance, or risk posture, escalate it to the user explicitly.
