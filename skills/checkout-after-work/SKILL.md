@@ -124,7 +124,14 @@ Include:
 - final worktree state
 - skipped or blocked repositories and exact reasons
 
-Prefer a flat list or table that the user can open one by one.
+For repositories that produced PR or MR links, render the review list as Markdown links with one link per line so the user can open them directly.
+Use the link label format `[xxx project] PR #xxx Title`.
+For example:
+
+```md
+[[galaxy-library-api] PR #2 补齐 Sciverse scope 前缀并修正 handbook service 目标](https://gitee.pjlab.org.cn/...)
+[[inority-workspace] PR #6 Add checkout workflow skill and theme-aware graphviz](https://github.com/...)
+```
 
 If every in-scope repository has been fully processed for this checkout wave, end with one short celebratory message that includes a fireworks emoji.
 
