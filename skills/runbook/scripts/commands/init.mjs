@@ -1,11 +1,11 @@
 import path from "node:path";
 import { promises as fs } from "node:fs";
 
-export const TITLE_PLACEHOLDER = "# <runbook 标题>";
-export const SKELETON_TEMPLATE = `# <runbook 标题>
+export const TITLE_PLACEHOLDER = "# <主题>执行手册";
+export const SKELETON_TEMPLATE = `# <主题>执行手册
 
 > [!NOTE]
-> 当前主题：\`<operation | code>\`
+> 当前模式：\`<coding|operation|migration|slides>\`
 
 ## 背景与现状
 

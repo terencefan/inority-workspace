@@ -19,7 +19,7 @@ test("error code catalog covers runtime codes", async () => {
   const errorCatalogText = loadText(ERROR_CODE_CATALOG);
   assert.ok(errorCatalogText.startsWith("E000:"));
   assert.ok([...runtimeCodes].every((code) => code in catalog));
-  assert.equal(await errorMessage("E001"), "首个非空行必须是唯一的文档主标题 # ...");
+  assert.equal(await errorMessage("E001"), "首行必须是 spec 标题");
 });
 
 test("asset cases emit expected error codes", async () => {
