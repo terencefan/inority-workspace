@@ -49,6 +49,7 @@ This skill is not for:
    - brand assets
    - charts, screenshots, references
 4. Before freezing structure, collect enough real user confirmation.
+   - when you need to ask, clarify route, confirm section mainline, or disambiguate slide intent, load `$inority-question`
    - confirm overall deck goal
    - confirm each section mainline
    - confirm each slide goal
@@ -104,6 +105,7 @@ Each `#### slide` should normally contain:
 
 Slides need denser QA than normal docs.
 
+- question framing and durable Q/A formatting should reuse `$inority-question`
 - at least one confirmation for the whole deck goal
 - at least one confirmation for each `section`
 - at least one confirmation for each `slide`

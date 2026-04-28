@@ -226,12 +226,12 @@ function isExternalHref(href) {
   return /^https?:\/\//iu.test(href)
 }
 
-function renderNodeChildren(children, keyPrefix) {
-  return children.map((child, index) => renderMarkdownNode(child, `${keyPrefix}-${index}`))
+function renderNodeChildren(children, keyPrefix, themeMode = 'dark') {
+  return children.map((child, index) => renderMarkdownNode(child, `${keyPrefix}-${index}`, themeMode))
 }
 
-function renderInlineChildren(tokens, keyPrefix) {
-  return buildTokenTree(tokens).map((node, index) => renderMarkdownNode(node, `${keyPrefix}-${index}`))
+function renderInlineChildren(tokens, keyPrefix, themeMode = 'dark') {
+  return buildTokenTree(tokens).map((node, index) => renderMarkdownNode(node, `${keyPrefix}-${index}`, themeMode))
 }
 
 function MermaidBlock({ source }) {
@@ -601,7 +601,7 @@ function ZoomableSvgBlock({ svgMarkup, title, wrapperClassName, canvasClassName,
   )
 }
 
-function GraphvizBlock({ source, engine }) {
+function GraphvizBlock({ source, engine, themeMode = 'dark' }) {
   const [svgMarkup, setSvgMarkup] = useState('')
   const [renderState, setRenderState] = useState('loading')
   const [renderError, setRenderError] = useState('')
@@ -616,7 +616,7 @@ function GraphvizBlock({ source, engine }) {
 
       try {
         const response = await fetch('/api/render/graphviz', {
-          body: JSON.stringify({ engine, source }),
+          body: JSON.stringify({ engine, source, themeMode }),
           headers: {
             'Content-Type': 'application/json',
           },
@@ -652,7 +652,7 @@ function GraphvizBlock({ source, engine }) {
     return () => {
       cancelled = true
     }
-  }, [engine, source])
+  }, [engine, source, themeMode])
 
   return (
     <ZoomableSvgBlock
@@ -683,7 +683,7 @@ function SvgMarkupBlock({ source }) {
   )
 }
 
-function MarkdownCodeBlock({ source, language }) {
+function MarkdownCodeBlock({ source, language, themeMode = 'dark' }) {
   const normalizedLanguage = (language || '').trim().toLowerCase()
   const [collapsed, setCollapsed] = useState(false)
 
@@ -692,7 +692,7 @@ function MarkdownCodeBlock({ source, language }) {
   }
 
   if (GRAPHVIZ_LANGUAGES.has(normalizedLanguage)) {
-    return <GraphvizBlock source={source.trimEnd()} engine="dot" />
+    return <GraphvizBlock source={source.trimEnd()} engine="dot" themeMode={themeMode} />
   }
 
   if (isRenderableSvgSource(normalizedLanguage, source)) {
@@ -797,13 +797,13 @@ function MarkdownCodeBlock({ source, language }) {
   )
 }
 
-function renderMarkdownNode(node, key) {
+function renderMarkdownNode(node, key, themeMode = 'dark') {
   const { token, children } = node
   const attrs = getTokenAttributes(token)
 
   switch (token.type) {
     case 'inline':
-      return <Fragment key={key}>{renderInlineChildren(token.children || [], `${key}-inline`)}</Fragment>
+      return <Fragment key={key}>{renderInlineChildren(token.children || [], `${key}-inline`, themeMode)}</Fragment>
     case 'text':
       return <Fragment key={key}>{token.content}</Fragment>
     case 'softbreak':
@@ -867,7 +867,7 @@ function renderMarkdownNode(node, key) {
             lineHeight: (theme) => getMarkdownTokens(theme).body?.lineHeight || 1.8,
           }}
         >
-          {renderNodeChildren(children, `${key}-paragraph`)}
+          {renderNodeChildren(children, `${key}-paragraph`, themeMode)}
         </Typography>
       )
     case 'heading_open': {
@@ -900,7 +900,7 @@ function renderMarkdownNode(node, key) {
             transition: 'color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease',
           }}
         >
-          {renderNodeChildren(children, `${key}-heading`)}
+          {renderNodeChildren(children, `${key}-heading`, themeMode)}
         </Typography>
       )
     }
@@ -915,7 +915,7 @@ function renderMarkdownNode(node, key) {
             pl: 3,
           }}
         >
-          {renderNodeChildren(children, `${key}-ul`)}
+          {renderNodeChildren(children, `${key}-ul`, themeMode)}
         </Box>
       )
     case 'ordered_list_open': {
@@ -931,13 +931,13 @@ function renderMarkdownNode(node, key) {
             pl: 3,
           }}
         >
-          {renderNodeChildren(children, `${key}-ol`)}
+          {renderNodeChildren(children, `${key}-ol`, themeMode)}
         </Box>
       )
     }
     case 'list_item_open': {
       const taskListMeta = token.meta?.taskListItem
-      const listItemContent = renderNodeChildren(children, `${key}-li`)
+      const listItemContent = renderNodeChildren(children, `${key}-li`, themeMode)
 
       if (taskListMeta) {
         return (
@@ -1033,14 +1033,14 @@ function renderMarkdownNode(node, key) {
               {alert.label}
             </Typography>
           ) : null}
-          {renderNodeChildren(blockquoteChildren, `${key}-blockquote`)}
+          {renderNodeChildren(blockquoteChildren, `${key}-blockquote`, themeMode)}
         </Box>
       )
       }
     case 'fence':
-      return <MarkdownCodeBlock key={key} source={token.content} language={token.info.split(/\s+/u)[0] || ''} />
+      return <MarkdownCodeBlock key={key} source={token.content} language={token.info.split(/\s+/u)[0] || ''} themeMode={themeMode} />
     case 'code_block':
-      return <MarkdownCodeBlock key={key} source={token.content} language="" />
+      return <MarkdownCodeBlock key={key} source={token.content} language="" themeMode={themeMode} />
     case 'hr':
       return <Divider key={key} sx={{ my: 3, borderColor: 'divider' }} />
     case 'table_open':
@@ -1066,16 +1066,16 @@ function renderMarkdownNode(node, key) {
               },
             }}
           >
-            {renderNodeChildren(children, `${key}-table`)}
+            {renderNodeChildren(children, `${key}-table`, themeMode)}
           </Table>
         </TableContainer>
       )
     case 'thead_open':
-      return <TableHead key={key}>{renderNodeChildren(children, `${key}-thead`)}</TableHead>
+      return <TableHead key={key}>{renderNodeChildren(children, `${key}-thead`, themeMode)}</TableHead>
     case 'tbody_open':
-      return <TableBody key={key}>{renderNodeChildren(children, `${key}-tbody`)}</TableBody>
+      return <TableBody key={key}>{renderNodeChildren(children, `${key}-tbody`, themeMode)}</TableBody>
     case 'tr_open':
-      return <TableRow key={key}>{renderNodeChildren(children, `${key}-tr`)}</TableRow>
+      return <TableRow key={key}>{renderNodeChildren(children, `${key}-tr`, themeMode)}</TableRow>
     case 'th_open':
       return (
         <TableCell
@@ -1089,13 +1089,13 @@ function renderMarkdownNode(node, key) {
             backgroundColor: (theme) => getMarkdownTokens(theme).table?.headerBackground || 'transparent',
           }}
         >
-          {renderNodeChildren(children, `${key}-th`)}
+          {renderNodeChildren(children, `${key}-th`, themeMode)}
         </TableCell>
       )
     case 'td_open':
       return (
         <TableCell key={key} align={getCellAlign(token)}>
-          {renderNodeChildren(children, `${key}-td`)}
+          {renderNodeChildren(children, `${key}-td`, themeMode)}
         </TableCell>
       )
     case 'link_open': {
@@ -1112,31 +1112,31 @@ function renderMarkdownNode(node, key) {
           rel={external ? 'noreferrer noopener' : undefined}
           sx={{ overflowWrap: 'anywhere' }}
         >
-          {renderNodeChildren(children, `${key}-link`)}
+          {renderNodeChildren(children, `${key}-link`, themeMode)}
         </Link>
       )
     }
     case 'strong_open':
       return (
         <Box key={key} component="strong" sx={{ fontWeight: 700 }}>
-          {renderNodeChildren(children, `${key}-strong`)}
+          {renderNodeChildren(children, `${key}-strong`, themeMode)}
         </Box>
       )
     case 'em_open':
       return (
         <Box key={key} component="em">
-          {renderNodeChildren(children, `${key}-em`)}
+          {renderNodeChildren(children, `${key}-em`, themeMode)}
         </Box>
       )
     case 's_open':
       return (
         <Box key={key} component="s">
-          {renderNodeChildren(children, `${key}-s`)}
+          {renderNodeChildren(children, `${key}-s`, themeMode)}
         </Box>
       )
     default:
       if (children.length > 0) {
-        return <Fragment key={key}>{renderNodeChildren(children, `${key}-children`)}</Fragment>
+        return <Fragment key={key}>{renderNodeChildren(children, `${key}-children`, themeMode)}</Fragment>
       }
 
       return token.content ? <Fragment key={key}>{token.content}</Fragment> : null
@@ -1164,11 +1164,11 @@ export function extractDocumentPrimaryTitle(source, fallbackTitle) {
   return getDocumentPrimaryTitle(source) || fallbackTitle
 }
 
-export function renderMarkdownDocument(source) {
+export function renderMarkdownDocument(source, themeMode = 'dark') {
   const { nodes, tocItems } = buildMarkdownNodes(source)
 
   return {
-    nodes: nodes.map((node, index) => renderMarkdownNode(node, `md-${index}`)),
+    nodes: nodes.map((node, index) => renderMarkdownNode(node, `md-${index}`, themeMode)),
     tocItems,
     primaryTitle: getDocumentPrimaryTitle(source),
   }

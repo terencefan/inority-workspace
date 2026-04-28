@@ -1,0 +1,4 @@
+interface:
+  display_name: "Inority Question"
+  short_description: "Standardize clarification and disambiguation questions."
+  default_prompt: "Use $inority-question whenever you need to ask the user a clarification, route-selection, or ambiguity-reduction question. Ask one concise dimension-focused question per round, prefer numbered mutually exclusive options, and record durable Q/A when the parent artifact requires interview history."

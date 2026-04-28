@@ -11,6 +11,7 @@ type GraphvizModule = typeof import('@viz-js/viz')
 type GraphvizRenderOptions = {
   engine: string
   source: string
+  themeMode: 'dark' | 'light'
 }
 type GraphvizTextOp = {
   text: string
@@ -94,6 +95,20 @@ const DEFAULT_RIPGREP_COMMAND = 'rg'
 const GRAPHVIZ_ENGINES = new Set(['dot'])
 const GRAPHVIZ_REQUEST_LIMIT_BYTES = 1024 * 1024
 const SLIDES_STATIC_PREFIX = '/slides-static/'
+const GRAPHVIZ_THEME_DEFAULTS = {
+  dark: {
+    edgeColor: '#94a3b8',
+    fontColor: '#e2e8f0',
+    graphColor: '#94a3b8',
+    nodeColor: '#94a3b8',
+  },
+  light: {
+    edgeColor: '#475569',
+    fontColor: '#0f172a',
+    graphColor: '#475569',
+    nodeColor: '#475569',
+  },
+} as const
 
 let graphvizVizPromise: Promise<Awaited<ReturnType<GraphvizModule['instance']>>> | null = null
 
@@ -758,15 +773,16 @@ async function readJsonBody(request: IncomingMessage): Promise<unknown> {
 }
 
 async function renderGraphviz(body: unknown, options: NormalizedOptions): Promise<{ svg: string }> {
-  const { engine, source } = parseGraphvizRenderOptions(body)
-  const nativeSvg = await renderGraphvizWithNativeDot({ engine, source }, options.graphvizCommandPathResolved)
+  const { engine, source, themeMode } = parseGraphvizRenderOptions(body)
+  const themedSource = applyGraphvizThemeDefaults(source, themeMode)
+  const nativeSvg = await renderGraphvizWithNativeDot({ engine, source: themedSource, themeMode }, options.graphvizCommandPathResolved)
   if (nativeSvg) {
     return { svg: namespaceSvgIds(nativeSvg) }
   }
 
   const viz = await getGraphvizViz(options.graphvizModulePathResolved)
-  const svg = viz.renderString(source, { engine, format: 'svg' })
-  const json = viz.renderJSON(source, { engine })
+  const svg = viz.renderString(themedSource, { engine, format: 'svg' })
+  const json = viz.renderJSON(themedSource, { engine })
 
   return {
     svg: injectGraphvizTextLengths(svg, collectGraphvizTextOps(json)),
@@ -872,6 +888,7 @@ function parseGraphvizRenderOptions(body: unknown): GraphvizRenderOptions {
 
   const engine = typeof body.engine === 'string' && body.engine.trim() ? body.engine.trim() : 'dot'
   const source = typeof body.source === 'string' ? body.source.trim() : ''
+  const themeMode = body.themeMode === 'light' ? 'light' : 'dark'
 
   if (!GRAPHVIZ_ENGINES.has(engine)) {
     throw new HttpError(400, `Unsupported Graphviz engine: ${engine}`)
@@ -881,7 +898,23 @@ function parseGraphvizRenderOptions(body: unknown): GraphvizRenderOptions {
     throw new HttpError(400, 'Graphviz source is required')
   }
 
-  return { engine, source }
+  return { engine, source, themeMode }
+}
+
+function applyGraphvizThemeDefaults(source: string, themeMode: 'dark' | 'light'): string {
+  const graphBodyIndex = source.indexOf('{')
+  if (graphBodyIndex === -1) {
+    return source
+  }
+
+  const palette = GRAPHVIZ_THEME_DEFAULTS[themeMode]
+  const defaultBlock = [
+    `graph [bgcolor="transparent", color="${palette.graphColor}", fontcolor="${palette.fontColor}"];`,
+    `node [color="${palette.nodeColor}", fontcolor="${palette.fontColor}"];`,
+    `edge [color="${palette.edgeColor}", fontcolor="${palette.fontColor}"];`,
+  ].join('\n')
+
+  return `${source.slice(0, graphBodyIndex + 1)}\n${defaultBlock}\n${source.slice(graphBodyIndex + 1)}`
 }
 
 async function getGraphvizViz(graphvizModulePathResolved: string): Promise<Awaited<ReturnType<GraphvizModule['instance']>>> {
