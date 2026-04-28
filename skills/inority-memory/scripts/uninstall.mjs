@@ -4,8 +4,8 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   DEFAULT_WORKSPACE_ROOT,
+  SOURCE_MEMORY_README,
   SOURCE_MEMORY_DIR,
-  TEMPLATES_DIR,
   isMainModule,
   parseFlagArgs,
   readManifest,
@@ -26,6 +26,7 @@ export function runUninstall(options = {}) {
 
   restoreOrRemove(path.join(memoryDir, "SOUL.md"), path.join(SOURCE_MEMORY_DIR, "SOUL.md"), manifest.BACKUP_SOUL);
   restoreOrRemove(path.join(memoryDir, "USER.md"), path.join(SOURCE_MEMORY_DIR, "USER.md"), manifest.BACKUP_USER);
+  restoreOrRemove(path.join(memoryDir, "README.md"), SOURCE_MEMORY_README, manifest.BACKUP_README);
   fs.rmSync(manifestPath, { force: true });
 
   return { workspaceRoot, memoryDir };

@@ -4,13 +4,11 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   DEFAULT_WORKSPACE_ROOT,
-  SOURCE_MEMORY_DIR,
-  TEMPLATES_DIR,
+  SOURCE_MEMORY_README,
+  filesHaveSameContent,
   isMainModule,
   parseFlagArgs,
-  resolvePathMaybe,
   safeLstat,
-  safeReadlinkReal,
 } from "./lib.mjs";
 
 function printHelp() {
@@ -54,7 +52,7 @@ function pushResult(results, level, code, message, details = {}) {
   results.push({ level, code, message, ...details });
 }
 
-function validateManagedLink(results, targetPath, expectedSource) {
+function validateManagedCopy(results, targetPath, expectedSource) {
   const kind = classifyPathKind(targetPath);
   if (kind === "missing") {
     pushResult(results, "error", "missing-managed-entry", `${targetPath} is missing`, {
@@ -63,8 +61,8 @@ function validateManagedLink(results, targetPath, expectedSource) {
     });
     return;
   }
-  if (kind !== "symlink") {
-    pushResult(results, "error", "managed-entry-not-symlink", `${targetPath} should be a symlink`, {
+  if (kind !== "file") {
+    pushResult(results, "error", "managed-entry-not-file", `${targetPath} should be a regular file`, {
       path: targetPath,
       actualKind: kind,
       expectedSource,
@@ -72,22 +70,20 @@ function validateManagedLink(results, targetPath, expectedSource) {
     return;
   }
 
-  const realTarget = safeReadlinkReal(targetPath);
-  const realSource = resolvePathMaybe(expectedSource);
-  if (!realTarget || !realSource || realTarget !== realSource) {
+  if (!filesHaveSameContent(targetPath, expectedSource)) {
     pushResult(
       results,
       "error",
-      "managed-entry-target-mismatch",
-      `${targetPath} points to an unexpected source`,
-      { path: targetPath, actualSource: realTarget, expectedSource: realSource || expectedSource },
+      "managed-entry-content-mismatch",
+      `${targetPath} does not match the managed source content`,
+      { path: targetPath, expectedSource },
     );
     return;
   }
 
-  pushResult(results, "ok", "managed-entry-ok", `${targetPath} is linked correctly`, {
+  pushResult(results, "ok", "managed-entry-ok", `${targetPath} matches the managed source content`, {
     path: targetPath,
-    expectedSource: realSource,
+    expectedSource,
   });
 }
 
@@ -134,10 +130,10 @@ export function runCheck(options = {}) {
 
   validateDirectory(results, memoryDir);
 
-  validateManagedLink(results, path.join(memoryDir, "SOUL.md"), path.join(SOURCE_MEMORY_DIR, "SOUL.md"));
-  validateManagedLink(results, path.join(memoryDir, "USER.md"), path.join(SOURCE_MEMORY_DIR, "USER.md"));
+  validateLocalFile(results, path.join(memoryDir, "SOUL.md"));
+  validateLocalFile(results, path.join(memoryDir, "USER.md"));
+  validateManagedCopy(results, path.join(memoryDir, "README.md"), SOURCE_MEMORY_README);
   validateLocalFile(results, path.join(memoryDir, "MEMORY.md"));
-
   validateLocalFile(results, path.join(memoryDir, "WORKSPACE.md"));
   validateLocalFile(results, path.join(memoryDir, "credential.yaml"));
 

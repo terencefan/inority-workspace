@@ -12,6 +12,7 @@ Rules:
 
 - Begin every main-agent reply with `Goal`, `Ambiguity`, and `Risk`, and make them describe the current longrun rather than the latest local action.
 - Use the literal `: ` separator on all three lines so the description text starts in the same column.
+- `Goal` must stay plain text only; do not add a traffic light or percentage to the `Goal` line.
 - `Ambiguity` and `Risk` must use percentages, and the highest current longrun risk should be explained inline in the `Risk` line.
 - In CLI output, prefix the percentage with `🟢`, `🟡`, or `🔴` and do not append textual level suffixes such as `Low`, `Medium`, or `High`.
 - Do not append trailing punctuation after the percentage.

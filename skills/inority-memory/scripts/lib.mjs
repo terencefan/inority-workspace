@@ -12,6 +12,7 @@ export const REPO_ROOT = path.resolve(SKILL_ROOT, "../..");
 export const DEFAULT_WORKSPACE_ROOT = path.resolve(REPO_ROOT, "..");
 export const SOURCE_MEMORY_DIR = path.resolve(REPO_ROOT, "memory");
 export const TEMPLATES_DIR = path.resolve(SKILL_ROOT, "templates");
+export const SOURCE_MEMORY_README = path.join(SOURCE_MEMORY_DIR, "README.md");
 
 export function parseFlagArgs(argv, spec) {
   const out = {};
@@ -79,48 +80,73 @@ export function isSameRealPath(a, b) {
   return safeReadlinkReal(a) !== "" && safeReadlinkReal(a) === safeReadlinkReal(b);
 }
 
-export function ensureManagedLink(sourcePath, targetPath, timestamp) {
+export function filesHaveSameContent(a, b) {
+  try {
+    if (!fs.existsSync(a) || !fs.existsSync(b)) {
+      return false;
+    }
+    const aStat = fs.statSync(a);
+    const bStat = fs.statSync(b);
+    if (!aStat.isFile() || !bStat.isFile()) {
+      return false;
+    }
+    if (aStat.size !== bStat.size) {
+      return false;
+    }
+    return fs.readFileSync(a).equals(fs.readFileSync(b));
+  } catch {
+    return false;
+  }
+}
+
+export function ensureTemplateFile(templatePath, targetPath, timestamp, options = {}) {
+  const { replaceIfMatches = [] } = options;
   const stat = safeLstat(targetPath);
-  if (stat?.isSymbolicLink() && isSameRealPath(targetPath, sourcePath)) {
+  if (!stat) {
+    fs.copyFileSync(templatePath, targetPath);
     return "";
   }
-  if (stat?.isFile()) {
-    try {
-      const sourceStat = fs.statSync(sourcePath);
-      const targetStat = fs.statSync(targetPath);
-      if (process.platform === "win32" && sourceStat.ino === targetStat.ino && sourceStat.dev === targetStat.dev) {
-        return "";
+  if (stat.isFile()) {
+    for (const candidate of replaceIfMatches) {
+      if (candidate && filesHaveSameContent(targetPath, candidate)) {
+        const backup = `${targetPath}.bak.${timestamp}`;
+        fs.renameSync(targetPath, backup);
+        fs.copyFileSync(templatePath, targetPath);
+        return backup;
       }
-    } catch {
-      // fall through to managed replacement path
     }
+    return "";
+  }
+  if (stat.isSymbolicLink()) {
+    const backup = `${targetPath}.bak.${timestamp}`;
+    fs.copyFileSync(targetPath, backup);
+    fs.rmSync(targetPath, { force: true });
+    fs.copyFileSync(templatePath, targetPath);
+    return backup;
+  }
+
+  return "";
+}
+
+export function ensureManagedCopy(sourcePath, targetPath, timestamp) {
+  const stat = safeLstat(targetPath);
+  if (stat?.isFile() && filesHaveSameContent(sourcePath, targetPath)) {
+    return "";
   }
 
   let backup = "";
   if (stat) {
     backup = `${targetPath}.bak.${timestamp}`;
-    fs.renameSync(targetPath, backup);
-  }
-
-  linkFileCrossPlatform(sourcePath, targetPath);
-  return backup;
-}
-
-export function linkFileCrossPlatform(sourcePath, targetPath) {
-  try {
-    fs.symlinkSync(sourcePath, targetPath, "file");
-    return;
-  } catch (error) {
-    if (process.platform === "win32" || ["EROFS", "EPERM", "EACCES"].includes(error?.code)) {
-      try {
-        fs.linkSync(sourcePath, targetPath);
-        return;
-      } catch {
-        throw error;
-      }
+    if (stat.isSymbolicLink()) {
+      fs.copyFileSync(targetPath, backup);
+      fs.rmSync(targetPath, { force: true });
+    } else {
+      fs.renameSync(targetPath, backup);
     }
-    throw error;
   }
+
+  fs.copyFileSync(sourcePath, targetPath);
+  return backup;
 }
 
 export function writeManifest(manifestPath, values) {
@@ -161,17 +187,7 @@ export function restoreOrRemove(targetPath, expectedSource, backupPath) {
   if (stat.isSymbolicLink()) {
     managed = isSameRealPath(targetPath, expectedSource);
   } else if (stat.isFile()) {
-    try {
-      const targetReal = safeReadlinkReal(targetPath);
-      const sourceReal = safeReadlinkReal(expectedSource);
-      const targetStat = fs.statSync(targetPath);
-      const sourceStat = fs.statSync(expectedSource);
-      managed =
-        (targetReal !== "" && targetReal === sourceReal) ||
-        (process.platform === "win32" && targetStat.ino === sourceStat.ino && targetStat.dev === sourceStat.dev);
-    } catch {
-      managed = false;
-    }
+    managed = filesHaveSameContent(targetPath, expectedSource);
   }
 
   if (!managed) {

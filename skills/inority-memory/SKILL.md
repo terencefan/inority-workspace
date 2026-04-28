@@ -53,6 +53,7 @@ In install mode:
 
 - create or repair the runtime entrypoints under `.codex/memory/`
 - use the install resources from this skill when they match the task
+- seed `SOUL.md` / `USER.md` / `WORKSPACE.md` from templates rather than direct source copies
 - preserve existing local-only files rather than overwriting them
 - report which entrypoints were created, linked, repaired, or left untouched
 

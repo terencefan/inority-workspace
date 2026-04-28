@@ -68,7 +68,6 @@ npm run codex:install:inority-reply -- --codex-home /path/to/.codex
 当前与 memory 维护直接相关的 skill：
 
 - `inority-memory`
-- `inority-memory-migration`
 - `inority-reply`
 
 ```bash
@@ -157,8 +156,7 @@ digraph G {
 | `skills/` | workspace-local 的 Codex skills 源码目录，每个 skill 独立维护自己的 `SKILL.md`、脚本和参考资料 |
 | `memory/` | 跨环境可复用的 memory 源文件，例如 `SOUL.md`、`USER.md` |
 | `codex/` | 需要安装到 `~/.codex/` 或项目 `.codex/` 的运行时资产；`inority-reply` 和 `inority-memory` 的安装资源现已内聚到各自的 `skills/` 目录 |
-| `handbook/` | 本地 handbook 站点代码、运行脚本以及 `runbook/` 文档目录 |
-| `handbook/runbook/` | 执行型 runbook 文档入口，供 handbook 站点和实际运维流程消费 |
+| `handbook/` | 本地 handbook 站点代码、运行脚本和站点相关文档入口 |
 
 ## 部署拓扑
 
@@ -184,7 +182,6 @@ digraph G {
 
 - [memory 说明](./memory/README.md)
 - [inority-memory skill](./skills/inority-memory/SKILL.md)
-- [inority-memory-migration skill](./skills/inority-memory-migration/SKILL.md)
 - [handbook 说明](./handbook/README.md)
 - [inority-reply skill](./skills/inority-reply/SKILL.md)
 - [inority-reply 安装面说明](./skills/inority-reply/references/install-surface.md)

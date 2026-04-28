@@ -2,8 +2,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/resolve-codex-home.sh"
 
-CODEX_HOME="${HOME}/.codex"
+CODEX_HOME="$(resolve_codex_home)"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --codex-home)
@@ -14,6 +15,10 @@ while [[ $# -gt 0 ]]; do
       cat <<'EOF'
 Usage:
   bash reinstall.sh [--codex-home /path/to/.codex]
+
+Default target:
+  nearest upward .codex from the current working directory,
+  otherwise <workspace-root>/.codex for the workspace that contains this inority-workspace repo
 EOF
       exit 0
       ;;
