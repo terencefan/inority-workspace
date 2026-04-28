@@ -5,10 +5,13 @@ import { lineNumber, parseSimpleYamlMap, splitLinesKeepEnds, toError } from "./s
 const ERROR_CODE_CATALOG_PATH = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../../references/validator-error-codes.yaml");
 let errorCatalogCache = null;
 
-const REQUIRED_H2 = ["适用范围", "规划重点", "常见提问维度", "执行计划偏好", "风险收敛提醒"];
+const REQUIRED_H2_BY_MODE = {
+  operation: ["何时加载", "规划重点", "常见提问维度", "常见证据", "写作约束", "执行计划偏好", "风险收敛提醒"],
+  code: ["何时加载", "规划重点", "常见提问维度", "常见证据", "写作约束", "执行计划偏好", "风险收敛提醒"],
+};
 const TITLE_BY_MODE = {
-  operation: "# Operation 规划主题补充",
-  code: "# Code 规划主题补充",
+  operation: "# Operation Runbook",
+  code: "# Coding Runbook",
 };
 
 async function loadErrorCatalog() {
@@ -64,6 +67,7 @@ export async function collectPlanningModeErrors(text, mode) {
   const lines = splitLinesKeepEnds(text);
   const errors = [];
   const expectedTitle = TITLE_BY_MODE[mode];
+  const requiredH2 = REQUIRED_H2_BY_MODE[mode];
   const firstLine = lines[0]?.replace(/\n$/, "") ?? "";
   if (firstLine !== expectedTitle) {
     errors.push(err(catalog, "E200", errorMessageFromCatalog(catalog, "E200", { expected_title: expectedTitle }), lines, 0, firstLine || "<empty>"));
@@ -71,9 +75,9 @@ export async function collectPlanningModeErrors(text, mode) {
 
   const sections = parseH2(lines);
   const foundH2 = sections.map(([, title]) => title);
-  if (JSON.stringify(foundH2) !== JSON.stringify(REQUIRED_H2)) {
+  if (JSON.stringify(foundH2) !== JSON.stringify(requiredH2)) {
     const lineIdx = sections[0]?.[0] ?? 0;
-    errors.push(err(catalog, "E201", errorMessageFromCatalog(catalog, "E201", { expected_order: REQUIRED_H2.join(" / ") }), lines, lineIdx, foundH2.length ? foundH2.join(" / ") : "<missing>"));
+    errors.push(err(catalog, "E201", errorMessageFromCatalog(catalog, "E201", { expected_order: requiredH2.join(" / ") }), lines, lineIdx, foundH2.length ? foundH2.join(" / ") : "<missing>"));
   }
 
   for (const [idx, line] of lines.entries()) {
@@ -82,7 +86,7 @@ export async function collectPlanningModeErrors(text, mode) {
     }
   }
 
-  for (const title of REQUIRED_H2) {
+  for (const title of requiredH2) {
     const bounds = sectionBounds(sections, title, lines.length);
     if (!bounds) {
       continue;

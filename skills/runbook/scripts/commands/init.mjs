@@ -5,7 +5,7 @@ export const TITLE_PLACEHOLDER = "# <主题>执行手册";
 export const SKELETON_TEMPLATE = `# <主题>执行手册
 
 > [!NOTE]
-> 当前模式：\`<coding|operation|migration|slides>\`
+> 当前模式：\`<coding|operation|migration>\`
 
 ## 背景与现状
 

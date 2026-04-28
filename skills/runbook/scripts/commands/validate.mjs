@@ -37,8 +37,9 @@ export const NUMBERED_H3_RE = /^(?:(?:🟢|🟡|🔴)\s+)?(\d+)\. (.+)$/u;
 const DATE_TOKEN_RE = /\b20\d{2}[-_]?(?:0[1-9]|1[0-2])[-_]?(?:0[1-9]|[12]\d|3[01])\b/;
 const RUNBOOK_FILENAME_SUFFIX = "-runbook.md";
 const RUNBOOK_TITLE_SUFFIX = "执行手册";
-const RUNBOOK_MODE_PLACEHOLDER = "> 当前模式：`<coding|operation|migration|slides>`";
-const RUNBOOK_MODE_RE = /^> 当前模式：`(coding|operation|migration|slides)`$/;
+const VALID_TEMPLATE_BASENAMES = new Set(["runbook-template.md"]);
+const RUNBOOK_MODE_PLACEHOLDERS = new Set(["> 当前模式：`<coding|operation|migration>`"]);
+const RUNBOOK_MODE_RE = /^> 当前模式：`(coding|operation|migration)`$/;
 const STEP_SIGNED_EXEC_RE = /^#### 执行 @\S+ \d{4}-\d{2}-\d{2} \d{2}:\d{2} [A-Za-z0-9:+-]+$/;
 const STEP_SIGNED_ACCEPT_RE = /^#### 验收 @\S+ \d{4}-\d{2}-\d{2} \d{2}:\d{2} [A-Za-z0-9:+-]+$/;
 const RECORD_SIGNED_EXEC_RE = /^#### 执行记录 @\S+ \d{4}-\d{2}-\d{2} \d{2}:\d{2} [A-Za-z0-9:+-]+$/;
@@ -149,7 +150,14 @@ function firstNonEmptyLineIdx(lines, start, end) {
 function parseSections(lines, level) {
   const prefix = `${"#".repeat(level)} `;
   const sections = [];
+  let inFence = false;
   lines.forEach((line, idx) => {
+    if (/^```/.test(line.trim())) {
+      inFence = !inFence;
+    }
+    if (inFence) {
+      return;
+    }
     if (line.startsWith(prefix)) {
       sections.push([idx, line.slice(prefix.length).trim()]);
     }
@@ -868,6 +876,7 @@ function validatePlanAndRecords(lines, h2Sections) {
 function collectErrorsCore(text, pathValue = null) {
   const lines = text.split(/\r?\n/);
   const errors = [];
+  const templateBasename = pathValue == null ? null : path.basename(pathValue);
 
   if (lines.length === 0 || !lines[0].startsWith("# ")) {
     errors.push(err("E001", lines, lines.length > 0 ? 0 : null));
@@ -886,7 +895,7 @@ function collectErrorsCore(text, pathValue = null) {
   const modeIdx = noteIdx == null ? null : firstNonEmptyLineIdx(lines, noteIdx + 1, lines.length);
   if (
     modeIdx == null ||
-    (lines[modeIdx].trim() !== RUNBOOK_MODE_PLACEHOLDER && !RUNBOOK_MODE_RE.test(lines[modeIdx].trim()))
+    (!RUNBOOK_MODE_PLACEHOLDERS.has(lines[modeIdx].trim()) && !RUNBOOK_MODE_RE.test(lines[modeIdx].trim()))
   ) {
     errors.push(err("E110", lines, modeIdx));
   }
@@ -898,7 +907,7 @@ function collectErrorsCore(text, pathValue = null) {
       content: path.basename(pathValue),
     });
   }
-  if (pathValue != null && path.basename(pathValue) !== "authority-runbook-template.md" && !path.basename(pathValue).endsWith(RUNBOOK_FILENAME_SUFFIX)) {
+  if (pathValue != null && !VALID_TEMPLATE_BASENAMES.has(path.basename(pathValue)) && !path.basename(pathValue).endsWith(RUNBOOK_FILENAME_SUFFIX)) {
     errors.push({
       code: "E108",
       message: errorMessage("E108", { suffix: RUNBOOK_FILENAME_SUFFIX }),
@@ -907,7 +916,14 @@ function collectErrorsCore(text, pathValue = null) {
     });
   }
 
+  let inFence = false;
   lines.forEach((line, idx) => {
+    if (/^```/.test(line.trim())) {
+      inFence = !inFence;
+    }
+    if (inFence) {
+      return;
+    }
     if (FORBIDDEN_H2.has(line.trim().slice(3)) && line.trim().startsWith("## ")) {
       errors.push(err("E002", lines, idx, null, { title: line.trim().slice(3) }));
     }

@@ -1,0 +1,40 @@
+S000:
+  message: "file not found: {path}"
+S001:
+  message: "首行必须是 slides 标题"
+S002:
+  message: "slides 标题下必须紧跟 > [!NOTE]"
+S003:
+  message: "slides 标题下必须紧跟一行 当前模式：`slides`"
+S010:
+  message: "二级标题顺序必须严格为: {expected_order}"
+S020:
+  message: "## 思维脑图 必须包含一个 dot 代码块"
+S021:
+  message: "## 思维脑图 的 dot 代码块必须显式使用 Noto Sans CJK SC"
+S030:
+  message: "## 大纲视图 至少需要一个 section"
+S031:
+  message: "### {title} 缺少主线或用户确认"
+S032:
+  message: "### {title} 至少需要一个 slide"
+S040:
+  message: "#### {title} 缺少 GitHub 风格目标 Note、页目标或 QA 链接"
+S041:
+  message: "#### {title} 缺少内联 SVG 线框图"
+S042:
+  message: "#### {title} 缺少 交互说明"
+S043:
+  message: "#### {title} 缺少 素材清单"
+S044:
+  message: "#### {title} 缺少 页级验收标准"
+S050:
+  message: "## 访谈记录 至少需要 3 条真实问答"
+S051:
+  message: "## 访谈记录 下的三级标题必须是 ### Q：问题正文"
+S052:
+  message: "每条访谈至少包含 > A：...、访谈时间：... 和影响面："
+S060:
+  message: "## 外部链接 不能为空"
+S061:
+  message: "## 外部链接 必须使用四列表格：name/type/link/desc；link 为 Markdown 链接"

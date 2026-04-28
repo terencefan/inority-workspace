@@ -25,6 +25,8 @@
     "handbook:start": "npm run start --workspace inority-handbook",
     "handbook:typecheck": "npm run typecheck --workspace inority-handbook",
     "runbook:test": "node ./skills/runbook/tests/run.mjs",
+    "slides:test": "node ./skills/inority-slides/tests/run.mjs",
+    "spec:test": "node ./skills/write-spec/tests/run.mjs",
     "handbook:service:install:wsl": "npm run service:install:wsl --workspace inority-handbook",
     "handbook:service:uninstall:wsl": "npm run service:uninstall:wsl --workspace inority-handbook",
     "handbook:service:status:wsl": "npm run service:status:wsl --workspace inority-handbook"
