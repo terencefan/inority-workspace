@@ -42,8 +42,10 @@ Personal preferences for collaborating with Terence.
 - For WSL elevation or system-level installation, prefer `wsl -u root` over interactive `sudo` with the current user.
 - After `git` commit and MR creation workflows, do not switch back to the main branch automatically.
 - When Terence asks to submit or commit code, default to creating the MR in the same workflow for repositories where an MR can be created; do not stop after push unless blocked.
+- When creating a PR or MR branch for Terence, default the branch name to start with the `tefa/` prefix unless the active repository already has a stricter branch naming convention.
 - When creating a PR or MR for Terence, default the title and body to Chinese unless Terence explicitly asks for another language.
 - When reporting a created PR or MR back to Terence, return it as a Markdown link in the form `[标题](链接)` by default.
+- When synchronizing local Git work with the remote, prefer a rebase-oriented flow by default, such as `git pull --rebase`, unless the repository workflow explicitly requires merge commits.
 - In runbook execution, if the authority still requires a final independent read-only recon, do not stop before that final复核 is completed or explicitly blocked.
 - In the current workspace, routine edits under `MogTracker/` are pre-approved and do not require asking for permission first.
 - If enterprise Gitee PR creation returns `401`, remind Terence to log in again in Chrome before retrying the automation flow.
@@ -57,4 +59,5 @@ Personal preferences for collaborating with Terence.
 - Use date-partitioned runbook directories in the form `<project>/docs/runbook/YYYY-MM-DD/`.
 - For `dot` diagrams in this workspace, target dark-mode-friendly output: transparent backgrounds, filled node backgrounds by default, same-type nodes sharing colors, rounded rectangles by default, and color chosen by lowering brightness instead of washing everything out.
 - For dark-mode-oriented `dot` diagrams, prefer light high-contrast edge colors by default instead of dark gray connectors; pure white is acceptable, but a slightly softened near-white is usually better.
+- For dark-mode-oriented diagram or TOC-style renders, prefer light-colored strokes and light-colored text by default; avoid dark lines or dark labels on transparent/dark backgrounds.
 - Treat `spec` and `runbook` as separate artifacts by default: `spec` defines the target state, while `runbook` describes the execution path from current state to that target.

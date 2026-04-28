@@ -13,7 +13,7 @@ const REQUIRED_H1 = [
   "背景与现状",
   "目标与非目标",
   "风险与红线",
-  "假设与约束",
+  "边界与契约",
   "架构总览",
   "架构分层",
   "模块划分",
@@ -25,7 +25,7 @@ const DOT_FENCE_RE = /^```(?:dot|graphviz)\s*$/;
 
 let errorCatalogCache = null;
 
-function loadErrorCatalog() {
+export function loadErrorCatalog() {
   if (errorCatalogCache !== null) {
     return errorCatalogCache;
   }
@@ -55,7 +55,7 @@ function loadErrorCatalog() {
   return catalog;
 }
 
-function errorMessage(code, params = {}) {
+export function errorMessage(code, params = {}) {
   const entry = loadErrorCatalog()[code];
   if (!entry || typeof entry.message !== "string") {
     throw new Error(`missing error catalog entry for ${code}`);
@@ -142,23 +142,23 @@ function validateHeadingStructure(lines, pathValue) {
     errors.push(err("E003", lines, null, path.basename(pathValue)));
   }
 
-  const h1Sections = parseSections(lines, 1);
-  const h1Titles = h1Sections.slice(1).map(([, sectionTitle]) => sectionTitle);
-  if (JSON.stringify(h1Titles) !== JSON.stringify(REQUIRED_H1)) {
-    const lineIdx = h1Sections.length > 1 ? h1Sections[1][0] : 0;
-    errors.push(err("E010", lines, lineIdx, h1Titles.join(" / ")));
+  const h2Sections = parseSections(lines, 2);
+  const h2Titles = h2Sections.map(([, sectionTitle]) => sectionTitle);
+  if (JSON.stringify(h2Titles) !== JSON.stringify(REQUIRED_H1)) {
+    const lineIdx = h2Sections.length > 0 ? h2Sections[0][0] : 0;
+    errors.push(err("E010", lines, lineIdx, h2Titles.join(" / ")));
   }
 
   return errors;
 }
 
-function validateExactSubsections(lines, h1Sections, sectionTitle, expected, errorCode) {
-  const section = sectionSlice(h1Sections.slice(1), sectionTitle, lines.length);
+function validateExactSubsections(lines, h2Sections, sectionTitle, expected, errorCode) {
+  const section = sectionSlice(h2Sections, sectionTitle, lines.length);
   if (section == null) {
     return [];
   }
   const [start, end] = section;
-  const found = parseSections(lines.slice(start + 1, end), 2).map(([, title]) => title);
+  const found = parseSections(lines.slice(start + 1, end), 3).map(([, title]) => title);
   if (JSON.stringify(found) === JSON.stringify(expected)) {
     return [];
   }
@@ -166,30 +166,30 @@ function validateExactSubsections(lines, h1Sections, sectionTitle, expected, err
   return [err(errorCode, lines, lineIdx, found.join(" / ") || "<missing>")];
 }
 
-function validateRequiredDiagrams(lines, h1Sections) {
+function validateRequiredDiagrams(lines, h2Sections) {
   const errors = [];
 
-  const background = sectionSlice(h1Sections.slice(1), "背景与现状", lines.length);
+  const background = sectionSlice(h2Sections, "背景与现状", lines.length);
   if (background != null) {
     const [start, end] = background;
-    const h2 = parseNestedSections(lines, start + 1, end, 2);
-    const current = h2.find(([, title]) => title === "现状");
+    const h3 = parseNestedSections(lines, start + 1, end, 3);
+    const current = h3.find(([, title]) => title === "现状");
     if (current == null || !hasDotFence(lines, current[0], current[2])) {
       errors.push(err("E020", lines, current == null ? start : current[0]));
     }
   }
 
-  const targetSection = sectionSlice(h1Sections.slice(1), "目标与非目标", lines.length);
+  const targetSection = sectionSlice(h2Sections, "目标与非目标", lines.length);
   if (targetSection != null) {
     const [start, end] = targetSection;
-    const h2 = parseNestedSections(lines, start + 1, end, 2);
-    const target = h2.find(([, title]) => title === "目标");
+    const h3 = parseNestedSections(lines, start + 1, end, 3);
+    const target = h3.find(([, title]) => title === "目标");
     if (target == null || !hasDotFence(lines, target[0], target[2])) {
       errors.push(err("E021", lines, target == null ? start : target[0]));
     }
   }
 
-  const overview = sectionSlice(h1Sections.slice(1), "架构总览", lines.length);
+  const overview = sectionSlice(h2Sections, "架构总览", lines.length);
   if (overview != null) {
     const [start, end] = overview;
     if (!hasDotFence(lines, start, end)) {
@@ -200,9 +200,23 @@ function validateRequiredDiagrams(lines, h1Sections) {
   return errors;
 }
 
-function validateInterviewRecords(lines, h1Sections) {
+function validateBoundaryAndContractsDepth(lines, h2Sections) {
+  const section = sectionSlice(h2Sections, "边界与契约", lines.length);
+  if (section == null) {
+    return [];
+  }
+  const [start, end] = section;
+  const h4 = parseSections(lines.slice(start + 1, end), 4);
+  if (h4.length === 0) {
+    return [];
+  }
+  const [lineIdx, title] = h4[0];
+  return [err("E014", lines, start + 1 + lineIdx, title)];
+}
+
+function validateInterviewRecords(lines, h2Sections) {
   const errors = [];
-  const section = sectionSlice(h1Sections.slice(1), "访谈记录", lines.length);
+  const section = sectionSlice(h2Sections, "访谈记录", lines.length);
   if (section == null) {
     return errors;
   }
@@ -276,20 +290,20 @@ function validateInterviewRecords(lines, h1Sections) {
   return errors;
 }
 
-function validateSpec(text, pathValue = null) {
+export function collectErrors(text, { pathValue = null } = {}) {
   const normalized = text.replace(/\r\n/g, "\n");
   const lines = normalized.split("\n");
   const errors = [];
 
   errors.push(...validateHeadingStructure(lines, pathValue));
 
-  const h1Sections = parseSections(lines, 1);
-  if (h1Sections.length > 1) {
-    errors.push(...validateExactSubsections(lines, h1Sections, "背景与现状", ["背景", "现状"], "E011"));
-    errors.push(...validateExactSubsections(lines, h1Sections, "假设与约束", ["假设", "约束"], "E012"));
-    errors.push(...validateExactSubsections(lines, h1Sections, "风险与红线", ["风险", "红线行为"], "E013"));
-    errors.push(...validateRequiredDiagrams(lines, h1Sections));
-    errors.push(...validateInterviewRecords(lines, h1Sections));
+  const h2Sections = parseSections(lines, 2);
+  if (h2Sections.length > 0) {
+    errors.push(...validateExactSubsections(lines, h2Sections, "背景与现状", ["背景", "现状"], "E011"));
+    errors.push(...validateExactSubsections(lines, h2Sections, "风险与红线", ["风险", "红线行为"], "E013"));
+    errors.push(...validateBoundaryAndContractsDepth(lines, h2Sections));
+    errors.push(...validateRequiredDiagrams(lines, h2Sections));
+    errors.push(...validateInterviewRecords(lines, h2Sections));
   }
 
   return dedupeErrors(errors);
@@ -311,17 +325,20 @@ function readStdin() {
   return fs.readFileSync(0, "utf8");
 }
 
-function main() {
-  const useStdinJson = process.argv.includes("--stdin-json");
+export function main(argv = process.argv.slice(2), { stdin = readStdin(), stdout = process.stdout, stderr = process.stderr } = {}) {
+  const useStdinJson = argv.includes("--stdin-json");
   if (!useStdinJson) {
-    console.error("usage: validate.mjs --stdin-json");
-    process.exit(2);
+    stderr.write("usage: validate.mjs --stdin-json\n");
+    return 2;
   }
-  const payload = JSON.parse(readStdin());
+  const payload = JSON.parse(stdin);
   const text = typeof payload.text === "string" ? payload.text : "";
   const pathValue = typeof payload.path === "string" ? payload.path : null;
-  const errors = validateSpec(text, pathValue);
-  process.stdout.write(`${JSON.stringify({ errors }, null, 2)}\n`);
+  const errors = collectErrors(text, { pathValue });
+  stdout.write(`${JSON.stringify({ errors }, null, 2)}\n`);
+  return 0;
 }
 
-main();
+if (import.meta.url === `file://${process.argv[1]}`) {
+  process.exitCode = main();
+}

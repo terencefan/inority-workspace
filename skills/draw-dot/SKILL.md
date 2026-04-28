@@ -31,6 +31,7 @@ Use this skill when the deliverable is a Graphviz DOT diagram, either standalone
    - `node [fontname="Noto Sans CJK SC"]`
    - `edge [fontname="Noto Sans CJK SC"]`
    - if the diagram is intended for dark mode with transparent background, edge-label text must use a light font color so labels stay readable on dark canvases
+   - for dark-mode or TOC-style renders, default both line color and text color toward light tones instead of dark grays
 7. Choose direction deliberately:
    - `rankdir=TB` for hierarchies, steps, trees
    - `rankdir=LR` for pipelines, data paths, layered architecture
@@ -43,6 +44,7 @@ Use this skill when the deliverable is a Graphviz DOT diagram, either standalone
 11. If the target rendering context is dark mode and the background is transparent, treat edge-label contrast as mandatory:
    - prefer a light edge font color such as `fontcolor="#e5e7eb"`
    - when needed, also use a light stroke color such as `color="#cbd5e1"` so the line and its label remain visually coherent
+   - apply the same preference to TOC-style connectors, guide lines, and cluster labels: keep both strokes and text light by default
 
 ## Diagram Style
 

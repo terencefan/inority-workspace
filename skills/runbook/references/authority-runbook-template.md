@@ -156,7 +156,7 @@ digraph runbook_mindmap {
 ## 执行计划
 
 - 如果当前模式是 `coding`，第一个编号项必须写成 `保证工作区干净`。
-- 如果当前模式是 `operation` 或 `migration`，第一个编号项必须写成 `冻结现场`。
+- 如果当前模式是 `operation` 或 `migration`，第一个编号项必须写成 `冻结现状`。
 - 下方示例默认按 `operation` / `migration` 模式展示首项骨架；`coding` 模式请把首项替换成“保证工作区干净”的对应检查与验收。
 
 <a id="item-1"></a>

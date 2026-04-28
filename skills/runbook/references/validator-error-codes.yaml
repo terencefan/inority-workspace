@@ -178,3 +178,13 @@ E109:
   message: "runbook 标题下必须紧跟 > [!NOTE]"
 E110:
   message: "runbook 标题下必须紧跟一行 当前模式：`coding|operation|migration`"
+E200:
+  message: "planning mode 标题必须严格为: {expected_title}"
+E201:
+  message: "planning mode 二级标题顺序必须严格为: {expected_order}"
+E202:
+  message: "planning mode 不允许出现三级标题"
+E203:
+  message: "planning mode 的 ## {title} 不能为空"
+E204:
+  message: "planning mode 的 ## {title} 必须至少包含一条 bullet"

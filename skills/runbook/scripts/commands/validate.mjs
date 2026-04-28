@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { normalizeFile, normalizeRunbookNumbering } from "./normalize.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -61,6 +62,27 @@ const HOST_LOW_LEVEL_CONFIG_PATH_RE = /(?:\/etc\/(?:netplan(?:\/|$)|network(?:\/
 const HOST_CONFIG_WRITE_ACTION_RE = /(?:^|[|;&]\s*)(?:sudo\s+)?(?:tee|sed\s+-i|perl\s+-pi|cp|mv|rm|install|chmod|chown|truncate)\b/gim;
 const HOST_CONFIG_REDIRECT_RE = />\s*(?:\S+\s+)?(?:\/etc\/|\/sys\/fs\/cgroup)/;
 const HOST_LOW_LEVEL_MUTATION_RE = /^\s*(?:sudo\s+)?(?:ip\s+(?:link|addr|route|rule)\s+(?:add|del|delete|replace|set)|nmcli\s+connection\s+(?:add|modify|delete|up|down|reload)|netplan\s+(?:apply|try)|if(?:up|down)\b|brctl\s+(?:addbr|delbr|addif|delif)|ovs-vsctl\b|tc\s+qdisc\s+(?:add|del|delete|replace)|iptables(?:-legacy|-nft)?\s+(?:-[ADIFPRXN]|--append|--delete|--insert|--flush|--policy|--replace|--new-chain|--delete-chain)|nft\s+(?:add|delete|flush|insert|replace)|firewall-cmd\s+(?:--add|--remove|--reload|--permanent)|sysctl\s+-w\s+net\.|parted|fdisk|sfdisk|sgdisk|mkfs(?:\.\S+)?|wipefs|pvcreate|vgcreate|lvcreate|lvremove|lvextend|lvresize|resize2fs|xfs_growfs|mdadm\s+--create|mount|umount|swapon|swapoff|dd\b.*\bof=|systemctl\s+set-property)(?:\b|$|(?=\/))/gim;
+const INCREMENTAL_DRAFT_IGNORED_CODES = new Set([
+  "E001",
+  "E020",
+  "E021",
+  "E030",
+  "E040",
+  "E050",
+  "E057",
+  "E058",
+  "E059",
+  "E068",
+  "E069",
+  "E076",
+  "E090",
+  "E091",
+  "E092",
+  "E095",
+  "E100",
+  "E107",
+  "E110",
+]);
 
 let errorCatalogCache = null;
 
@@ -844,7 +866,8 @@ function validatePlanAndRecords(lines, h2Sections) {
 }
 
 function collectErrors(text, pathValue = null) {
-  const lines = text.split(/\r?\n/);
+  const normalizedText = normalizeRunbookNumbering(text);
+  const lines = normalizedText.split(/\r?\n/);
   const errors = [];
 
   if (lines.length === 0 || !lines[0].startsWith("# ")) {
@@ -876,15 +899,6 @@ function collectErrors(text, pathValue = null) {
       content: path.basename(pathValue),
     });
   }
-  if (pathValue != null && path.basename(pathValue) !== "authority-runbook-template.md" && !path.basename(pathValue).endsWith(RUNBOOK_FILENAME_SUFFIX)) {
-    errors.push({
-      code: "E108",
-      message: errorMessage("E108", { suffix: RUNBOOK_FILENAME_SUFFIX }),
-      line: null,
-      content: path.basename(pathValue),
-    });
-  }
-
   lines.forEach((line, idx) => {
     if (FORBIDDEN_H2.has(line.trim().slice(3)) && line.trim().startsWith("## ")) {
       errors.push(err("E002", lines, idx, null, { title: line.trim().slice(3) }));
@@ -931,6 +945,80 @@ function collectErrors(text, pathValue = null) {
   return errors;
 }
 
+function filterIncrementalDraftErrors(errors) {
+  return (Array.isArray(errors) ? errors : []).filter((item) => !INCREMENTAL_DRAFT_IGNORED_CODES.has(item?.code));
+}
+
+function printFail(targetPath, errors, includeSummary = true) {
+  const items = Array.isArray(errors) ? errors : [];
+  if (includeSummary) {
+    console.error(`validation failed: ${targetPath}`);
+  }
+  for (const error of items) {
+    const linePart = error?.line == null ? "" : `:${error.line}`;
+    console.error(`${targetPath}${linePart} [${error.code}] ${error.message}`);
+    if (error?.content) {
+      console.error(`  ${error.content}`);
+    }
+  }
+}
+
+async function handleValidate(args) {
+  const filePath = path.resolve(args.path);
+  try {
+    const { normalized, changed } = await normalizeFile(filePath);
+    const errors = collectErrors(normalized, filePath);
+    if (errors.length > 0) {
+      if (args.json) {
+        process.stdout.write(
+          `${JSON.stringify(
+            {
+              status: "fail",
+              path: filePath,
+              changed,
+              errors,
+              natural_language_summary: `runbook 校验失败，共 ${errors.length} 个问题。`,
+              natural_language_items: errors.map((item) =>
+                item.line == null ? `[${item.code}] ${item.message}` : `第 ${item.line} 行 [${item.code}] ${item.message}`,
+              ),
+            },
+            null,
+            2,
+          )}\n`,
+        );
+      } else {
+        printFail(filePath, errors, true);
+      }
+      return 1;
+    }
+
+    if (args.json) {
+      process.stdout.write(`${JSON.stringify({ status: "pass", path: filePath, changed, errors: [] }, null, 2)}\n`);
+    } else {
+      const normalizeNote = changed ? " (auto-normalized)" : "";
+      console.log(`[runbook-validator] PASS ${filePath}${normalizeNote}`);
+    }
+    return 0;
+  } catch (error) {
+    if (args.json) {
+      process.stdout.write(
+        `${JSON.stringify(
+          {
+            status: "error",
+            path: filePath,
+            message: error instanceof Error ? error.message : String(error),
+          },
+          null,
+          2,
+        )}\n`,
+      );
+    } else {
+      console.error(`error: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    return 1;
+  }
+}
+
 function main() {
   const args = process.argv.slice(2);
   if (!args.includes("--stdin-json")) {
@@ -946,9 +1034,23 @@ function main() {
   process.stdout.write(JSON.stringify({ errors }, null, 2));
 }
 
-try {
-  main();
-} catch (error) {
-  console.error(error instanceof Error ? error.stack || error.message : String(error));
-  process.exit(1);
+export {
+  NUMBERED_H3_RE,
+  RECORD_SIGNED_ACCEPT_RE,
+  RECORD_SIGNED_EXEC_RE,
+  collectErrors,
+  errorMessage,
+  filterIncrementalDraftErrors,
+  handleValidate,
+  loadErrorCatalog,
+  printFail,
+};
+
+if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
+  try {
+    main();
+  } catch (error) {
+    console.error(error instanceof Error ? error.stack || error.message : String(error));
+    process.exit(1);
+  }
 }

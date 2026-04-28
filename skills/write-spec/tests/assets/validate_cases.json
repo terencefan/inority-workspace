@@ -13,8 +13,8 @@
     "name": "heading-order",
     "replacements": [
       {
-        "old": "# 风险与红线\n\n## 风险",
-        "new": "# 假设与约束\n\n## 风险"
+        "old": "## 风险与红线\n\n### 风险",
+        "new": "## 边界与契约\n\n### 风险"
       }
     ],
     "expected_codes": ["E010"]
@@ -23,11 +23,21 @@
     "name": "background-extra-subheading",
     "replacements": [
       {
-        "old": "## 现状\n\n说明当前系统结构、实现限制或运行痛点。\n",
-        "new": "## 现状\n\n说明当前系统结构、实现限制或运行痛点。\n\n## 问题\n\n这里不允许新增问题小节。\n"
+        "old": "### 现状\n\n说明当前系统结构、实现限制或运行痛点。\n",
+        "new": "### 现状\n\n说明当前系统结构、实现限制或运行痛点。\n\n### 问题\n\n这里不允许新增问题小节。\n"
       }
     ],
     "expected_codes": ["E011"]
+  },
+  {
+    "name": "boundary-and-contracts-too-deep",
+    "replacements": [
+      {
+        "old": "### 稳定接口与调用边界\n\n- 接入控制器只接收规范化后的鉴权上下文\n- 网关层只向业务层暴露稳定的请求 contract\n",
+        "new": "### 稳定接口与调用边界\n\n#### 深一层的小节\n\n- 接入控制器只接收规范化后的鉴权上下文\n- 网关层只向业务层暴露稳定的请求 contract\n"
+      }
+    ],
+    "expected_codes": ["E014"]
   },
   {
     "name": "missing-current-dot",
@@ -53,8 +63,8 @@
     "name": "missing-overview-dot",
     "replacements": [
       {
-        "old": "# 架构总览\n\n> 先建立端到端链路、组件关系或运行位置的整体模型。\n\n```dot\n",
-        "new": "# 架构总览\n\n> 先建立端到端链路、组件关系或运行位置的整体模型。\n\n```txt\n"
+        "old": "## 架构总览\n\n> 先建立端到端链路、组件关系或运行位置的整体模型。\n\n```dot\n",
+        "new": "## 架构总览\n\n> 先建立端到端链路、组件关系或运行位置的整体模型。\n\n```txt\n"
       }
     ],
     "expected_codes": ["E022"]
