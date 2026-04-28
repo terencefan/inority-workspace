@@ -41,7 +41,7 @@
 - 长期记忆文件中，优先大类标题加 bullet，而不是很深的标题树。
 - 除非 Terence 明确要求，否则默认在 WSL 中启动本地服务，而不是直接在 Windows 宿主上启动。
 - 需要 WSL 提权或系统级安装时，优先使用 `wsl -u root`，而不是当前用户下的交互式 `sudo`。
-- 完成 `git` 提交和 MR 创建工作流后，不要自动切回主分支。
+- 完成 `git` 提交和 MR/PR 创建工作流后，默认切回仓库主分支。
 - 当 Terence 要求提交代码时，对于能创建 MR 的仓库，默认在同一流程里把 MR 一起建好；除非被阻塞，否则不要停在 push。
 - 在 runbook 执行中，如果 authority 仍要求最终独立的只读 recon，不要在那次最终复核完成或被明确阻塞前提前停止。
 - 在当前工作区里，`MogTracker/` 下的常规编辑已默认预授权，不需要事前询问。
@@ -51,6 +51,8 @@
 - 当用成熟 CLI（如 `rg`）替换自定义文件扫描路径时，优先采用工具原生语义，不要为了兼容旧行为再发明一层兼容 flag。
 - `.codex/memory/dairy/*.md` 下的日记文件可以直接做非破坏性编辑，无需提前询问；但删除、归档或移动日记文件前仍需先问。
 - 删除工作区文件时，优先把文件移到 `/home/fantengyuan/workspace/.recycle/` 下，并保留相对路径，而不是永久删除。
+- 新建工作区 skill 时，默认把源码落在 `inority-workspace/skills/<skill-name>/`，再把该 skill 逐项软链接安装到工作区运行时入口 `.codex/skills/`；不要把新 skill 直接写进 `.codex/skills/` 源码面。
+- 在多仓库或单仓库的提交流程里，默认把当前选定范围保持为一个 PR；只有 Terence 明确要求拆分时，才把同一仓库的改动拆成多个 PR。
 - `runctl` 和 `specctl` 可以直接执行，无需事前询问。
 - 默认把 runbook 存到目标项目的 `docs/runbook/` 下，除非用户指定其他位置。
 - 默认把 spec 存到目标项目的 `docs/specs/` 下，除非用户指定其他位置。

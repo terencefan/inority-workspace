@@ -376,6 +376,52 @@ test('graphviz render endpoint injects textLength into server-rendered SVG', asy
   assert.doesNotMatch(payload.svg, /xlink:href="#glyph-0-0"/)
 })
 
+test('graphviz render endpoint applies dark theme defaults when dot source omits colors', async (t) => {
+  const server = await startServer(t)
+  if (!server) {
+    return
+  }
+  const response = await fetch(`${server.baseUrl}/api/render/graphviz`, {
+    body: JSON.stringify({
+      engine: 'dot',
+      source: 'digraph{ a -> b }',
+      themeMode: 'dark',
+    }),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    method: 'POST',
+  })
+
+  assert.equal(response.status, 200)
+  const payload = await response.json()
+  assert.match(payload.svg, /rgb\(88\.627451%\, 90\.980392%\, 94\.117647%\)/i)
+  assert.match(payload.svg, /rgb\(58\.039216%\, 63\.921569%\, 72\.156863%\)/i)
+})
+
+test('graphviz render endpoint keeps explicit dot colors when theme defaults are injected', async (t) => {
+  const server = await startServer(t)
+  if (!server) {
+    return
+  }
+  const response = await fetch(`${server.baseUrl}/api/render/graphviz`, {
+    body: JSON.stringify({
+      engine: 'dot',
+      source: 'digraph{ node[color="#ff0000" fontcolor="#ff0000"]; edge[color="#00ff00"]; a -> b }',
+      themeMode: 'dark',
+    }),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    method: 'POST',
+  })
+
+  assert.equal(response.status, 200)
+  const payload = await response.json()
+  assert.match(payload.svg, /rgb\(100%\, 0%\, 0%\)/i)
+  assert.match(payload.svg, /rgb\(0%\, 100%\, 0%\)/i)
+})
+
 test('graphviz render endpoint falls back to viz.js text fitting when native dot is unavailable', async (t) => {
   const server = await startServer(t, { graphvizCommandPath: '/nonexistent-dot-binary' })
   if (!server) {

@@ -844,8 +844,8 @@ function App({ themeMode, onToggleTheme }) {
   }, [])
 
   useEffect(() => {
-    setRenderedDocument(renderMarkdownDocument(documentData.content_markdown || ''))
-  }, [documentData.content_markdown, documentRevision])
+    setRenderedDocument(renderMarkdownDocument(documentData.content_markdown || '', themeMode))
+  }, [documentData.content_markdown, documentRevision, themeMode])
 
   useEffect(() => {
     const syncSelection = () => {

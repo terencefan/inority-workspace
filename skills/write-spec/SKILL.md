@@ -42,13 +42,9 @@ Make the document scroll-friendly. Structure it so a reader can keep orientation
    - neighboring modules that reveal naming, boundaries, and constraints
    - existing conventions in the same repo
    - if current-state facts are needed, use them to clarify constraints and gap context, not to turn the spec into a runbook
-6. 在正文定稿前，先通过真实用户问答做访谈收敛。
-7. 如果要借用 runbook 式访谈纪律，只能显式按 `$runbook` 的方式引用，不要直接挪用其他 skill 的资产；本 skill 默认沿用下面这组访谈约束：
+6. 在正文定稿前，先通过真实用户问答做访谈收敛；只要进入提问/澄清/确认路线/消歧义阶段，就加载 `$inority-question`。
+7. `$write-spec` 自己保留这些 spec 级门槛：
    - authority 定稿前，必须累计至少 `5` 轮真实用户问答
-   - 每轮只问一个问题
-   - 每轮只围绕一个维度，例如 `goal`、`non-goal`、`risk`、`acceptance`、`path selection`
-   - 每轮提问默认给用户提供 `1.` / `2.` / `3.` 这种编号选项，优先给出 `2-3` 个互斥候选，必要时再允许用户补充其他答案
-   - 给出每个选项时，下一行要紧跟该选项的推荐理由，帮助用户快速判断取舍
    - 如果关键边界还没收敛，默认动作不是先写正文，而是继续追问
 8. Make reasonable assumptions only when the remaining gaps are small, low-risk, and do not change scope, architecture, delivery risk, or the meaning of acceptance.
 9. 访谈未满 `5` 轮时，不要宣称 spec 已收敛；先继续补问，再落正文。
@@ -118,8 +114,7 @@ Within the first-level heading `风险与红线`, default to exactly these two s
 - 写 spec 时必须保留独立的 `访谈记录` 一级标题。
 - `访谈记录` 必须至少包含 `5` 轮真实用户问答。
 - 如果当前真实问答不足 `5` 轮，默认动作是继续访谈，而不是跳过或用作者自问自答补齐。
-- 访谈提问默认使用带编号的选项式问题，而不是完全开放式提问；优先提供 `1.` / `2.` / `3.` 这种互斥候选，帮助用户快速收敛。
-- 每个选项后紧跟一行简短推荐理由，说明为什么会考虑这个选项，避免只给标签不解释取舍。
+- 访谈提问协议统一复用 `$inority-question`。
 - 每轮记录都要显式写出：
   - quote 内分成两段：
     - `Q：...`

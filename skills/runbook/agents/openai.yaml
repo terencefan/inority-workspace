@@ -1,4 +1,4 @@
 interface:
   display_name: "Runbook"
   short_description: "Plan runbooks and orchestrate delivery."
-  default_prompt: "Use $runbook to produce a production-grade runbook plan and then choose solo or team delivery."
+  default_prompt: "Use $runbook to produce a production-grade runbook plan and then choose solo or team delivery. Whenever planning needs a user question, route confirmation, or ambiguity reduction round, also load $inority-question."

@@ -101,8 +101,7 @@ description: >-
 
 提问规则：
 
-- 每轮只问一个问题
-- 只围绕一个维度：`goal` / `non-goal` / `risk` / `rollback` / `acceptance` / `path selection`
+- 进入提问/澄清/确认路线/消歧义阶段时，统一加载 `$inority-question`
 - authority 定稿前，必须累计至少 `5` 条真实的用户访谈记录
 
 ## 工具约束
