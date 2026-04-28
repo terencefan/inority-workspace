@@ -6,8 +6,8 @@ import {
   applyReplacements,
   ASSETS_DIR,
   ERROR_CODE_CATALOG,
+  RUNBOOK_OPERATION_REFERENCE,
   REFERENCE_TEMPLATE,
-  PLANNING_MODE_OPERATION_REFERENCE,
   SCRIPTS_DIR,
   loadJson,
   loadText,
@@ -26,7 +26,8 @@ const planningModeValidateCases = loadJson(path.join(ASSETS_DIR, "planning_mode_
 const normalizeCases = loadJson(path.join(ASSETS_DIR, "normalize_cases.json"));
 const shiftCase = loadJson(path.join(ASSETS_DIR, "shift_cases.json")).start_2_shift_2;
 const signCase = loadJson(path.join(ASSETS_DIR, "sign_cases.json")).execution_ready;
-const planningModeOperationText = loadText(PLANNING_MODE_OPERATION_REFERENCE);
+const planningModeOperationText = loadText(RUNBOOK_OPERATION_REFERENCE);
+const RUNCTL_WRAPPER = path.join(SCRIPTS_DIR, "runctl");
 
 async function withTempDir(prefix, fn) {
   const dir = mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -155,9 +156,15 @@ await runCase("validate cli help and pass output", async () => {
   result = await runRunctl(["validate", REFERENCE_TEMPLATE]);
   assert.equal(result.status, 0);
   assert.match(result.stdout, /\[runbook-validator] PASS/);
-  result = await runRunctl(["validate-planning-mode", PLANNING_MODE_OPERATION_REFERENCE, "--mode", "operation"]);
+  result = await runRunctl(["validate-planning-mode", RUNBOOK_OPERATION_REFERENCE, "--mode", "operation"]);
   assert.equal(result.status, 0);
   assert.match(result.stdout, /\[planning-mode-validator] PASS/);
+});
+
+await runCase("runctl wrapper forwards to mjs cli", async () => {
+  const wrapper = loadText(RUNCTL_WRAPPER);
+  assert.match(wrapper, /^#!\/usr\/bin\/env bash/m);
+  assert.match(wrapper, /exec node "\$SCRIPT_DIR\/runctl\.mjs" "\$@"/);
 });
 
 await runCase("normalize and validate commands rewrite files", async () => {

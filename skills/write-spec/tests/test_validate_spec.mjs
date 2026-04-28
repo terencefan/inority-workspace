@@ -7,6 +7,7 @@ import { applyReplacements, ASSETS_DIR, ERROR_CODE_CATALOG, loadJson, loadText, 
 import { collectErrors, errorMessage, loadErrorCatalog, main } from "../scripts/validate.mjs";
 
 const REFERENCE_SPEC = path.join(ASSETS_DIR, "reference-technical-spec.md");
+const SPECCTL = path.join(SCRIPTS_DIR, "specctl");
 
 test("reference spec passes validation", async () => {
   assert.deepEqual(await collectErrors(loadText(REFERENCE_SPEC), { filePath: REFERENCE_SPEC }), []);
@@ -61,6 +62,13 @@ test("cli json failure payload contains expected codes", async () => {
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test("specctl wrapper preserves validate subcommand", async () => {
+  const wrapper = loadText(SPECCTL);
+  assert.match(wrapper, /^#!\/usr\/bin\/env bash/m);
+  assert.match(wrapper, /if \[\[ "\$\{1-\}" == "validate" \]\]; then/);
+  assert.match(wrapper, /exec node "\$SCRIPT_DIR\/validate\.mjs" "\$@"/);
 });
 
 test("external http links must be reachable", async () => {

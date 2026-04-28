@@ -1,4 +1,3 @@
-import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -7,10 +6,7 @@ import { main } from "../scripts/commands/index.mjs";
 export const TESTS_DIR = path.dirname(fileURLToPath(import.meta.url));
 export const SKILL_DIR = path.dirname(TESTS_DIR);
 export const SCRIPTS_DIR = path.join(SKILL_DIR, "scripts");
-export const RUNCTL = path.join(SCRIPTS_DIR, "runctl.mjs");
-export const ASSETS_DIR = path.join(TESTS_DIR, "assets");
-export const REFERENCE_TEMPLATE = path.join(SKILL_DIR, "references", "runbook-template.md");
-export const RUNBOOK_OPERATION_REFERENCE = path.join(SKILL_DIR, "references", "runbook-operation.md");
+export const SLIDES_TEMPLATE = path.join(SKILL_DIR, "references", "slides-template.md");
 export const ERROR_CODE_CATALOG = path.join(SKILL_DIR, "references", "validator-error-codes.yaml");
 let runQueue = Promise.resolve();
 
@@ -18,20 +14,7 @@ export function loadText(targetPath) {
   return readFileSync(targetPath, "utf8");
 }
 
-export function loadJson(targetPath) {
-  return JSON.parse(loadText(targetPath));
-}
-
-export function applyReplacements(text, replacements) {
-  let updated = text;
-  for (const replacement of replacements) {
-    assert.ok(updated.includes(replacement.old), `fixture replacement target not found: ${replacement.old}`);
-    updated = updated.replace(replacement.old, replacement.new);
-  }
-  return updated;
-}
-
-export async function runRunctl(args) {
+export async function runSlidesctl(args) {
   const task = runQueue.then(async () => {
     let stdout = "";
     let stderr = "";
@@ -58,7 +41,7 @@ export async function runRunctl(args) {
       return true;
     });
     try {
-      const status = await main(args, { prog: "runctl" });
+      const status = await main(args, { prog: "slidesctl" });
       return { status, stdout, stderr };
     } finally {
       process.stdout.write = stdoutWrite;

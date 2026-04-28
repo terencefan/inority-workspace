@@ -5,20 +5,17 @@
 
 ## 模块简介 | Overview
 
-`runbook` 是 runbook 工作流的规划主 skill。它处理草稿 runbook、零散步骤、目标状态和运维约束，把这些输入收敛成一份可执行的 authority runbook。
+`runbook` 是运行手册规划主 skill。它处理草稿 runbook、零散步骤、目标状态和运维约束，把这些输入收敛成一份可执行的 authority runbook。
 
-它只负责规划，不负责直接执行编号项，也不负责执行态验收。执行相关的职责由 `runbook-solo`、`runbook-team` 以及各 phase 子 skill 承担。
+它只负责规划，不负责直接执行编号项，也不负责执行态验收。执行相关职责由 `runbook-solo`、`runbook-team` 以及各 phase 子 skill 承担。
 
-按规划类型，`runbook` 只分为四种主类型：
+按规划类型，`runbook` 只分为三种主类型：
 
 - `coding`
 - `operation`
 - `migration`
-- `slides`
 
-主 rollout 需要先判型，再按需加载对应子文档，并在加载时说明“加载了什么、为什么加载”。
-
-其中 `slides` 不是普通写文档任务的默认类型；只有当用户明确要求“用 runbook 写 PPT / slide / 演示稿”时才触发。
+如果主交付物是 slides / PPT / 品牌 H5，请改用独立的 `inority-slides` skill，不再通过 `runbook` 分流。
 
 ## 职责边界 | Responsibilities
 
@@ -44,15 +41,15 @@
 - skill 文档：`SKILL.md`
 - agent 元数据：`agents/openai.yaml`
 - runbook 控制入口：`scripts/runctl`
-- 模板：`references/authority-runbook-template.md`
+- 模板索引：`references/authority-runbook-template.md`
 - 校验码表：`references/validator-error-codes.yaml`
 
 常用命令：
 
 ```bash
-python3 scripts/runctl init <topic>-runbook.md --title "<主题>执行手册"
-python3 scripts/runctl validate <topic>-runbook.md
-python3 scripts/runctl normalize <topic>-runbook.md
+scripts/runctl init <topic>-runbook.md --title "<主题>执行手册"
+scripts/runctl validate <topic>-runbook.md
+scripts/runctl normalize <topic>-runbook.md
 ```
 
 ## 相关文件 | Related Files
@@ -62,12 +59,11 @@ python3 scripts/runctl normalize <topic>-runbook.md
 | `SKILL.md` | `runbook` 的权威规划规则 |
 | `README.md` | 当前目录的人类可读入口 |
 | `agents/openai.yaml` | skill 展示名与调用元数据 |
-| `references/authority-runbook-template.md` | authority runbook 标准模板 |
-| `references/runbook-template.md` | 常规 runbook 模板 |
-| `references/coding-runbook.md` | coding 类型 runbook 的子文档 |
-| `references/operation-runbook.md` | operation 类型 runbook 的子文档 |
-| `references/migration-runbook.md` | migration 类型 runbook 的子文档 |
-| `references/slides-runbook.md` | slides 类型 runbook 的子文档 |
+| `references/authority-runbook-template.md` | 模板索引与兼容入口 |
+| `references/runbook-template.md` | `coding` / `operation` / `migration` 通用模板 |
+| `references/runbook-coding.md` | coding 类型 runbook 的子文档 |
+| `references/runbook-operation.md` | operation 类型 runbook 的子文档 |
+| `references/runbook-migration.md` | migration 类型 runbook 的子文档 |
 | `references/validator-error-codes.yaml` | `runctl validate` 的错误码与解释 |
 | `scripts/runctl` | runbook 初始化、编辑、规范化、校验的统一入口 |
 | `tests/` | `runctl` 子命令与规则的回归测试 |

@@ -46,6 +46,7 @@ Personal preferences for collaborating with Terence.
 - In the current workspace, routine edits under `MogTracker/` are pre-approved and do not require asking for permission first.
 - If enterprise Gitee PR creation returns `401`, remind Terence to log in again in Chrome before retrying the automation flow.
 - For `inority-workspace`, default code-submission workflows to the `main` branch and run `git pull --rebase` before `git push`.
+- When Terence asks to clean historical files in `inority-workspace`, prefer deleting obsolete compatibility shells and skipped placeholder tests entirely; keep only the thinnest wrapper when the legacy command name must remain callable.
 - When replacing a custom file-scan path with a mature CLI such as `rg`, prefer the tool's native semantics instead of reintroducing compatibility flags that preserve the old behavior.
 - Daily note files under `.codex/memory/dairy/*.md` are approved for direct non-destructive edits without asking first; still ask before deleting, archiving, or moving diary files.
 - When deleting workspace files, prefer moving them under `/home/fantengyuan/workspace/.recycle/` with their relative path preserved instead of permanently removing them.
