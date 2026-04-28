@@ -11,7 +11,7 @@ REQUIRED_TITLE_SUFFIX = "执行手册"
 SKELETON_TEMPLATE = """# <主题>执行手册
 
 > [!NOTE]
-> 当前模式：`<coding|operation|migration>`
+> 当前模式：`<coding|operation|migration|slides>`
 
 ## 背景与现状
 

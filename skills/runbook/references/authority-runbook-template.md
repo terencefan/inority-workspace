@@ -1,7 +1,7 @@
 # <主题>执行手册
 
 > [!NOTE]
-> 当前模式：`<coding|operation|migration>`
+> 当前模式：`<coding|operation|migration|slides>`
 
 ## 背景与现状
 
@@ -157,7 +157,9 @@ digraph runbook_mindmap {
 
 - 如果当前模式是 `coding`，第一个编号项必须写成 `保证工作区干净`。
 - 如果当前模式是 `operation` 或 `migration`，第一个编号项必须写成 `冻结现场`。
-- 下方示例默认按 `operation` / `migration` 模式展示首项骨架；`coding` 模式请把首项替换成“保证工作区干净”的对应检查与验收。
+- 如果当前模式是 `slides`，第一个编号项必须写成 `冻结素材`。
+- 如果当前模式是 `slides`，从第 2 个编号项开始默认一项一页；逐页产出时不要把多页内容合并进同一个编号项。
+- 下方示例默认按 `operation` / `migration` 模式展示首项骨架；`coding` / `slides` 模式请把首项替换成对应检查与验收。
 
 <a id="item-1"></a>
 

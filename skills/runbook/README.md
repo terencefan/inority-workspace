@@ -9,13 +9,16 @@
 
 它只负责规划，不负责直接执行编号项，也不负责执行态验收。执行相关的职责由 `runbook-solo`、`runbook-team` 以及各 phase 子 skill 承担。
 
-按规划类型，`runbook` 只分为三种主类型：
+按规划类型，`runbook` 只分为四种主类型：
 
 - `coding`
 - `operation`
 - `migration`
+- `slides`
 
 主 rollout 需要先判型，再按需加载对应子文档，并在加载时说明“加载了什么、为什么加载”。
+
+其中 `slides` 不是普通写文档任务的默认类型；只有当用户明确要求“用 runbook 写 PPT / slide / 演示稿”时才触发。
 
 ## 职责边界 | Responsibilities
 
@@ -64,6 +67,7 @@ python3 scripts/runctl normalize <topic>-runbook.md
 | `references/coding-runbook.md` | coding 类型 runbook 的子文档 |
 | `references/operation-runbook.md` | operation 类型 runbook 的子文档 |
 | `references/migration-runbook.md` | migration 类型 runbook 的子文档 |
+| `references/slides-runbook.md` | slides 类型 runbook 的子文档 |
 | `references/validator-error-codes.yaml` | `runctl validate` 的错误码与解释 |
 | `scripts/runctl` | runbook 初始化、编辑、规范化、校验的统一入口 |
 | `tests/` | `runctl` 子命令与规则的回归测试 |

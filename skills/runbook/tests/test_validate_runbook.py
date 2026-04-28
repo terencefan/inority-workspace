@@ -128,7 +128,7 @@ class ValidateRunbookTests(unittest.TestCase):
         self.assertIn("E108", codes)
 
     def test_mode_note_must_exist_under_title(self) -> None:
-        mutated = self.template_text.replace("> [!NOTE]\n> 当前模式：`<coding|operation|migration>`\n\n", "", 1)
+        mutated = self.template_text.replace("> [!NOTE]\n> 当前模式：`<coding|operation|migration|slides>`\n\n", "", 1)
 
         codes = {item.code for item in validate_core.collect_errors(mutated)}
 
@@ -137,7 +137,7 @@ class ValidateRunbookTests(unittest.TestCase):
 
     def test_mode_note_must_use_supported_mode(self) -> None:
         mutated = self.template_text.replace(
-            "> 当前模式：`<coding|operation|migration>`",
+            "> 当前模式：`<coding|operation|migration|slides>`",
             "> 当前模式：`unknown`",
             1,
         )
@@ -145,6 +145,17 @@ class ValidateRunbookTests(unittest.TestCase):
         codes = {item.code for item in validate_core.collect_errors(mutated)}
 
         self.assertIn("E110", codes)
+
+    def test_mode_note_accepts_slides(self) -> None:
+        mutated = self.template_text.replace(
+            "> 当前模式：`<coding|operation|migration|slides>`",
+            "> 当前模式：`slides`",
+            1,
+        )
+
+        codes = {item.code for item in validate_core.collect_errors(mutated)}
+
+        self.assertNotIn("E110", codes)
 
     def test_runctl_validate_help_lists_subcommands(self) -> None:
         result = subprocess.run(

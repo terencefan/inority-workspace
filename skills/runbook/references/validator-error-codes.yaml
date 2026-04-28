@@ -177,4 +177,4 @@ E108:
 E109:
   message: "runbook 标题下必须紧跟 > [!NOTE]"
 E110:
-  message: "runbook 标题下必须紧跟一行 当前模式：`coding|operation|migration`"
+  message: "runbook 标题下必须紧跟一行 当前模式：`coding|operation|migration|slides`"
