@@ -20,7 +20,8 @@ Optional flags:
 
 - `--codex-home /path/to/.codex`
 
-Default install target is `~/.codex/inority-reply/`.
+Default install target is the nearest upward `.codex/` from the current working directory.
+If no workspace-local `.codex/` exists above the current working directory, fall back to the umbrella workspace root that contains this `inority-workspace` repository, then install into `<workspace-root>/.codex/inority-reply/`.
 
 ## Uninstall
 
@@ -32,6 +33,9 @@ Optional flags:
 
 - `--codex-home /path/to/.codex`
 
+Without `--codex-home`, uninstall targets the same default workspace-local `.codex/`
+discovery path as install.
+
 ## Reinstall
 
 ```bash
@@ -41,6 +45,9 @@ bash ./reinstall.sh
 Optional flags:
 
 - `--codex-home /path/to/.codex`
+
+Without `--codex-home`, reinstall targets the same default workspace-local `.codex/`
+discovery path as install.
 
 ## Runtime behavior
 

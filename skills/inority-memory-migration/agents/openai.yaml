@@ -1,6 +1,0 @@
-interface:
-  display_name: "Inority 记忆迁移"
-  short_description: "迁移外部记忆到 inority 体系。"
-  default_prompt: "Use $inority-memory-migration to inspect non-inority-style memory, map it into the inority layout, explain the migration plan, and run the migration command surface when appropriate."
-policy:
-  allow_implicit_invocation: false

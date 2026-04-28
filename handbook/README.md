@@ -1,75 +1,94 @@
-# inority-handbook
+# handbook
 
-Workspace-level local handbook site.
+`handbook` is a single-process Markdown documentation viewer. It serves a React UI and a small Node HTTP API from the same application, and can browse local Markdown trees, render Mermaid / Graphviz diagrams, and expose project-style README entrypoints.
 
-## Default target
+## Overview
 
-By default the server reads Markdown files from the workspace root `../..`.
+- `handbook` is a document viewer, not a CMS.
+- The Node entrypoint reads Markdown files and serves static assets.
+- The browser UI handles rendering, navigation, TOC generation, and diagram display.
+- The repository uses a single `src/` tree rather than split frontend/backend packages.
 
-The default landing document is `.codex/workspace.md`.
+## Quick Start
 
-## Usage
+Requirements:
+
+- Node.js 22
+- npm
+
+Install dependencies:
 
 ```bash
 npm install
-npm run dev
 ```
 
-The frontend uses Vite + TypeScript.
-`npm run dev` starts the API server in Vite dev mode.
-Changes under `src/` and `index.html` now stay inside Vite HMR and no longer restart the Node process.
-Only `server.ts`, `vite.config.ts`, and `tsconfig.json` trigger a server restart.
-Markdown content is still read from disk per request.
-If `rg` is available it is used for `/api/tree`; otherwise the server falls back to a built-in recursive scan.
-
-For a production-style local run:
+Build the site bundle:
 
 ```bash
 npm run build
+```
+
+Start the application:
+
+```bash
 npm run start
 ```
 
-`npm run start` serves the compiled `build-server/server.js` output.
-
-## WSL startup
-
-Use Ubuntu WSL for the runtime instead of a Windows service.
+Run the development workflow with the Node process and Vite dev server together:
 
 ```bash
-cd /mnt/c/Users/Terence/workspace/inority-workspace/handbook
-npm install
 npm run dev
 ```
 
-To install a `systemd` service inside WSL:
+By default the application listens on `http://127.0.0.1:18080`.
 
-```bash
-cd /mnt/c/Users/Terence/workspace/inority-workspace/handbook
-npm install
-npm run build
-npm run service:install:wsl
-```
+## Environment
 
-If `rg` is installed in WSL it will be used automatically, but it is no longer required.
+Supported environment variables:
 
-Useful commands:
+- `HANDBOOK_HOST`
+- `HANDBOOK_PORT`
+- `HANDBOOK_WORKSPACE_DIR`
+- `HANDBOOK_SITE_DIST_DIR`
+- `HANDBOOK_GRAPHVIZ_COMMAND`
+- `HANDBOOK_GRAPHVIZ_MODULE_PATH`
+- `HANDBOOK_RG_COMMAND`
+- `HANDBOOK_SHOW_HIDDEN`
 
-```bash
-npm run service:status:wsl
-npm run service:uninstall:wsl
-```
+## Architecture
 
-This installs `inority-handbook.service` into `~/.config/systemd/user/` and enables it for your WSL user session.
-If you also want it to start automatically when the WSL distro boots, run:
+> `handbook` uses a lightweight Node layer for file access and a browser layer for document rendering.
 
-```bash
-sudo loginctl enable-linger "$USER"
-```
+1. Node entry
 
-## Environment variables
+   Enumerates Markdown files, reads document content, proxies remote Markdown, and serves the built site.
 
-- `HANDBOOK_DOCS_ROOT`: override the docs directory to serve.
-- `HANDBOOK_DOCS_LABEL`: override the breadcrumb/tree root label.
-- `HANDBOOK_DEFAULT_DOC`: override the default landing document.
-- `HANDBOOK_PORT`: override the server port. Falls back to `DOCS_PORT`, then `4177`.
-- `HANDBOOK_RG_BIN`: optionally override the `rg` binary path used by `/api/tree`.
+2. Browser runtime
+
+   Renders Markdown, TOC, Mermaid, Graphviz, and route-based document navigation.
+
+3. Content sources
+
+   Local Markdown files, repository README entrypoints, and optional remote Markdown URLs.
+
+## Code Structure
+
+| Path | Description |
+| --- | --- |
+| `src/` | Main application source, including `index.ts`, `handbook-http.ts`, the React UI, the Vite entry, and shared rendering helpers |
+| `scripts/` | Development helpers, git-hook setup, and Markdown validation utilities |
+| `test/` | Regression tests for routing, rendering, validation, and server behavior |
+| `Dockerfile` | Integrated container build for the application |
+
+## Routing Model
+
+- `/api/tree` returns the document tree and file metadata
+- `/api/document` returns a Markdown or slides payload
+- `/slides/...` routes are treated as embedded slide projects
+- Directory routes resolve to `README.md` when present
+
+## Notes
+
+- `npm run build` writes the site bundle to `src/dist/`
+- The server expects built assets to exist before startup unless `HANDBOOK_SITE_DIST_DIR` points elsewhere
+- Relative Markdown links are validated by `npm run validate:markdown-links`

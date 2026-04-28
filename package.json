@@ -13,22 +13,17 @@
     "codex:uninstall:reply-format-hook": "bash ./skills/inority-reply/scripts/uninstall.sh",
     "codex:install:inority-memory": "node ./skills/inority-memory/scripts/install.mjs",
     "codex:uninstall:inority-memory": "node ./skills/inority-memory/scripts/uninstall.mjs",
-    "codex:migrate:inority-memory": "node ./skills/inority-memory-migration/scripts/migrate.mjs",
     "codex:install:workspace-memory": "node ./skills/inority-memory/scripts/install.mjs",
     "codex:uninstall:workspace-memory": "node ./skills/inority-memory/scripts/uninstall.mjs",
-    "codex:migrate:workspace-memory": "node ./skills/inority-memory-migration/scripts/migrate.mjs",
-    "codex:migrate:inority-memory-migration": "node ./skills/inority-memory-migration/scripts/migrate.mjs",
     "codex:install": "npm run codex:install:inority-reply && npm run codex:install:inority-memory",
     "codex:uninstall": "npm run codex:uninstall:inority-memory && npm run codex:uninstall:inority-reply",
-    "handbook:dev": "npm run dev --workspace inority-handbook",
-    "handbook:build": "npm run build --workspace inority-handbook",
-    "handbook:start": "npm run start --workspace inority-handbook",
-    "handbook:typecheck": "npm run typecheck --workspace inority-handbook",
+    "handbook:dev": "npm run dev --workspace handbook",
+    "handbook:build": "npm run build --workspace handbook",
+    "handbook:start": "npm run start --workspace handbook",
+    "handbook:test": "npm run test --workspace handbook",
+    "handbook:lint": "npm run lint --workspace handbook",
     "runbook:test": "node ./skills/runbook/tests/run.mjs",
     "slides:test": "node ./skills/inority-slides/tests/run.mjs",
-    "spec:test": "node ./skills/write-spec/tests/run.mjs",
-    "handbook:service:install:wsl": "npm run service:install:wsl --workspace inority-handbook",
-    "handbook:service:uninstall:wsl": "npm run service:uninstall:wsl --workspace inority-handbook",
-    "handbook:service:status:wsl": "npm run service:status:wsl --workspace inority-handbook"
+    "spec:test": "node ./skills/write-spec/tests/run.mjs"
   }
 }

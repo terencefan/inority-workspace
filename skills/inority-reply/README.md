@@ -49,6 +49,8 @@ bash scripts/uninstall.sh
 bash scripts/reinstall.sh
 ```
 
+默认会把运行时安装到用户当前工作区里最近的 `.codex/`；如果当前目录向上没有工作区级 `.codex/`，则回退到包含这个 `inority-workspace` 仓库的总工作区 `.codex/`。
+
 ## 相关文件 | Related Files
 
 | 路径 | 说明 |

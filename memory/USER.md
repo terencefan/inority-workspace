@@ -1,59 +1,60 @@
 # USER.md
 
-Personal preferences for collaborating with Terence.
+与 Terence 协作时的个人偏好。
 
-## User Profile
+## 用户画像
 
-- Name: Terence Fan
-- What to call them: Terence
-- Timezone: UTC+08:00
+- 姓名：Terence Fan
+- 对用户的称呼：Terence
+- 时区：UTC+08:00
 
-## Communication Preferences
+## 沟通偏好
 
-- Unless Terence explicitly asks otherwise, prefer replying and writing workspace docs in Chinese.
-- `Goal`, `Ambiguity`, and `Risk` should describe the current longrun state, not the immediate local step or the most recent single tool action.
-- Keep reply-format runtime details such as host detection, template selection, columns, alignment, and ANSI rendering in the `inority-reply` hook resources instead of duplicating them in `USER.md`.
-- When presenting lists, prefer clearer hierarchy and more structured organization instead of flat lists.
-- When ambiguity exceeds `10%`, stop and ask the user instead of proceeding.
-- When multiple implementation paths would materially change behavior, scope, or workload, ask the user to choose instead of deciding silently.
-- Keep questions short and prefer closed options over open-ended prompts.
-- In fault analysis documents, every excluded cause found during investigation must be written into the document together with the exclusion step and exclusion reason; do not leave excluded causes only in chat replies.
-- In fault analysis documents, prefer `侦察结论` over `关键结果`, and start each major conclusion subsection with one concise blockquote sentence.
-- In fault analysis documents, every `侦察结论` subsection should include a concise `可复现方法`; if it was missing in the first draft, rerun a minimal read-only repro and write that method back into the same subsection.
+- 除非 Terence 明确要求其他语言，否则默认用中文回复，并用中文编写工作区文档。
+- `Goal`、`Ambiguity`、`Risk` 应描述当前较长链路的整体状态，而不是眼前这一步或最近一次单独工具动作。
+- `Goal` 行保持纯文本目标描述，不使用红绿灯或百分比；只有 `Ambiguity` 和 `Risk` 使用百分比状态。
+- 回复格式的运行时细节，例如宿主识别、模板选择、列宽、对齐和 ANSI 渲染，应放在 `inority-reply` hook 资源里，不要在 `USER.md` 中重复维护。
+- 呈现列表时，优先更清晰的层次和更有组织的结构，而不是一味平铺。
+- 当 ambiguity 超过 `10%` 时，应暂停并询问用户，而不是继续自行推进。
+- 当存在多条会实质改变行为、范围或工作量的实现路径时，应让用户选择，而不是静默决定。
+- 提问要简短，优先封闭式选项，而不是开放式发散提问。
+- 在故障分析文档中，排查过程中被排除的每个原因都必须写进文档，并包含排除步骤和排除理由；不要只留在聊天回复里。
+- 在故障分析文档中，优先使用 `侦察结论`，不要用 `关键结果`；每个主要结论小节都应以一句简洁的 blockquote 开头。
+- 在故障分析文档中，每个 `侦察结论` 小节都应包含简洁的 `可复现方法`；如果首稿缺失，应重新跑一次最小只读复现，并把方法补回同一小节。
 
-## Writing Preferences
+## 写作偏好
 
-- In docs, keep blockquotes concise; prefer a single sentence, and if multiple sentences are necessary, split them across lines rather than packing them into one long quote.
-- In global architecture or spec documents, avoid machine-local details such as local paths, current workstation context, or host-specific operational state; keep those in the appropriate `.codex/memory/` files instead.
-- When a spec involves interactions with external components, add a diagram to make the interaction boundaries and flow explicit.
-- When a spec involves UI, include at least one Mermaid low-fidelity wireframe diagram.
-- When a document is intended to render inside the handbook, Mermaid diagrams used there must be renderable in the handbook pipeline.
-- For metric naming in docs and specs, treat bare `duration` as milliseconds by default; avoid unit suffixes such as `_seconds` unless a different unit is intentionally required.
-- When diagrams use numeric labels or step numbers, order them from left to right first, then top to bottom.
+- 文档中的 blockquote 要简洁；优先只写一句话，如必须写多句，则分行写，不要塞成一长句。
+- 全局架构文档或 spec 文档中，避免掺入本机路径、当前工作站上下文或宿主特定运行状态；这些内容应放进对应的 `.codex/memory/` 文件。
+- 当 spec 涉及外部组件交互时，要补一张图，把边界和流向画清楚。
+- 当 spec 涉及 UI 时，至少包含一张 Mermaid 低保真线框图。
+- 当文档目标是渲染进 handbook 时，里面使用的 Mermaid 图必须能通过 handbook pipeline 正常渲染。
+- 在文档和 spec 的指标命名里，裸写的 `duration` 默认按毫秒理解；除非刻意使用其他单位，否则避免加 `_seconds` 这类后缀。
+- 当图里使用数字标签或步骤编号时，默认先按从左到右，再按从上到下的顺序排列。
 
-## Workflow Preferences
+## 工作流偏好
 
-- Add preferences and recurring facts only when they are confirmed and useful.
-- When a runbook shows rework and the lesson is reusable, record that lesson in the current day's `.codex/memory/dairy/YYYY-MM-DD.md`.
-- `tefa` can be Terence's personal alias / local context label; do not automatically treat the token itself as a workspace-wide environment term unless the active project explicitly defines it that way.
-- When storing long-term memory, keep facts concise and avoid extended analysis.
-- Prefer large categories plus bullet points over deep heading trees in long-term memory files.
-- Default to starting local services in WSL instead of directly on the Windows host unless Terence explicitly asks otherwise.
-- For WSL elevation or system-level installation, prefer `wsl -u root` over interactive `sudo` with the current user.
-- After `git` commit and MR creation workflows, do not switch back to the main branch automatically.
-- When Terence asks to submit or commit code, default to creating the MR in the same workflow for repositories where an MR can be created; do not stop after push unless blocked.
-- In runbook execution, if the authority still requires a final independent read-only recon, do not stop before that final复核 is completed or explicitly blocked.
-- In the current workspace, routine edits under `MogTracker/` are pre-approved and do not require asking for permission first.
-- If enterprise Gitee PR creation returns `401`, remind Terence to log in again in Chrome before retrying the automation flow.
-- For `inority-workspace`, default code-submission workflows to the `main` branch and run `git pull --rebase` before `git push`.
-- When Terence asks to clean historical files in `inority-workspace`, prefer deleting obsolete compatibility shells and skipped placeholder tests entirely; keep only the thinnest wrapper when the legacy command name must remain callable.
-- When replacing a custom file-scan path with a mature CLI such as `rg`, prefer the tool's native semantics instead of reintroducing compatibility flags that preserve the old behavior.
-- Daily note files under `.codex/memory/dairy/*.md` are approved for direct non-destructive edits without asking first; still ask before deleting, archiving, or moving diary files.
-- When deleting workspace files, prefer moving them under `/home/fantengyuan/workspace/.recycle/` with their relative path preserved instead of permanently removing them.
-- `runctl` and `specctl` are approved for direct execution without asking first.
-- Default runbook storage to each target project's `docs/runbook/` unless the user chooses a different location.
-- Default spec storage to each target project's `docs/specs/` unless the user chooses a different location.
-- Use date-partitioned runbook directories in the form `<project>/docs/runbook/YYYY-MM-DD/`.
-- For `dot` diagrams in this workspace, target dark-mode-friendly output: transparent backgrounds, filled node backgrounds by default, same-type nodes sharing colors, rounded rectangles by default, and color chosen by lowering brightness instead of washing everything out.
-- For dark-mode-oriented `dot` diagrams, prefer light high-contrast edge colors by default instead of dark gray connectors; pure white is acceptable, but a slightly softened near-white is usually better.
-- Treat `spec` and `runbook` as separate artifacts by default: `spec` defines the target state, while `runbook` describes the execution path from current state to that target.
+- 只有在信息已确认且确实有用时，才把偏好或重复事实写入长期记忆。
+- 当某个 runbook 出现返工且经验具有复用价值时，把经验记录到当天的 `.codex/memory/dairy/YYYY-MM-DD.md`。
+- `tefa` 可以是 Terence 的个人别名或本地上下文标签；除非当前项目明确这样定义，否则不要自动把这个 token 当成工作区级环境层。
+- 存储长期记忆时，保持事实简洁，避免长篇分析。
+- 长期记忆文件中，优先大类标题加 bullet，而不是很深的标题树。
+- 除非 Terence 明确要求，否则默认在 WSL 中启动本地服务，而不是直接在 Windows 宿主上启动。
+- 需要 WSL 提权或系统级安装时，优先使用 `wsl -u root`，而不是当前用户下的交互式 `sudo`。
+- 完成 `git` 提交和 MR 创建工作流后，不要自动切回主分支。
+- 当 Terence 要求提交代码时，对于能创建 MR 的仓库，默认在同一流程里把 MR 一起建好；除非被阻塞，否则不要停在 push。
+- 在 runbook 执行中，如果 authority 仍要求最终独立的只读 recon，不要在那次最终复核完成或被明确阻塞前提前停止。
+- 在当前工作区里，`MogTracker/` 下的常规编辑已默认预授权，不需要事前询问。
+- 如果企业版 Gitee PR 创建返回 `401`，提醒 Terence 先在 Chrome 中重新登录，再重试自动化流程。
+- 对于 `inority-workspace`，默认以 `main` 为代码提交流程基线，并在 `git push` 前先执行 `git pull --rebase`。
+- 当 Terence 要求清理 `inority-workspace` 里的历史文件时，优先删除过时的兼容 shell 和被跳过的占位测试；如果旧命令名仍必须可调用，只保留最薄的一层 wrapper。
+- 当用成熟 CLI（如 `rg`）替换自定义文件扫描路径时，优先采用工具原生语义，不要为了兼容旧行为再发明一层兼容 flag。
+- `.codex/memory/dairy/*.md` 下的日记文件可以直接做非破坏性编辑，无需提前询问；但删除、归档或移动日记文件前仍需先问。
+- 删除工作区文件时，优先把文件移到 `/home/fantengyuan/workspace/.recycle/` 下，并保留相对路径，而不是永久删除。
+- `runctl` 和 `specctl` 可以直接执行，无需事前询问。
+- 默认把 runbook 存到目标项目的 `docs/runbook/` 下，除非用户指定其他位置。
+- 默认把 spec 存到目标项目的 `docs/specs/` 下，除非用户指定其他位置。
+- runbook 目录默认按日期分区，格式为 `<project>/docs/runbook/YYYY-MM-DD/`。
+- 在这个工作区里绘制 `dot` 图时，默认以暗色模式友好输出为目标：透明背景、节点默认有填充、同类节点共享配色、默认圆角矩形，并通过降低亮度而不是一味洗白来选颜色。
+- 面向暗色模式的 `dot` 图，边的默认颜色应优先选择浅色高对比方案，而不是深灰连接线；纯白可以接受，但略微柔化的近白通常更好。
+- 默认把 `spec` 和 `runbook` 视为不同制品：`spec` 定义目标状态，`runbook` 描述从当前状态走到目标状态的执行路径。
