@@ -23,8 +23,10 @@
 
 | 路径 | 说明 |
 |------|------|
-| `checkout-after-work/` | 工作区级 Git 扫描、提交与 PR/MR 汇总发布 |
+| `checkin/` | 工作区级 Git 主分支刷新与当前分支 rebase |
+| `checkout/` | 工作区级 Git 扫描、提交与 PR/MR 汇总发布 |
 | `draw-dot/` | Graphviz / DOT 图生成与收敛 |
+| `inority/` | inority workspace 的通用资产与共享脚本 |
 | `inority-memory/` | workspace memory 安装、同步与维护 |
 | `inority-memory-distill/` | memory 蒸馏与沉淀 |
 | `inority-memory-reflect/` | memory 反思与回写 |
@@ -78,7 +80,8 @@ digraph skills_topology {
   subgraph cluster_docs {
     label="文档与演示";
     color="#cbd5e1";
-    checkout_after_work [label="checkout-after-work", fillcolor="#fef3c7"];
+    checkout [label="checkout", fillcolor="#fef3c7"];
+    inority_base [label="inority", fillcolor="#fde68a"];
     write_readme [label="write-readme"];
     write_spec [label="write-spec"];
     inority_slides [label="inority-slides"];
@@ -100,6 +103,7 @@ digraph skills_topology {
   subgraph cluster_runtime {
     label="运行时治理与其他独立 skill";
     color="#cbd5e1";
+    inority_base_runtime [label="inority", fillcolor="#fde68a"];
     inority_memory [label="inority-memory"];
     inority_memory_distill [label="inority-memory-distill"];
     inority_memory_reflect [label="inority-memory-reflect"];
@@ -107,7 +111,8 @@ digraph skills_topology {
     wow_addon [label="wow-addon-development"];
   }
 
-  checkout_after_work -> inority_question [label="确认发布范围"];
+  checkout -> inority_question [label="确认发布范围"];
+  checkout -> inority_base [style=dashed, label="共享扫描脚本"];
 
   write_spec -> inority_question [label="提问/消歧"];
   write_spec -> draw_dot [style=dashed, label="结构图"];
@@ -131,6 +136,7 @@ digraph skills_topology {
 
   inority_memory -> inority_memory_distill [style=dotted, label="同域协作"];
   inority_memory -> inority_memory_reflect [style=dotted, label="同域协作"];
+  inority_base_runtime -> inority_memory [style=invis];
 
   inority_reply -> wow_addon [style=invis];
   write_readme -> write_spec [style=invis];
@@ -149,7 +155,9 @@ digraph skills_topology {
 按主题查找时，可以直接这样分：
 
 - 文档类：`write-readme/`、`write-spec/`
-- 工作区收尾类：`checkout-after-work/`
+- 工作区收尾类：`checkout/`
+- Git 同步类：`checkin/`
+- 通用基座类：`inority/`
 - 运维类：`runbook/`、`runbook-*`
 - 演示类：`inority-slides/`、`draw-dot/`
 - 运行时治理类：`inority-memory/`、`inority-reply/`、`inority-question/`

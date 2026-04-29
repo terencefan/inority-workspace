@@ -176,7 +176,7 @@ digraph ArchitectureOverview {
 
 收敛影响：把安全边界写进“红线行为”，避免评审时遗漏。
 
-## 参考文档
+## 参考资料
 
 - [接口定义](./api.md)
 - [运维文档](../README.md)

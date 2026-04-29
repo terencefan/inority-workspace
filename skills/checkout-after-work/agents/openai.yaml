@@ -1,4 +1,0 @@
-interface:
-  display_name: "Checkout 下班"
-  short_description: "Sweep workspace git repos and open review PRs."
-  default_prompt: "Use $checkout-after-work when you need an end-of-day workspace sweep: discover dirty independent Git repositories under the workspace, confirm scope once, prepare commits and PRs or MRs repo by repo, and finish with a review link summary."

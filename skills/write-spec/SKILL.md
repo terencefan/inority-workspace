@@ -78,7 +78,7 @@ Unless the user asks for a narrower format, include these sections:
 8. `模块划分`
 9. `验收标准`
 10. `访谈记录`
-11. `参考文档`
+11. `参考资料`
 
 Prefer the Chinese section names above when no repo-specific template exists. Rename them only when the surrounding project already uses a stable convention or the user explicitly asks for another heading style.
 
@@ -102,7 +102,7 @@ Use exactly these content-level second-level headings by default:
 - `模块划分`
 - `验收标准`
 - `访谈记录`
-- `参考文档`
+- `参考资料`
 
 All other structural sections should usually live under them as third-level or fourth-level headings rather than becoming additional content-level second-level headings.
 

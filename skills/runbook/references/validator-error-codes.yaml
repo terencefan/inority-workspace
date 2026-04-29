@@ -157,9 +157,9 @@ E098:
 E099:
   message: "### {title} 的标题灯号必须和 操作性质 一致：只读 🟢、幂等 🟡、破坏性 🔴"
 E100:
-  message: "## 外部链接 不能为空"
+  message: "## 参考资料 不能为空"
 E101:
-  message: "## 外部链接 必须使用四列表格：name/type/link/desc；link 为 Markdown 链接，desc 只写一句简短作用说明"
+  message: "## 参考资料 必须使用四列表格：name/type/link/desc；link 为 Markdown 链接，desc 只写一句简短作用说明"
 E102:
   message: "### {title} 必须在 #### 执行 前写 GitHub alert：只读 [!TIP]、幂等 [!WARNING]、破坏性 [!CAUTION]"
 E103:

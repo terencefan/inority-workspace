@@ -1,0 +1,4 @@
+interface:
+  display_name: "Inority Base"
+  short_description: "Shared inority skill assets and helper scripts."
+  default_prompt: "Use $inority when you need shared inority workspace assets such as reusable helper scripts, common templates, or utility resources that should be centralized instead of duplicated across skills."

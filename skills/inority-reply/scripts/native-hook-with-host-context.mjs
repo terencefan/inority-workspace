@@ -216,19 +216,15 @@ function buildSessionStartContext(hostInterface, payload) {
   const templateContent = readTextFile(templatePath);
   const userRulesPath = resolveUserRulesPath(payload);
   const rulesLine = userRulesPath
-    ? `Reply-format rules are centrally defined in ${userRulesPath}. Keep that file as the single source of truth.`
-    : "Reply-format rules are not available from a discovered USER.md file; apply the selected template directly for this session.";
+    ? `Reply-format rules are centrally defined in ${userRulesPath}; keep that file as the single source of truth.`
+    : "Reply-format rules are not available from a discovered USER.md file; use the selected template directly for this session.";
+  const executionLine = userRulesPath
+    ? "Apply USER.md together with the selected template, and start every main-agent reply with Goal, Ambiguity, and Risk."
+    : "Start every main-agent reply with Goal, Ambiguity, and Risk, and follow the selected template below.";
   const sections = [
     buildHostContextLine(hostInterface, templatePath),
     rulesLine,
-    "Apply these reply rules in every main-agent response:",
-    "- Begin with Goal, Ambiguity, and Risk, and make them describe the current longrun rather than the latest local action.",
-    "- Ambiguity and Risk must use percentages.",
-    "- Explain the highest current longrun risk inline in the Risk description.",
-    "- Use these thresholds for Ambiguity and Risk: green for under 10%, yellow for 10%-39%, red for 40% and above.",
-    hostInterface === "md"
-      ? "- In this session, render them with the Markdown table format."
-      : "- In this session, use the CLI-style aligned format unless stronger host evidence appears later.",
+    executionLine,
   ];
 
   if (templateContent) {

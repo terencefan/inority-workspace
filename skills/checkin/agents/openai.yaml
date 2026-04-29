@@ -1,0 +1,4 @@
+interface:
+  display_name: "Checkin"
+  short_description: "Refresh workspace repos and rebase current branches."
+  default_prompt: "Use $checkin when you need to scan a workspace for independent Git repositories, refresh each repo to the latest remote default branch without switching away from the current branch, and rebase the current branch onto that updated default branch."
