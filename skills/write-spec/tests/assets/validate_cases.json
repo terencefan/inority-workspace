@@ -1,33 +1,43 @@
 [
   {
-    "name": "extra-h1",
+    "name": "title-suffix",
     "replacements": [
       {
-        "old": "## 背景与现状",
-        "new": "# 背景与现状"
+        "old": "# 示例平台接入设计文档",
+        "new": "# 示例平台接入方案"
       }
     ],
-    "expected_codes": ["E002", "E010"]
+    "expected_codes": ["E002"]
   },
   {
     "name": "heading-order",
     "replacements": [
       {
-        "old": "## 风险与收益\n\n### 风险",
-        "new": "## 假设与约束\n\n### 风险"
+        "old": "## 风险与红线\n\n### 风险",
+        "new": "## 边界与契约\n\n### 风险"
       }
     ],
     "expected_codes": ["E010"]
   },
   {
-    "name": "background-prefix-order",
+    "name": "background-extra-subheading",
     "replacements": [
       {
-        "old": "### 背景\n\n说明为什么当前系统状态或外部约束要求现在做这次变更。\n\n### 现状",
-        "new": "### 问题\n\n这里不允许先写问题。\n\n### 现状"
+        "old": "### 现状\n\n说明当前系统结构、实现限制或运行痛点。\n",
+        "new": "### 现状\n\n说明当前系统结构、实现限制或运行痛点。\n\n### 问题\n\n这里不允许新增问题小节。\n"
       }
     ],
     "expected_codes": ["E011"]
+  },
+  {
+    "name": "boundary-and-contracts-too-deep",
+    "replacements": [
+      {
+        "old": "### 稳定接口与调用边界\n\n- 接入控制器只接收规范化后的鉴权上下文\n- 网关层只向业务层暴露稳定的请求 contract\n",
+        "new": "### 稳定接口与调用边界\n\n#### 深一层的小节\n\n- 接入控制器只接收规范化后的鉴权上下文\n- 网关层只向业务层暴露稳定的请求 contract\n"
+      }
+    ],
+    "expected_codes": ["E014"]
   },
   {
     "name": "missing-current-dot",
@@ -40,30 +50,30 @@
     "expected_codes": ["E020"]
   },
   {
-    "name": "missing-target-graph-style",
+    "name": "missing-target-dot",
     "replacements": [
       {
-        "old": "graph [bgcolor=\"transparent\"];\n",
-        "new": "graph [];\n"
+        "old": "```graphviz\n",
+        "new": "```txt\n"
       }
     ],
     "expected_codes": ["E021"]
   },
   {
-    "name": "missing-filled-node-style",
+    "name": "missing-overview-dot",
     "replacements": [
       {
-        "old": "node [shape=box, style=\"rounded,filled\", fillcolor=\"#F3F4F6\", color=\"#94A3B8\"];\n",
-        "new": "node [shape=box, style=\"rounded\", color=\"#94A3B8\"];\n"
+        "old": "## 架构总览\n\n> 先建立端到端链路、组件关系或运行位置的整体模型。\n\n```dot\n",
+        "new": "## 架构总览\n\n> 先建立端到端链路、组件关系或运行位置的整体模型。\n\n```txt\n"
       }
     ],
-    "expected_codes": ["E022", "E023"]
+    "expected_codes": ["E022"]
   },
   {
     "name": "missing-interview-round",
     "replacements": [
       {
-        "old": "> Q：图的节点是否需要背景色？\n>\n> A：需要，同类节点同色，且要适配深色模式。\n\n收敛影响：dot 图默认加 filled 背景和同类节点配色。\n",
+        "old": "> Q：这份 spec 是否需要显式记录红线行为？\n>\n>\n> A：需要，尤其是不能绕过现有鉴权边界。\n\n收敛影响：把安全边界写进“红线行为”，避免评审时遗漏。\n",
         "new": ""
       }
     ],
@@ -73,50 +83,40 @@
     "name": "question-prefix",
     "replacements": [
       {
-        "old": "> Q：这份 spec 的主重心是什么？",
-        "new": "Q：这份 spec 的主重心是什么？"
+        "old": "> Q：这次变更是否只覆盖接入链路，不触碰鉴权模型？",
+        "new": "Q：这次变更是否只覆盖接入链路，不触碰鉴权模型？"
       }
     ],
-    "expected_codes": ["E030"]
+    "expected_codes": ["E030", "E031"]
   },
   {
     "name": "missing-blank-quote-line",
     "replacements": [
       {
-        "old": "> Q：这份 spec 的主重心是什么？\n>\n> A：技术架构和接口边界。",
-        "new": "> Q：这份 spec 的主重心是什么？\n> A：技术架构和接口边界。"
-      }
-    ],
-    "expected_codes": ["E031"]
-  },
-  {
-    "name": "answer-prefix",
-    "replacements": [
-      {
-        "old": "> A：技术架构和接口边界。",
-        "new": "A：技术架构和接口边界。"
+        "old": "> Q：这次变更是否只覆盖接入链路，不触碰鉴权模型？\n>\n>\n> A：是，本轮只覆盖接入链路，鉴权模型保持不变。",
+        "new": "> Q：这次变更是否只覆盖接入链路，不触碰鉴权模型？\n> A：是，本轮只覆盖接入链路，鉴权模型保持不变。"
       }
     ],
     "expected_codes": ["E032"]
   },
   {
+    "name": "answer-prefix",
+    "replacements": [
+      {
+        "old": "> A：是，本轮只覆盖接入链路，鉴权模型保持不变。",
+        "new": "A：是，本轮只覆盖接入链路，鉴权模型保持不变。"
+      }
+    ],
+    "expected_codes": ["E033"]
+  },
+  {
     "name": "missing-convergence-impact",
     "replacements": [
       {
-        "old": "收敛影响：按技术向 spec 模板组织正文。\n\n",
+        "old": "收敛影响：把鉴权模型从本轮范围里明确排除，避免 scope 漂移。\n\n",
         "new": "\n"
       }
     ],
-    "expected_codes": ["E030"]
-  },
-  {
-    "name": "missing-external-link",
-    "replacements": [
-      {
-        "old": "- [模板索引](../../references/template.md)\n- [访谈记录模板](../../references/interview-record-template.md)\n",
-        "new": "仅保留说明文字，没有链接。\n"
-      }
-    ],
-    "expected_codes": ["E042"]
+    "expected_codes": ["E034"]
   }
 ]

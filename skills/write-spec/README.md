@@ -13,7 +13,7 @@
 - API / interface spec
 - implementation plan
 
-它强调边界、假设、验收标准和真实访谈记录，并优先使用 diagram-driven 的写法。
+它强调边界、contracts、红线行为、验收标准和真实访谈记录，并优先使用 diagram-driven 的写法。
 
 ## 职责边界 | Responsibilities
 
@@ -22,7 +22,7 @@
 - 判定 spec 类型并选择对应模板
 - 用真实问答收敛边界
 - 生成可评审的结构化 spec
-- 明确假设、约束、风险和验收标准
+- 明确稳定契约、风险、红线行为和验收标准
 
 不负责：
 

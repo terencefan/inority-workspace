@@ -26,6 +26,7 @@ Make the document scroll-friendly. Structure it so a reader can keep orientation
 1. 先明确这份文档属于哪一类 spec。
    - product spec: user problem, goals, scope, UX, success metrics
    - technical spec: architecture, data flow, interfaces, rollout, risks
+   - 默认启发式：`ui` 类 spec 优先按 product spec 处理，`data` 类 spec 优先按 technical spec 处理，除非当前评审重心明确相反
    - 如果需求同时包含产品和技术内容，先判断本次评审的主重心属于哪一类，再选择对应模板；不要使用单独的 mixed 模板
 2. After classifying the spec, load the matching reference file instead of using a single shared template:
    - product spec -> `references/product-spec-template.md`
@@ -35,6 +36,7 @@ Make the document scroll-friendly. Structure it so a reader can keep orientation
 3. 如果本轮要新建或修订目标文件，先收敛文档命名：
    - 文件名必须以 `-spec.md` 结尾
    - 文档标题必须写成 `xxxx 设计文档`
+   - 文档标题下面必须紧跟一个 GitHub `NOTE` callout，显式说明当前 spec 类型，例如“当前 spec 类型：产品向 spec”或“当前 spec 类型：技术向 spec”
    - 如果现有草稿文件名或标题不符合这两个规则，先改名 / 改标题，再继续正文收敛
 4. Read the existing artifact if the user names a target file or there is already a draft spec.
 5. Read enough local context to avoid generic prose:
@@ -42,12 +44,10 @@ Make the document scroll-friendly. Structure it so a reader can keep orientation
    - neighboring modules that reveal naming, boundaries, and constraints
    - existing conventions in the same repo
    - if current-state facts are needed, use them to clarify constraints and gap context, not to turn the spec into a runbook
-6. 在正文定稿前，先通过真实用户问答做访谈收敛；只要进入提问/澄清/确认路线/消歧义阶段，就加载 `$inority-question`。
-7. `$write-spec` 自己保留这些 spec 级门槛：
-   - authority 定稿前，必须累计至少 `5` 轮真实用户问答
-   - 如果关键边界还没收敛，默认动作不是先写正文，而是继续追问
-8. Make reasonable assumptions only when the remaining gaps are small, low-risk, and do not change scope, architecture, delivery risk, or the meaning of acceptance.
-9. 访谈未满 `5` 轮时，不要宣称 spec 已收敛；先继续补问，再落正文。
+6. 在正文定稿前，先通过真实用户问答做访谈收敛。
+7. 只要需要向用户提问、确认方案/路径、澄清事实，或主动提出需要用户拍板的建议/推荐方案，就显式加载 `$inority-clarify`，不要在本 skill 内再并行维护另一套提问纪律。
+8. authority 定稿前，必须累计至少 `5` 轮真实用户问答；如果不足 `5` 轮，默认动作是继续通过 `$inority-clarify` 补问，而不是先宣称 spec 已收敛。
+9. Make reasonable assumptions only when the remaining gaps are small, low-risk, and do not change scope, architecture, delivery risk, or the meaning of acceptance.
 10. Write the spec in a reviewable structure with concrete decisions, not brainstorming notes.
 11. Separate confirmed facts from inferred choices. Mark assumptions explicitly.
 12. Keep execution guidance subordinate to the normative definition:
@@ -55,6 +55,14 @@ Make the document scroll-friendly. Structure it so a reader can keep orientation
    - spec should not expand into a step-by-step operator handbook for converting current state to target state
 13. 在 authority spec 定稿前，优先用 `scripts/specctl validate <path>` 做结构校验；如果 validator 报错，先修正结构问题再继续宣称收敛。
 14. If the user gives a recurring spec-writing preference during the session, update this skill or its references before finishing so the preference becomes reusable next time.
+
+## Validator Precedence
+
+当本 skill 的文字说明、模板示例和当前 `specctl validate` 的实际规则不完全一致时，以 validator 为准。
+
+- 不要为了迁就旧文档习惯而绕过 validator
+- 不要在 skill 里继续维护一套与 validator 冲突的章节、访谈或命名规则
+- 如果发现 skill 与 validator 已经漂移，先修 skill/模板，再继续写新 spec
 
 ## Default Output
 
@@ -64,7 +72,7 @@ Unless the user asks for a narrower format, include these sections:
 2. `背景与现状`
 3. `目标与非目标`
 4. `风险与红线`
-5. `假设与约束`
+5. `边界与契约`
 6. `架构总览`
 7. `架构分层`
 8. `模块划分`
@@ -80,14 +88,15 @@ Prefer the Chinese section names above when no repo-specific template exists. Re
 
 - 文档文件名默认必须以 `-spec.md` 结尾。
 - 文档 H1 标题默认必须写成 `xxxx 设计文档`。
+- 文档 H1 标题下默认必须紧跟一个 GitHub `> [!NOTE]` callout，显式标明当前 spec 类型。
 - 如果用户给了现有 spec 草稿且命名不符合这两个规则，先把文件名和标题修正，再继续正文收敛。
 
-Use exactly these content-level first-level headings by default:
+Use exactly these content-level second-level headings by default:
 
 - `背景与现状`
 - `目标与非目标`
 - `风险与红线`
-- `假设与约束`
+- `边界与契约`
 - `架构总览`
 - `架构分层`
 - `模块划分`
@@ -95,26 +104,34 @@ Use exactly these content-level first-level headings by default:
 - `访谈记录`
 - `参考文档`
 
-All other structural sections should usually live under them as second-level or third-level headings rather than becoming additional first-level headings.
+All other structural sections should usually live under them as third-level or fourth-level headings rather than becoming additional content-level second-level headings.
 
-Within the first-level heading `假设与约束`, default to exactly these two second-level headings:
+Within the second-level heading `边界与契约`, treat each child heading as a content block rather than a fixed schema.
 
-- `假设`
-- `约束`
+- 不要强制固定成某一组标题名
+- 不要默认单独开 `范围`
+- 不要默认再写 `假设` 或 `约束` 小节
+- 已确认的稳定前提直接写进具体契约块；限制条件、禁做边界统一收敛到 `风险与红线 -> 红线行为`
+- 可以按评审需要拆成 `稳定接口`、`状态语义`、`模块边界`、`调用边界` 等更贴合主题的块名
+- 重点是把边界、稳定 contract、限制条件和不做什么写清，而不是机械对齐标题字面
+- `边界与契约` 下只允许一层子标题；不要在这一章里继续下钻出四级标题
+- 子标题本身默认不要再带 `contract` 后缀；把 `contract` 语义写在正文里，而不是重复塞进标题名
 
-Within the first-level heading `风险与红线`, default to exactly these two second-level headings:
+Within the second-level heading `风险与红线`, default to exactly these two third-level headings:
 
 - `风险`
 - `红线行为`
+- `红线行为` 下的具体条目默认使用 GitHub 风格的 `> [!CAUTION]` callout，而不是普通 bullet list
+- `红线行为` 下每一条红线都必须写成独立的 `> [!CAUTION]` block；不要把多条红线合并进同一个 callout
 
 ### `访谈记录`
 
 `访谈记录` 是强制章节，不是可选附录。
 
-- 写 spec 时必须保留独立的 `访谈记录` 一级标题。
+- 写 spec 时必须保留独立的 `访谈记录` 二级标题。
 - `访谈记录` 必须至少包含 `5` 轮真实用户问答。
-- 如果当前真实问答不足 `5` 轮，默认动作是继续访谈，而不是跳过或用作者自问自答补齐。
-- 访谈提问协议统一复用 `$inority-question`。
+- 如果当前真实问答不足 `5` 轮，默认动作是继续加载 `$inority-clarify` 补问，而不是跳过或用作者自问自答补齐。
+- `访谈记录` 的问题收敛、选项设计、和多路径拍板由 `$inority-clarify` 统一负责；本 skill 只负责把真实问答按下面的 spec 记录格式写回。
 - 每轮记录都要显式写出：
   - quote 内分成两段：
     - `Q：...`
@@ -139,7 +156,8 @@ Treat `背景与现状` as the default first content section near the beginning.
 - Within `背景与现状`, default to exactly these subsections:
   - `背景`
   - `现状`
-- Do not introduce any additional second-level headings under `背景与现状` unless the user explicitly asks for a different structure.
+- Do not introduce any additional third-level headings under `背景与现状` unless the user explicitly asks for a different structure.
+- When the current-state section needs to call out problems, constraints, or pain points, keep them directly inside `现状` as prose or lists; do not open an extra `问题` child heading by default.
 - `现状` should contain a fenced `dot` / `graphviz` diagram by default so the reader can see the current structure instead of only reading prose.
 
 ### `目标与非目标`
@@ -148,7 +166,7 @@ Treat `背景与现状` as the default first content section near the beginning.
 
 ### `架构总览`
 
-- Use `架构总览` as its own first-level section to show the whole system shape before diving into layers, modules, or flows.
+- Use `架构总览` as its own second-level section to show the whole system shape before diving into layers, modules, or flows.
 - `架构总览` must contain a fenced `dot` / `graphviz` diagram by default.
 - That overview diagram must simultaneously express both:
   - `架构分层` (north-south structure)
@@ -197,7 +215,7 @@ Treat `背景与现状` as the default first content section near the beginning.
 - Add `模块划分` as its own first-level section by default after `架构分层`.
 - Treat `模块划分` as the default east-west view.
 - Use `模块划分` for horizontal decomposition such as business modules, platform modules, shared services, domains, ownership boundaries, or namespace-level partitions.
-- When the document also needs a namespace or domain slicing model, put it under `模块划分` unless the user explicitly asks for another first-level heading.
+- When the document also needs a namespace or domain slicing model, put it under `模块划分` unless the user explicitly asks for another content-level second-level heading.
 - For Kubernetes docs, `命名空间分层` should usually live under `模块划分` and contain its own child headings.
 - In Kubernetes docs, prefer: `架构分层` for north-south structure, `模块划分` for east-west structure.
 - Use vertical layering for end-to-end path structure, and horizontal layering for slices such as business, data, observability, security, control plane, ownership boundaries, or namespace boundaries.
@@ -246,7 +264,7 @@ Only keep cross-section prose and formatting guidance here. Title hierarchy and 
 - 当生成或修订文档落盘路径时，默认使用 `<topic>-spec.md` 形态，不要落成无后缀约束的 `spec.md`、`draft.md` 或其他随意命名。
 - 当生成或修订 H1 标题时，默认使用 `<主题>设计文档` 形态，不要省略 `设计文档` 四个字。
 - spec 默认回答“目标应该是什么、边界在哪里、如何判定完成”，不要默认回答“从当前现状一步步怎么做”。
-- spec 默认不需要单独的 `收益` 章节；风险约束与禁做边界统一收敛到 `风险与红线` 一级标题下。
+- spec 默认不需要单独的 `收益` 章节；风险约束与禁做边界统一收敛到 `风险与红线` 二级标题下。
 - 如果用户真正需要“从现状到目标”的执行转化路径，默认切到 `$runbook`，而不是继续把 spec 加长成执行手册。
 - Keep exact identifiers in their source form when translation would reduce precision, for example code symbols, API paths, config keys, SQL field names, resource names, and protocol terms.
 - Do not pad the spec with generic sections that add no decision value.
@@ -279,6 +297,12 @@ Only keep cross-section prose and formatting guidance here. Title hierarchy and 
 ### 图与表
 
 - Use transparent backgrounds for diagrams by default.
+- When a spec needs a PRD-grade product wireframe or page-layout sketch, prefer inline `svg` in this workspace.
+- For PRD-grade wireframes, render the `svg` directly in the spec and also keep the `svg` source code visible in the same section.
+- Use `dot` for architecture, topology, layering, and relationship diagrams; do not force `dot` to carry precise product layout.
+- For tabbed or multi-surface UIs, prefer one subgraph per major panel instead of collapsing multiple panels into one blended wireframe.
+- Product wireframes should explicitly show important control-bar blocks and one representative row/detail module when those details matter to review.
+- Product wireframes should default to square-corner rectangles; avoid rounded boxes unless the document is intentionally emphasizing architecture rather than UI surface.
 - When listing fields, prefer a Markdown table with columns such as `字段名 | 字段描述` instead of a bullet list. Use this especially for schemas, outputs, required fields, optional fields, and report sections that enumerate structured fields.
 - For tool design sections, prefer list-style presentation over tables. A good default shape is one tool per bullet, followed by short labeled lines such as `输入` / `输出` / `用途` when helpful.
 
@@ -294,6 +318,11 @@ Only keep cross-section prose and formatting guidance here. Title hierarchy and 
 Use a product-leaning shape when the main uncertainty is what should happen for users.
 
 Use a technical-leaning shape when the main uncertainty is how to build or operate the change safely.
+
+Default heuristics in this workspace:
+
+- `ui`-oriented specs usually default to the product shape
+- `data`-oriented specs usually default to the technical shape
 
 When both product behavior and implementation need to be approved together, choose the dominant review center first:
 
