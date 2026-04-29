@@ -41,7 +41,7 @@ export const SKELETON_TEMPLATE = `# <主题>执行手册
 
 ## 访谈记录
 
-## 外部链接
+## 参考资料
 `;
 
 export function renderTemplate({ title }) {

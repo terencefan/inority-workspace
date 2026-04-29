@@ -21,7 +21,7 @@ const REQUIRED_H2 = [
   "最终验收",
   "回滚方案",
   "访谈记录",
-  "外部链接",
+  "参考资料",
 ];
 
 const REQUIRED_H3_BY_H2 = {
@@ -780,7 +780,7 @@ function validateRollbackPlan(lines, h2Sections) {
 }
 
 function validateExternalLinks(lines, h2Sections) {
-  const section = sectionSlice(h2Sections, "外部链接", lines.length);
+  const section = sectionSlice(h2Sections, "参考资料", lines.length);
   if (section == null) {
     return [];
   }

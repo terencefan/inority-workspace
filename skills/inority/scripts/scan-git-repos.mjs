@@ -2,11 +2,11 @@
 
 import { readdir, stat } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { homedir } from "node:os";
 import { spawnSync } from "node:child_process";
 
-const DEFAULT_EXCLUDES = new Set([
+export const DEFAULT_EXCLUDES = new Set([
   ".git",
   ".codex",
   ".uv-cache",
@@ -152,7 +152,7 @@ function suggestedSkillForDomain(domain) {
   }
 }
 
-function repoRecord(repoPath) {
+export function repoRecord(repoPath) {
   const branch = gitOutput(repoPath, ["branch", "--show-current"]) || "(detached HEAD)";
   const statusOutput = gitOutput(repoPath, ["status", "--porcelain"]) || "";
   const dirtyCount = statusOutput ? statusOutput.split("\n").filter(Boolean).length : 0;
@@ -183,7 +183,7 @@ async function isRepoRoot(targetPath) {
   }
 }
 
-async function walkRepos(scanRoot) {
+export async function walkRepos(scanRoot) {
   const repos = [];
   const seen = new Set();
   const stack = [scanRoot];
@@ -255,12 +255,7 @@ async function main() {
     throw new Error(`scan root does not exist or is not a directory: ${scanRoot}`);
   }
 
-  const repoPaths = await walkRepos(scanRoot);
-  const repos = repoPaths.map((repoPath) => {
-    const repo = repoRecord(repoPath);
-    repo.proposedAction = classifyRepo(repo);
-    return repo;
-  });
+  const repos = await scanRepos(scanRoot);
 
   if (format === "table") {
     const rows = repos.map((repo) => [
@@ -289,7 +284,18 @@ async function main() {
   );
 }
 
-main().catch((error) => {
-  console.error(error.message);
-  process.exitCode = 1;
-});
+export async function scanRepos(scanRoot) {
+  const repoPaths = await walkRepos(scanRoot);
+  return repoPaths.map((repoPath) => {
+    const repo = repoRecord(repoPath);
+    repo.proposedAction = classifyRepo(repo);
+    return repo;
+  });
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error(error.message);
+    process.exitCode = 1;
+  });
+}

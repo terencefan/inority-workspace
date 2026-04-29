@@ -19,7 +19,7 @@ const REQUIRED_H1 = [
   "模块划分",
   "验收标准",
   "访谈记录",
-  "参考文档",
+  "参考资料",
 ];
 const DOT_FENCE_RE = /^```(?:dot|graphviz)\s*$/;
 

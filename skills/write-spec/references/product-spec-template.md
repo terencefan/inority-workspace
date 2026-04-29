@@ -151,7 +151,7 @@ digraph ArchitectureOverview {
 
 使用 [interview-record-template.md](./interview-record-template.md)。
 
-## 参考文档
+## 参考资料
 
 - [原始需求](./requirement.md)
 - [相关说明](../README.md)
