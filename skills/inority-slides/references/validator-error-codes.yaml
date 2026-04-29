@@ -18,6 +18,10 @@ S031:
   message: "### {title} 缺少主线或用户确认"
 S032:
   message: "### {title} 至少需要一个 slide"
+S033:
+  message: "### {title} 的第一张 slide 必须是章节标题页"
+S034:
+  message: "整套 slides 的最后一张 slide 必须是致谢页"
 S040:
   message: "#### {title} 缺少 GitHub 风格目标 Note、页目标或 QA 链接"
 S041:
@@ -28,6 +32,16 @@ S043:
   message: "#### {title} 缺少 素材清单"
 S044:
   message: "#### {title} 缺少 页级验收标准"
+S045:
+  message: "#### {title} 的 素材清单 缺少 标题：行"
+S046:
+  message: "#### {title} 的 素材清单 缺少 文案：行"
+S047:
+  message: "#### {title} 的 素材清单 缺少 SVG 图：行"
+S048:
+  message: "#### {title} 的 素材清单 缺少 SVG 灯箱预览：Markdown 链接"
+S049:
+  message: "#### {title} 缺少 当前 slide 类型：展示逻辑分类/变体名"
 S050:
   message: "## 访谈记录 至少需要 3 条真实问答"
 S051:

@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brand Fancy Slides</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-chrome">
+        <div class="brand-mark">
+          <span class="brand-dot"></span>
+          <span>Monolith / Brand Narrative Deck</span>
+        </div>
+        <div class="chrome-meta">
+          <span id="slide-template-label">Hero Reveal</span>
+          <span>Scroll to advance</span>
+          <span id="slide-indicator">01 / 09</span>
+        </div>
+      </header>
+
+      <nav class="slide-nav" aria-label="Slide navigation">
+        <div class="slide-nav__label">Navigate</div>
+        <div class="slide-nav__dots" id="slide-nav-dots"></div>
+      </nav>
+
+      <div class="jump-panel-backdrop" id="jump-panel-backdrop" hidden></div>
+      <aside class="jump-panel" id="jump-panel" hidden aria-hidden="true" aria-label="Jump to slide panel">
+        <div class="jump-panel__header">
+          <span class="jump-panel__eyebrow">Jump To Slide</span>
+          <span class="jump-panel__hint">Press G to toggle, Esc to close</span>
+        </div>
+        <div class="jump-panel__list" id="jump-panel-list"></div>
+      </aside>
+
+      <div class="progress-rail" aria-hidden="true">
+        <div class="progress-rail__fill" id="progress-fill"></div>
+      </div>
+
+      <main id="deck">
+        <section class="panel panel-hero" data-panel>
+          <div class="panel-inner">
+            <div class="hero-copy">
+              <p class="template-kicker">Template 01 / Hero Reveal</p>
+              <p class="eyebrow reveal-text">For brands that need a stage, not a template.</p>
+              <h1 class="headline reveal-text">
+                把 slides 做成
+                <span>品牌叙事界面</span>
+              </h1>
+              <p class="lead reveal-text">
+                不再像“网页里的 PPT”，而像一段带有节奏、空间、镜头感和控制感的品牌体验。
+              </p>
+              <div class="hero-tags reveal-text">
+                <span>Motion-first</span>
+                <span>Scroll-linked</span>
+                <span>Brand tempo</span>
+              </div>
+            </div>
+            <div class="hero-orbit">
+              <div class="orb orb-a"></div>
+              <div class="orb orb-b"></div>
+              <div class="orb orb-c"></div>
+              <div class="hero-ring hero-ring-a"></div>
+              <div class="hero-ring hero-ring-b"></div>
+              <div class="grid-plane"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel-signal" data-panel>
+          <div class="panel-inner split-layout">
+            <div class="section-copy">
+              <p class="template-kicker">Template 02 / Signal Dashboard</p>
+              <p class="eyebrow">Signal</p>
+              <h2>先建立气场，再讲信息。</h2>
+              <p>
+                品牌型 slides 的第一目标不是列点，而是先建立观众对语气、调性、秩序和野心的感知。
+              </p>
+              <div class="signal-meter">
+                <span class="signal-meter__label">Signal intensity</span>
+                <div class="signal-meter__bars">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            </div>
+            <div class="stat-cluster">
+              <article class="stat-card float-card">
+                <span>01</span>
+                <strong>Tempo</strong>
+                <p>滚动速度、停顿和动画节拍共同定义“品牌说话方式”。</p>
+              </article>
+              <article class="stat-card float-card">
+                <span>02</span>
+                <strong>Contrast</strong>
+                <p>大的留白、硬边框和高对比色块让每一屏像一个镜头切换。</p>
+              </article>
+              <article class="stat-card float-card">
+                <span>03</span>
+                <strong>Depth</strong>
+                <p>前景、粒子、模糊、视差，让页面更像空间而不是平面。</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel-system" data-panel>
+          <div class="panel-inner">
+            <div class="section-copy compact">
+              <p class="template-kicker">Template 03 / System Conveyor</p>
+              <p class="eyebrow">System</p>
+              <h2>它不是一个 deck，而是一套展示系统。</h2>
+            </div>
+            <div class="system-rail" aria-hidden="true">
+              <span>Cover</span>
+              <span>Story</span>
+              <span>Proof</span>
+              <span>Closure</span>
+            </div>
+            <div class="system-grid">
+              <article class="system-tile">
+                <h3>Cover</h3>
+                <p>大字标题 + 运动背景，负责第一印象。</p>
+              </article>
+              <article class="system-tile">
+                <h3>Story</h3>
+                <p>用滚动推进 narrative，让“翻页”变成镜头语言。</p>
+              </article>
+              <article class="system-tile">
+                <h3>Proof</h3>
+                <p>图表、数据、案例以更编排化的方式进场，而不是直接平铺。</p>
+              </article>
+              <article class="system-tile">
+                <h3>Closure</h3>
+                <p>最后一屏收束价值主张，而不是普通结束页。</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel-compare" data-panel>
+          <div class="panel-inner compare-layout">
+            <div class="section-copy">
+              <p class="template-kicker">Template 04 / Split Reveal</p>
+              <p class="eyebrow">Contrast</p>
+              <h2>用一屏把 “Before / After” 讲透。</h2>
+              <p>
+                这类页面适合方案升级、品牌重构、体验改版、旧世界到新秩序的切换叙事。
+              </p>
+            </div>
+            <div class="compare-stage">
+              <div class="compare-panel compare-panel-before">
+                <span class="compare-label">Before</span>
+                <strong>Flat, crowded, literal</strong>
+                <p>信息密度高但没有镜头感，观众会把它当普通网页。</p>
+              </div>
+              <div class="compare-divider"></div>
+              <div class="compare-panel compare-panel-after">
+                <span class="compare-label">After</span>
+                <strong>Layered, branded, directed</strong>
+                <p>结构更少，但节奏、对比和空间感更强，像演示不是文档。</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel-spotlight" data-panel>
+          <div class="panel-inner spotlight-layout">
+            <div class="section-copy compact">
+              <p class="template-kicker">Template 05 / Spotlight Grid</p>
+              <p class="eyebrow">Focus</p>
+              <h2>让观众一次只看一个重点。</h2>
+              <p>
+                Spotlight 适合讲能力矩阵、产品卖点、模块组合。每个卡片都可以单独被点亮。
+              </p>
+            </div>
+            <div class="spotlight-grid">
+              <article class="spotlight-card" data-spotlight-card>
+                <span>Focus 01</span>
+                <strong>Statement</strong>
+                <p>先用一句强话术定调，而不是立刻列需求。</p>
+              </article>
+              <article class="spotlight-card" data-spotlight-card>
+                <span>Focus 02</span>
+                <strong>Proof</strong>
+                <p>用指标、案例、视觉证据把“为什么”钉牢。</p>
+              </article>
+              <article class="spotlight-card" data-spotlight-card>
+                <span>Focus 03</span>
+                <strong>Sequence</strong>
+                <p>一个卡一个卡点亮，比同时塞满更有控制感。</p>
+              </article>
+              <article class="spotlight-card" data-spotlight-card>
+                <span>Focus 04</span>
+                <strong>Closure</strong>
+                <p>最后一张卡负责收束价值，不让页面停在信息堆里。</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel-marquee" data-panel>
+          <div class="panel-inner marquee-layout">
+            <div class="section-copy compact">
+              <p class="template-kicker">Template 06 / Kinetic Marquee</p>
+              <p class="eyebrow">Motion Band</p>
+              <h2>用横向动线制造发布会感。</h2>
+              <p>
+                这类模板适合讲 ecosystem、合作伙伴、关键词洪流、能力标签云。纵向翻页，横向内容在屏内推进。
+              </p>
+            </div>
+            <div class="marquee-stage">
+              <div class="marquee-track" aria-hidden="true">
+                <span>BRAND SYSTEM</span>
+                <span>SCROLL NARRATIVE</span>
+                <span>MOTION LANGUAGE</span>
+                <span>VISUAL CONTROL</span>
+                <span>BRAND SYSTEM</span>
+                <span>SCROLL NARRATIVE</span>
+              </div>
+              <div class="marquee-chip-cloud">
+                <span class="marquee-chip">Launch deck</span>
+                <span class="marquee-chip">Vision keynote</span>
+                <span class="marquee-chip">Campaign opener</span>
+                <span class="marquee-chip">Capability map</span>
+                <span class="marquee-chip">Roadshow microsite</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel-metrics" data-panel>
+          <div class="panel-inner metrics-layout">
+            <div class="section-copy">
+              <p class="template-kicker">Template 07 / Metric Cascade</p>
+              <p class="eyebrow">Proof</p>
+              <h2>让数字按节奏落下来。</h2>
+              <p>
+                适合讲增长、转化、覆盖、效率。重点不是“放数字”，而是让数字成为被编排的镜头对象。
+              </p>
+            </div>
+            <div class="metric-grid">
+              <article class="metric-card">
+                <span class="metric-label">Recall uplift</span>
+                <strong class="metric-value" data-metric-target="68">0</strong>
+                <p>品牌记忆提升可以用强节奏的数字落版去锚定。</p>
+              </article>
+              <article class="metric-card">
+                <span class="metric-label">Engagement</span>
+                <strong class="metric-value" data-metric-target="4.2">0</strong>
+                <p>倍率类指标适合配合小数滚动和短暂发光收束。</p>
+              </article>
+              <article class="metric-card">
+                <span class="metric-label">Launch speed</span>
+                <strong class="metric-value" data-metric-target="12">0</strong>
+                <p>效率类数字可以和动线、轨道、刻度标尺组合讲。</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel-timeline" data-panel>
+          <div class="panel-inner timeline-layout">
+            <div class="section-copy compact">
+              <p class="template-kicker">Template 08 / Guided Timeline</p>
+              <p class="eyebrow">Sequence</p>
+              <h2>分阶段推进，而不是一次铺满路线图。</h2>
+              <p>
+                适合讲 roadmap、执行分期、品牌 campaign 节奏。每一步都像被镜头点亮，而不是整张图一次给完。
+              </p>
+            </div>
+            <div class="timeline-stack">
+              <article class="timeline-step" data-timeline-step>
+                <span>Phase 01</span>
+                <strong>Frame the story</strong>
+                <p>先确定观众要被带进什么情绪，再决定资料怎么出现。</p>
+              </article>
+              <article class="timeline-step" data-timeline-step>
+                <span>Phase 02</span>
+                <strong>Reveal the system</strong>
+                <p>把模块、能力、关系按顺序组织，而不是做成拼贴板。</p>
+              </article>
+              <article class="timeline-step" data-timeline-step>
+                <span>Phase 03</span>
+                <strong>Close with force</strong>
+                <p>最后一屏负责收束价值主张，让离场时还能留下记忆。</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel-finale" data-panel>
+          <div class="panel-inner finale-layout">
+            <div class="section-copy">
+              <p class="template-kicker">Template 09 / Closing Banner</p>
+              <p class="eyebrow">Decision</p>
+              <h2>这就是我推荐你的技术路线。</h2>
+              <p>
+                用 <code>Vite + GSAP + Lenis</code> 做一个滚动驱动、动画主导、静态可交付的品牌 slides 系统。
+              </p>
+              <div class="finale-chips">
+                <span>Static delivery</span>
+                <span>Cinematic motion</span>
+                <span>Embeddable in handbook</span>
+              </div>
+            </div>
+            <div class="finale-banner">
+              <span class="finale-line"></span>
+              <strong>Static delivery. Cinematic motion. Brand-first control.</strong>
+            </div>
+            <div class="finale-aura" aria-hidden="true"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
