@@ -3,6 +3,9 @@
 > [!NOTE]
 > 当前模式：`slides`
 
+> [!TIP]
+> 默认实现模板：`inority-slides/assets/demo/`
+
 ## 大纲视图
 
 ### <Section 1 名称>
@@ -13,26 +16,34 @@
 #### <Slide 1 名称>
 
 > [!NOTE]
-> 页目标：<这一页要讲清什么>
-> QA 链接：[Q：<对应问题摘要>](#q-slide-1-页目标确认)
+> 页目标：<这一页作为 section 标题页，要先把本 section 的主题、边界和接下来会讲什么定住>
+> QA 链接：[Q：<这个 section 是否需要一张标题页来定调>](#q-slide-1-章节标题页确认)
+
+- 当前 slide 类型：<展示逻辑分类/变体名>
 
 - `SVG` 线框图：
 
 ```html
-<svg viewBox="0 0 1200 720" role="img" aria-label="<Slide 1 名称> 线框图">
-  <rect x="80" y="72" width="1040" height="576" rx="32" fill="none" stroke="#94a3b8" stroke-width="4" />
-  <rect x="128" y="120" width="944" height="72" rx="20" fill="none" stroke="#94a3b8" stroke-width="3" />
-  <rect x="128" y="232" width="420" height="248" rx="24" fill="none" stroke="#94a3b8" stroke-width="3" />
-  <rect x="580" y="232" width="492" height="248" rx="24" fill="none" stroke="#94a3b8" stroke-width="3" />
-  <text x="152" y="165" fill="#94a3b8" font-size="28">Header / Narrative</text>
-  <text x="152" y="364" fill="#94a3b8" font-size="28">Copy / Story</text>
-  <text x="612" y="364" fill="#94a3b8" font-size="28">Visual / Diagram</text>
+<svg viewBox="0 0 1200 720" role="img" aria-label="<Section 1 名称> 章节标题页 线框图">
+  <rect x="80" y="72" width="1040" height="576" fill="none" stroke="#94a3b8" stroke-width="4" />
+  <rect x="120" y="120" width="620" height="408" fill="none" stroke="#94a3b8" stroke-width="3" />
+  <rect x="790" y="154" width="250" height="132" fill="none" stroke="#94a3b8" stroke-width="3" />
+  <rect x="790" y="332" width="250" height="132" fill="none" stroke="#94a3b8" stroke-width="3" />
+  <rect x="120" y="560" width="920" height="38" fill="none" stroke="#94a3b8" stroke-width="3" />
+  <text x="154" y="220" fill="#94a3b8" font-size="34">Section Title</text>
+  <text x="154" y="278" fill="#94a3b8" font-size="22">章节标题页</text>
+  <text x="820" y="228" fill="#94a3b8" font-size="20">Signal 1</text>
+  <text x="820" y="406" fill="#94a3b8" font-size="20">Signal 2</text>
 </svg>
 ```
 
-- 交互说明：<滚动推进 / 页内流转 / 导航方式 / 动效触发方式>
-- 素材清单：<标题、正文、图片、图标、数据、引用来源>
-- 页级验收标准：<什么条件下这页算收敛完成>
+- 交互说明：<先定调 section 标题，再逐个点亮本段两条线索>
+- 素材清单：
+  标题：<section 主标题 / 章节标题页副标题>
+  文案：<两条 section 线索 / 一句边界说明>
+  SVG 图：<标题页的主视觉卡、线索卡和总结条；这是正文里的 planning 线框图意图>
+  SVG 灯箱预览：[点击在 handbook 中预览](./lightbox/slide-1-preview.html)
+- 页级验收标准：<观众在进入本 section 前，已经知道这段会讲什么、不会讲什么>
 
 #### <Slide 2 名称>
 
@@ -40,23 +51,56 @@
 > 页目标：<这一页要讲清什么>
 > QA 链接：[Q：<对应问题摘要>](#q-slide-2-页目标确认)
 
+- 当前 slide 类型：<展示逻辑分类/变体名>
+
 - `SVG` 线框图：
 
 ```html
 <svg viewBox="0 0 1200 720" role="img" aria-label="<Slide 2 名称> 线框图">
-  <rect x="80" y="72" width="1040" height="576" rx="32" fill="none" stroke="#94a3b8" stroke-width="4" />
-  <circle cx="300" cy="360" r="120" fill="none" stroke="#94a3b8" stroke-width="3" />
-  <rect x="480" y="180" width="520" height="120" rx="24" fill="none" stroke="#94a3b8" stroke-width="3" />
-  <rect x="480" y="340" width="520" height="180" rx="24" fill="none" stroke="#94a3b8" stroke-width="3" />
-  <text x="220" y="368" fill="#94a3b8" font-size="28">Hero Visual</text>
-  <text x="520" y="248" fill="#94a3b8" font-size="28">Key Message</text>
-  <text x="520" y="430" fill="#94a3b8" font-size="28">Proof / Details</text>
+  <rect x="80" y="72" width="1040" height="576" fill="none" stroke="#94a3b8" stroke-width="4" />
+  <rect x="128" y="120" width="944" height="72" fill="none" stroke="#94a3b8" stroke-width="3" />
+  <rect x="128" y="232" width="420" height="248" fill="none" stroke="#94a3b8" stroke-width="3" />
+  <rect x="580" y="232" width="492" height="248" fill="none" stroke="#94a3b8" stroke-width="3" />
+  <text x="152" y="165" fill="#94a3b8" font-size="28">Header / Narrative</text>
+  <text x="152" y="364" fill="#94a3b8" font-size="28">Copy / Story</text>
+  <text x="612" y="364" fill="#94a3b8" font-size="28">Visual / Diagram</text>
 </svg>
 ```
 
 - 交互说明：<滚动推进 / 页内流转 / 导航方式 / 动效触发方式>
-- 素材清单：<标题、正文、图片、图标、数据、引用来源>
+- 素材清单：
+  标题：<页面主标题 / 副标题 / 角标文案>
+  文案：<核心正文 / 要点文案 / CTA 或注释>
+  SVG 图：<这张 SVG 线框图要表达的结构、图内标签、数据位或视觉对象>
+  SVG 灯箱预览：[点击在 handbook 中预览](./lightbox/slide-2-preview.html)
 - 页级验收标准：<什么条件下这页算收敛完成>
+
+#### 致谢
+
+> [!NOTE]
+> 页目标：<作为整套 deck 的最后一页，用一句主感谢和一条收束短句结束整场演示>
+> QA 链接：[Q：<最后是否需要单独一页致谢来收尾>](#q-slide-thanks-收尾确认)
+
+- 当前 slide 类型：<展示逻辑分类/变体名>
+
+- `SVG` 线框图：
+
+```html
+<svg viewBox="0 0 1200 720" role="img" aria-label="致谢 线框图">
+  <rect x="80" y="72" width="1040" height="576" fill="none" stroke="#94a3b8" stroke-width="4" />
+  <rect x="180" y="170" width="840" height="320" fill="none" stroke="#94a3b8" stroke-width="3" />
+  <text x="488" y="300" fill="#94a3b8" font-size="42">致谢</text>
+  <text x="392" y="378" fill="#94a3b8" font-size="24">Thank You / Q&amp;A</text>
+</svg>
+```
+
+- 交互说明：<主标题淡入，副标题和结束语随后浮现，最后停在静态致谢状态>
+- 素材清单：
+  标题：<致谢主标题 / 可选 Thank You 或 Q&A 副标题>
+  文案：<一句感谢、一句收束语或 Q&A 提示>
+  SVG 图：<大号居中标题卡和极简收尾布局；这是正文里的 planning 线框图>
+  SVG 灯箱预览：[点击在 handbook 中预览](./lightbox/slide-thanks-preview.html)
+- 页级验收标准：<整套 deck 在这页自然结束，观众明确感知演示已收束>
 
 ## 思维脑图
 
@@ -70,10 +114,12 @@ digraph slides_outline {
   section_1 [label="Section 1", fillcolor="#fef3c7"];
   slide_1 [label="Slide 1", fillcolor="#ffffff"];
   slide_2 [label="Slide 2", fillcolor="#ffffff"];
+  slide_3 [label="致谢", fillcolor="#ffffff"];
 
   root -> section_1;
   section_1 -> slide_1;
   section_1 -> slide_2;
+  section_1 -> slide_3;
 }
 ```
 
@@ -105,6 +151,15 @@ digraph slides_outline {
 影响面：
 
 - <这条回答如何影响该页结构、线框图或素材准备>
+
+### Q：最后是否需要单独一页致谢来收尾？
+
+> A：<用一句完整回答写清为什么最后要用致谢页结束>
+访谈时间：<YYYY-MM-DD HH:MM TZ>
+
+影响面：
+
+- <这条回答如何影响整套 deck 的结尾方式>
 
 ## 外部链接
 

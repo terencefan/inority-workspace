@@ -1,9 +1,11 @@
 ---
 name: checkin
-description: Update every independent Git repository under a workspace to the latest remote default branch while staying on the current branch, then rebase the current branch onto that refreshed default branch. Use when the user asks to "checkin", "更新所有 git 仓库主分支", "批量 rebase 工作区仓库", or wants a workspace-wide safe pull-and-rebase pass without switching branches.
+description: Update every independent Git repository under a workspace to the latest remote default branch while staying on the current branch, then rebase the current branch onto that refreshed default branch. Use when the user asks to "checkin 上班", "checkin", "更新所有 git 仓库主分支", "批量 rebase 工作区仓库", or wants a workspace-wide safe pull-and-rebase pass without switching branches.
 ---
 
 # Checkin
+
+The user-facing invocation name for this skill is `checkin 上班`.
 
 Use this skill when the user wants a workspace-wide Git sync pass that:
 

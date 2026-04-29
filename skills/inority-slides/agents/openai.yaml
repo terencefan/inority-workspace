@@ -1,4 +1,4 @@
 interface:
   display_name: "Inority Slides"
   short_description: "Plan and produce standalone slides projects."
-  default_prompt: "Use this skill to turn rough deck requirements or source materials into a reviewable slides outline, per-slide SVG wireframes, interaction notes, materials lists, and a standalone static project delivery path. Whenever you need deck-goal confirmation, section/slide clarification, or route narrowing, also load $inority-question."
+  default_prompt: "Use this skill to turn rough deck requirements or source materials into a reviewable slides outline, per-slide SVG wireframes, interaction notes, materials lists, and a standalone static project delivery path. Default both planning and implementation to the built-in assets/demo template shell. Whenever you need deck-goal confirmation, section/slide clarification, or route narrowing, also load $inority-question."

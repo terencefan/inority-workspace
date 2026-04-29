@@ -12,6 +12,7 @@ const REQUIRED_H2 = ["大纲视图", "思维脑图", "访谈记录", "外部链�
 const EXTERNAL_LINK_HEADER_RE = /^\|\s*(?:name|名称)\s*\|\s*(?:type|类型)\s*\|\s*(?:link|链接)\s*\|\s*desc\s*\|\s*$/i;
 const EXTERNAL_LINK_SEPARATOR_RE = /^\|\s*:?-{3,}:?\s*\|\s*:?-{3,}:?\s*\|\s*:?-{3,}:?\s*\|\s*:?-{3,}:?\s*\|\s*$/;
 const EXTERNAL_LINK_ROW_RE = /^\|\s*[^|]+\s*\|\s*[^|]+\s*\|\s*\[[^\]]+\]\([^)]+\)\s*\|\s*[^|]+\s*\|\s*$/;
+const SVG_PREVIEW_LINK_RE = /SVG 灯箱预览：\s*\[[^\]]+\]\([^)]+\)/;
 
 let errorCatalogCache = null;
 
@@ -130,6 +131,7 @@ function validateOutline(lines, h2Sections) {
     errors.push(err("S030", lines, firstNonEmptyLineIdx(lines, start + 1, end) ?? start));
     return errors;
   }
+  const allSlides = [];
 
   for (let i = 0; i < h3Sections.length; i += 1) {
     const [localStart, title] = h3Sections[i];
@@ -148,14 +150,26 @@ function validateOutline(lines, h2Sections) {
       continue;
     }
 
+    const [firstSlideLocalStart, firstSlideTitle] = h4Sections[0];
+    const firstSlideStart = sectionStart + firstSlideLocalStart;
+    const firstSlideEnd = h4Sections.length > 1 ? sectionStart + h4Sections[1][0] : sectionEnd;
+    const firstSlideBlock = lines.slice(firstSlideStart, firstSlideEnd).join("\n");
+    if (!firstSlideBlock.includes("章节标题页")) {
+      errors.push(err("S033", lines, firstSlideStart, null, { title }));
+    }
+
     for (let j = 0; j < h4Sections.length; j += 1) {
       const [slideLocalStart, slideTitle] = h4Sections[j];
       const slideStart = sectionStart + slideLocalStart;
       const slideEnd = j + 1 < h4Sections.length ? sectionStart + h4Sections[j + 1][0] : sectionEnd;
       const block = lines.slice(slideStart, slideEnd).join("\n");
+      allSlides.push({ title: slideTitle, lineIdx: slideStart });
       const hasGoalNote = block.includes("> [!NOTE]") && block.includes("> 页目标：") && block.includes("> QA 链接：");
       if (!hasGoalNote) {
         errors.push(err("S040", lines, slideStart, null, { title: slideTitle }));
+      }
+      if (!block.includes("- 当前 slide 类型：")) {
+        errors.push(err("S049", lines, slideStart, null, { title: slideTitle }));
       }
       if (!block.includes("<svg")) {
         errors.push(err("S041", lines, slideStart, null, { title: slideTitle }));
@@ -166,10 +180,27 @@ function validateOutline(lines, h2Sections) {
       if (!block.includes("- 素材清单：")) {
         errors.push(err("S043", lines, slideStart, null, { title: slideTitle }));
       }
+      if (!block.includes("标题：")) {
+        errors.push(err("S045", lines, slideStart, null, { title: slideTitle }));
+      }
+      if (!block.includes("文案：")) {
+        errors.push(err("S046", lines, slideStart, null, { title: slideTitle }));
+      }
+      if (!block.includes("SVG 图：")) {
+        errors.push(err("S047", lines, slideStart, null, { title: slideTitle }));
+      }
+      if (!SVG_PREVIEW_LINK_RE.test(block)) {
+        errors.push(err("S048", lines, slideStart, null, { title: slideTitle }));
+      }
       if (!block.includes("- 页级验收标准：")) {
         errors.push(err("S044", lines, slideStart, null, { title: slideTitle }));
       }
     }
+  }
+
+  const finalSlide = allSlides.at(-1);
+  if (finalSlide != null && !finalSlide.title.startsWith("致谢")) {
+    errors.push(err("S034", lines, finalSlide.lineIdx, null));
   }
 
   return errors;

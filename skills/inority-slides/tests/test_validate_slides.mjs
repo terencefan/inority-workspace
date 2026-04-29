@@ -23,13 +23,77 @@ test("slidesctl validate fails when slide block misses svg", async () => {
   const dir = mkdtempSync(path.join(os.tmpdir(), "slides-validate-"));
   try {
     const slidesPath = path.join(dir, "invalid-slides.md");
-    const invalid = loadText(SLIDES_TEMPLATE).replace("<svg viewBox=\"0 0 1200 720\" role=\"img\" aria-label=\"<Slide 1 名称> 线框图\">", "<!-- removed svg -->");
+    const invalid = loadText(SLIDES_TEMPLATE).replace(/<svg viewBox="0 0 1200 720" role="img" aria-label="[^"]+">/, "<!-- removed svg -->");
     writeFileSync(slidesPath, invalid, "utf8");
     const result = await runSlidesctl(["validate", slidesPath, "--json"]);
     assert.equal(result.status, 1);
     const payload = JSON.parse(result.stdout);
     const codes = new Set(payload.errors.map((item) => item.code));
     assert.ok(codes.has("S041"));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("slidesctl validate fails when slide block misses svg lightbox preview link", async () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "slides-validate-"));
+  try {
+    const slidesPath = path.join(dir, "invalid-preview-slides.md");
+    const invalid = loadText(SLIDES_TEMPLATE).replace(/SVG 灯箱预览：\[[^\]]+\]\([^)]+\)/, "SVG 灯箱预览：<missing>");
+    writeFileSync(slidesPath, invalid, "utf8");
+    const result = await runSlidesctl(["validate", slidesPath, "--json"]);
+    assert.equal(result.status, 1);
+    const payload = JSON.parse(result.stdout);
+    const codes = new Set(payload.errors.map((item) => item.code));
+    assert.ok(codes.has("S048"));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("slidesctl validate fails when slide block misses current slide type", async () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "slides-validate-"));
+  try {
+    const slidesPath = path.join(dir, "invalid-type-slides.md");
+    const invalid = loadText(SLIDES_TEMPLATE).replace(/- 当前 slide 类型：.*\n/, "");
+    writeFileSync(slidesPath, invalid, "utf8");
+    const result = await runSlidesctl(["validate", slidesPath, "--json"]);
+    assert.equal(result.status, 1);
+    const payload = JSON.parse(result.stdout);
+    const codes = new Set(payload.errors.map((item) => item.code));
+    assert.ok(codes.has("S049"));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("slidesctl validate fails when a section misses its title page", async () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "slides-validate-"));
+  try {
+    const slidesPath = path.join(dir, "invalid-section-title-slides.md");
+    const invalid = loadText(SLIDES_TEMPLATE).replace(/章节标题页/g, "章节开场");
+    writeFileSync(slidesPath, invalid, "utf8");
+    const result = await runSlidesctl(["validate", slidesPath, "--json"]);
+    assert.equal(result.status, 1);
+    const payload = JSON.parse(result.stdout);
+    const codes = new Set(payload.errors.map((item) => item.code));
+    assert.ok(codes.has("S033"));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("slidesctl validate fails when the last slide is not thanks", async () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "slides-validate-"));
+  try {
+    const slidesPath = path.join(dir, "invalid-thanks-slides.md");
+    const invalid = loadText(SLIDES_TEMPLATE).replace(/^#### 致谢$/m, "#### 结束总结");
+    writeFileSync(slidesPath, invalid, "utf8");
+    const result = await runSlidesctl(["validate", slidesPath, "--json"]);
+    assert.equal(result.status, 1);
+    const payload = JSON.parse(result.stdout);
+    const codes = new Set(payload.errors.map((item) => item.code));
+    assert.ok(codes.has("S034"));
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
