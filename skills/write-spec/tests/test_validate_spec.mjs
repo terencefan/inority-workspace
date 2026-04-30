@@ -46,3 +46,16 @@ test("core stdin-json payload contains expected codes", () => {
   const codes = new Set(payload.errors.map((item) => item.code));
   assert.ok(codes.has("E022"));
 });
+
+test("cli path mode validates a local file path", () => {
+  let stdout = "";
+  let stderr = "";
+  const status = main([REFERENCE_SPEC], {
+    stdin: "",
+    stdout: { write(chunk) { stdout += chunk; } },
+    stderr: { write(chunk) { stderr += chunk; } },
+  });
+  assert.equal(status, 0);
+  assert.match(stdout, /spec ok:/);
+  assert.equal(stderr, "");
+});

@@ -578,8 +578,17 @@ async function resolveLocalMarkdown(pathValue: string, options: NormalizedOption
     throw new HttpError(400, 'Path escapes workspace directory')
   }
 
+  const candidateReadme = path.join(candidate, 'README.md')
+
   try {
     const statResult = await fs.stat(candidate)
+    if (statResult.isDirectory()) {
+      const directoryReadmeStat = await fs.stat(candidateReadme)
+      if (!directoryReadmeStat.isFile()) {
+        throw new HttpError(404, 'Markdown file not found')
+      }
+      return finalizeMarkdownCandidate(candidateReadme, options)
+    }
     if (!statResult.isFile()) {
       throw new HttpError(404, 'Markdown file not found')
     }
@@ -593,6 +602,10 @@ async function resolveLocalMarkdown(pathValue: string, options: NormalizedOption
     throw error
   }
 
+  return finalizeMarkdownCandidate(candidate, options)
+}
+
+function finalizeMarkdownCandidate(candidate: string, options: NormalizedOptions): string {
   if (path.extname(candidate).toLowerCase() !== '.md') {
     throw new HttpError(400, 'Only .md files are supported')
   }
