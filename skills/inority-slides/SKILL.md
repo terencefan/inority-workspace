@@ -58,7 +58,7 @@ This skill is not for:
    - confirm each section mainline
    - confirm each slide goal
    - confirm each slide's concrete title copy, body copy, and SVG evidence shape when the page is intended to be implementation-ready
-   - classify each slide onto a known display-logic template family before treating the plan as stable
+   - align each slide onto a concrete `demo` template before treating the plan as stable
 5. Default to the built-in implementation template.
    - planning and later implementation both align to `assets/demo/`
    - treat the old `brand-fancy` wording as legacy naming; current canonical template name is `demo`
@@ -145,10 +145,13 @@ Architecture-diagram rule:
 - do not stop at boxes-and-arrows placeholders for those pages
 - the reviewer should be able to approve the real architecture graphic during planning before implementation starts
 - route diagrams to minimize edge overlap by default; if a layered architecture view is used, prefer left-to-right ordering between layers and top-to-bottom ordering inside each layer unless the source spec has a stronger layout requirement
+- all slide-facing diagram styling, palette, font, template fit, overflow control, and review shape belong to `inority-slides`; other skills may decide diagram semantics, but should not own slide diagram presentation rules
 
 Each slide should also declare:
 
-- `当前 slide 类型：<展示逻辑分类>/<变体名>`
+- `当前 slide 类型：Template xx / <demo 模板名>`
+- if the page embeds an architecture graphic or a Graphviz-derived asset, declare that asset separately from the structural wireframe and review the rendered embedded `SVG`, not only the source `DOT`
+- if a `DOT` source is useful, keep it as derivation material, but freeze the embedded `SVG` that will actually appear inside the slide
 
 Wireframe drawing rule:
 
@@ -158,17 +161,9 @@ Wireframe drawing rule:
 - if text risks overflow, shorten the copy, split it into multiple lines, reduce font size, or enlarge the box before freezing the asset
 - text overflow is a hard failure in planning assets; do not leave it for implementation-time cleanup
 
-Slide type should be based on presentation logic rather than content topic.
-Good examples are layouts and reveal structures such as:
+Slide type should align to a real `demo` template rather than a content topic.
 
-- `三段式`
-- `瀑布流`
-- `对比`
-- `时间线`
-- `单主视觉 + 右侧细节`
-- `线性链路`
-
-Do not classify slide type as “架构图页”“观测页”“权限页”这种内容标签. Prefer reusable display logic that can carry different topics.
+Do not classify slide type as “架构图页”“观测页”“权限页”这种内容标签，也不要再维护 `display-logic` 家族名作为主类型字段。页面语义可以在文案里说明，但 `当前 slide 类型` 本身应直接对齐 `demo` 模板。
 
 ## QA Density
 
@@ -193,7 +188,7 @@ Do not treat “大纲差不多” as enough confirmation.
 - every slide must have a concrete page goal
 - every slide must include inline `SVG` wireframe, interaction notes, and materials
 - every slide's materials must be implementation-ready enough to specify concrete title copy, body copy, inline wireframe intent, and a clickable handbook-reachable preview path
-- every slide must explicitly state which display-logic template family it belongs to
+- every slide must explicitly state which `demo` template it belongs to
 - architecture-heavy slides must include a full-color reviewable `SVG` target during planning, not just a structural wireframe
 - if that `SVG` target is produced from `DOT`, keep the `DOT` as source if useful, but review and freeze the rendered embedded `SVG`
 - no text in wireframes or embedded architecture SVGs may overflow outside its visual boundary, card, lane, or stage safe area

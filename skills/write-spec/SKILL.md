@@ -45,8 +45,8 @@ Make the document scroll-friendly. Structure it so a reader can keep orientation
    - existing conventions in the same repo
    - if current-state facts are needed, use them to clarify constraints and gap context, not to turn the spec into a runbook
 6. 在正文定稿前，先通过真实用户问答做访谈收敛。
-7. 只要需要向用户提问、确认方案/路径、澄清事实，或主动提出需要用户拍板的建议/推荐方案，就显式加载 `$inority-clarify`，不要在本 skill 内再并行维护另一套提问纪律。
-8. authority 定稿前，必须累计至少 `5` 轮真实用户问答；如果不足 `5` 轮，默认动作是继续通过 `$inority-clarify` 补问，而不是先宣称 spec 已收敛。
+7. 只要需要向用户提问、确认方案/路径、澄清事实，或主动提出需要用户拍板的建议/推荐方案，就显式加载 `$inority-question`；如果当前会话里这个 skill 不可用，就按同样的短问答纪律直接向用户提问，不要在本 skill 内再并行维护另一套提问规范。
+8. authority 定稿前，必须累计至少 `5` 轮真实用户问答；如果不足 `5` 轮，默认动作是继续通过 `$inority-question` 补问，而不是先宣称 spec 已收敛。
 9. Make reasonable assumptions only when the remaining gaps are small, low-risk, and do not change scope, architecture, delivery risk, or the meaning of acceptance.
 10. Write the spec in a reviewable structure with concrete decisions, not brainstorming notes.
 11. Separate confirmed facts from inferred choices. Mark assumptions explicitly.
@@ -130,8 +130,8 @@ Within the second-level heading `风险与红线`, default to exactly these two 
 
 - 写 spec 时必须保留独立的 `访谈记录` 二级标题。
 - `访谈记录` 必须至少包含 `5` 轮真实用户问答。
-- 如果当前真实问答不足 `5` 轮，默认动作是继续加载 `$inority-clarify` 补问，而不是跳过或用作者自问自答补齐。
-- `访谈记录` 的问题收敛、选项设计、和多路径拍板由 `$inority-clarify` 统一负责；本 skill 只负责把真实问答按下面的 spec 记录格式写回。
+- 如果当前真实问答不足 `5` 轮，默认动作是继续加载 `$inority-question` 补问，而不是跳过或用作者自问自答补齐。
+- `访谈记录` 的问题收敛、选项设计、和多路径拍板由 `$inority-question` 统一负责；本 skill 只负责把真实问答按下面的 spec 记录格式写回。
 - 每轮记录都要显式写出：
   - quote 内分成两段：
     - `Q：...`

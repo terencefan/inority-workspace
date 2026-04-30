@@ -15,8 +15,6 @@
 - `operation`
 - `migration`
 
-如果主交付物是 slides / PPT / 品牌 H5，请改用独立的 `inority-slides` skill，不再通过 `runbook` 分流。
-
 ## 职责边界 | Responsibilities
 
 负责：

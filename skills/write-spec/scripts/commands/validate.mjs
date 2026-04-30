@@ -325,18 +325,41 @@ function readStdin() {
   return fs.readFileSync(0, "utf8");
 }
 
+function formatCliError(error) {
+  const location = error.line == null ? "" : `:${error.line}`;
+  const content = error.content ? `\n  ${error.content}` : "";
+  return `${error.code}${location} ${error.message}${content}`;
+}
+
 export function main(argv = process.argv.slice(2), { stdin = readStdin(), stdout = process.stdout, stderr = process.stderr } = {}) {
   const useStdinJson = argv.includes("--stdin-json");
-  if (!useStdinJson) {
-    stderr.write("usage: validate.mjs --stdin-json\n");
+  if (useStdinJson) {
+    const payload = JSON.parse(stdin);
+    const text = typeof payload.text === "string" ? payload.text : "";
+    const pathValue = typeof payload.path === "string" ? payload.path : null;
+    const errors = collectErrors(text, { pathValue });
+    stdout.write(`${JSON.stringify({ errors }, null, 2)}\n`);
+    return 0;
+  }
+
+  if (argv.length !== 1) {
+    stderr.write("usage: validate.mjs --stdin-json | validate.mjs <path>\n");
     return 2;
   }
-  const payload = JSON.parse(stdin);
-  const text = typeof payload.text === "string" ? payload.text : "";
-  const pathValue = typeof payload.path === "string" ? payload.path : null;
+
+  const pathValue = path.resolve(argv[0]);
+  const text = fs.readFileSync(pathValue, "utf8");
   const errors = collectErrors(text, { pathValue });
-  stdout.write(`${JSON.stringify({ errors }, null, 2)}\n`);
-  return 0;
+  if (errors.length === 0) {
+    stdout.write(`spec ok: ${pathValue}\n`);
+    return 0;
+  }
+
+  stderr.write(`spec invalid: ${pathValue}\n`);
+  for (const error of errors) {
+    stderr.write(`${formatCliError(error)}\n`);
+  }
+  return 1;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
