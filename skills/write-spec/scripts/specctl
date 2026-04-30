@@ -7,4 +7,4 @@ if [[ "${1-}" == "validate" ]]; then
   shift
 fi
 
-exec node "$SCRIPT_DIR/validate.mjs" "$@"
+exec node "$SCRIPT_DIR/commands/validate.mjs" "$@"

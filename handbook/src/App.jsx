@@ -337,6 +337,10 @@ function buildApiPath(pathname) {
   return withBasePath(pathname)
 }
 
+function hasExternalScheme(href) {
+  return /^(?:[a-z][a-z0-9+.-]*:)?\/\//iu.test(href)
+}
+
 function resolveSlidesAssetUrl(pathname) {
   if (!pathname) {
     return ''
@@ -455,13 +459,54 @@ function pathToRoute(path) {
     return buildEntryRouteFromPath(path)
   }
 
-  if (path.endsWith('/README.md')) {
-    const directoryPath = path.slice(0, -'/README.md'.length)
-    return buildEntryRouteFromPath(directoryPath)
-  }
-
   const fallbackPath = path.startsWith('/') ? path.slice(1) : path
   return buildEntryRouteFromPath(fallbackPath)
+}
+
+function getDocumentDirectory(selectionPath) {
+  if (!selectionPath) {
+    return ''
+  }
+
+  if (selectionPath.endsWith('/README.md')) {
+    return selectionPath.slice(0, -'README.md'.length)
+  }
+
+  if (selectionPath.endsWith('.md')) {
+    const lastSlashIndex = selectionPath.lastIndexOf('/')
+    if (lastSlashIndex === -1) {
+      return ''
+    }
+    return selectionPath.slice(0, lastSlashIndex + 1)
+  }
+
+  return normalizePathname(selectionPath).replace(/^\/+/, '')
+}
+
+function resolveDocumentHref(selectionPath, href) {
+  if (!href || href.startsWith('mailto:') || href.startsWith('tel:')) {
+    return href
+  }
+
+  if (href.startsWith('#')) {
+    return `${pathToRoute(selectionPath)}${href}`
+  }
+
+  if (href.startsWith('/') || hasExternalScheme(href)) {
+    return href
+  }
+
+  const hashIndex = href.indexOf('#')
+  const hrefPath = hashIndex === -1 ? href : href.slice(0, hashIndex)
+  const hrefHash = hashIndex === -1 ? '' : href.slice(hashIndex)
+  const baseDirectory = getDocumentDirectory(selectionPath)
+  const resolvedPathname = new URL(
+    hrefPath,
+    `https://handbook.local/${baseDirectory.startsWith('/') ? baseDirectory.slice(1) : baseDirectory}`,
+  ).pathname
+  const normalizedTargetPath = resolvedPathname.startsWith('/') ? resolvedPathname.slice(1) : resolvedPathname
+
+  return `${pathToRoute(normalizedTargetPath)}${hrefHash}`
 }
 
 function resolveTreeSelectionPath(itemId, filePathSet) {
@@ -848,6 +893,21 @@ function App({ themeMode, onToggleTheme }) {
   }, [documentData.content_markdown, documentRevision, themeMode])
 
   useEffect(() => {
+    const article = articleRef.current
+    if (!article) {
+      return
+    }
+
+    for (const link of article.querySelectorAll('a[href]')) {
+      const originalHref = link.getAttribute('href') || ''
+      const resolvedHref = resolveDocumentHref(selection.path, originalHref)
+      if (resolvedHref && resolvedHref !== originalHref) {
+        link.setAttribute('href', resolvedHref)
+      }
+    }
+  }, [documentRevision, documentData.content_markdown, selection.path, themeMode])
+
+  useEffect(() => {
     const syncSelection = () => {
       const nextSelection = readSelection()
       setSelection(nextSelection)
@@ -1146,7 +1206,7 @@ function App({ themeMode, onToggleTheme }) {
       return
     }
 
-    const href = link.getAttribute('href') || ''
+    const href = resolveDocumentHref(selection.path, link.getAttribute('href') || '')
     if (!href || href.startsWith('mailto:') || href.startsWith('tel:')) {
       return
     }

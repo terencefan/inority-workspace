@@ -3,9 +3,6 @@
 > [!NOTE]
 > 当前模式：`<coding|operation|migration>`
 
-> [!NOTE]
-> slides / PPT / H5 规划已经拆分到独立 skill：`$inority-slides`
-
 ## 背景与现状
 
 ### 背景

@@ -27,6 +27,7 @@ async function createFixtureRoot(): Promise<{
   const siteDistDir = path.join(workspaceDir, 'handbook', 'src', 'dist')
 
   await mkdir(path.join(workspaceDir, 'project'), { recursive: true })
+  await mkdir(path.join(workspaceDir, 'project', 'docs'), { recursive: true })
   await mkdir(path.join(workspaceDir, '.hidden'), { recursive: true })
   await mkdir(path.join(workspaceDir, '.git', 'docs'), { recursive: true })
   await mkdir(path.join(workspaceDir, 'node_modules', 'pkg'), { recursive: true })
@@ -36,6 +37,7 @@ async function createFixtureRoot(): Promise<{
   await mkdir(path.join(siteDistDir, 'assets'), { recursive: true })
 
   await writeFile(path.join(workspaceDir, 'project', 'README.md'), '# Visible\n')
+  await writeFile(path.join(workspaceDir, 'project', 'docs', 'README.md'), '# Docs\n')
   await writeFile(path.join(workspaceDir, '.hidden', 'README.md'), '# Hidden\n')
   await writeFile(path.join(workspaceDir, '.git', 'docs', 'ignored.md'), '# Git ignored\n')
   await writeFile(path.join(workspaceDir, 'node_modules', 'pkg', 'ignored.md'), '# Module ignored\n')
@@ -139,9 +141,10 @@ test('tree payload excludes hidden markdown by default and includes file metadat
   assert.equal(response.status, 200)
   const payload = await response.json()
 
-  assert.deepEqual(payload.files, ['project/README.md', 'slides/brand-fancy', 'slides/demo-basic'])
+  assert.deepEqual(payload.files, ['project/docs/README.md', 'project/README.md', 'slides/brand-fancy', 'slides/demo-basic'])
   assert.equal(payload.file_meta['project/README.md'].bytes, Buffer.byteLength('# Visible\n'))
   assert.equal(payload.file_meta['project/README.md'].title, 'Visible')
+  assert.equal(payload.file_meta['project/docs/README.md'].title, 'Docs')
   assert.equal(payload.file_meta['slides/brand-fancy'].kind, 'slides')
   assert.equal(payload.file_meta['slides/brand-fancy'].title, 'brand-fancy')
   assert.equal(payload.file_meta['slides/demo-basic'].kind, 'slides')
@@ -149,6 +152,18 @@ test('tree payload excludes hidden markdown by default and includes file metadat
   assert.deepEqual(payload.tree, [
     {
       children: [
+        {
+          children: [
+            {
+              name: 'README.md',
+              path: 'project/docs/README.md',
+              type: 'file',
+            },
+          ],
+          name: 'docs',
+          path: 'project/docs',
+          type: 'directory',
+        },
         {
           name: 'README.md',
           path: 'project/README.md',
@@ -189,7 +204,7 @@ test('tree payload can include hidden markdown while still excluding internal ca
   assert.equal(response.status, 200)
   const payload = await response.json()
 
-  assert.deepEqual(payload.files, ['.hidden/README.md', 'project/README.md', 'slides/brand-fancy', 'slides/demo-basic'])
+  assert.deepEqual(payload.files, ['.hidden/README.md', 'project/docs/README.md', 'project/README.md', 'slides/brand-fancy', 'slides/demo-basic'])
   assert.equal(payload.file_meta['.hidden/README.md'].title, 'Hidden')
   assert.deepEqual(payload.tree, [
     {
@@ -206,6 +221,18 @@ test('tree payload can include hidden markdown while still excluding internal ca
     },
     {
       children: [
+        {
+          children: [
+            {
+              name: 'README.md',
+              path: 'project/docs/README.md',
+              type: 'file',
+            },
+          ],
+          name: 'docs',
+          path: 'project/docs',
+          type: 'directory',
+        },
         {
           name: 'README.md',
           path: 'project/README.md',
@@ -241,6 +268,26 @@ test('document endpoint serves local and remote markdown payloads', async (t) =>
   if (!server) {
     return
   }
+
+  const localDirectoryResponse = await fetch(`${server.baseUrl}/api/document?path=project`)
+  assert.equal(localDirectoryResponse.status, 200)
+  assert.deepEqual(await localDirectoryResponse.json(), {
+    active_source: 'path:project/README.md',
+    content_markdown: '# Visible\n',
+    content_type: 'markdown',
+    source_label: 'project/README.md',
+    title: 'README.md',
+  })
+
+  const nestedDirectoryResponse = await fetch(`${server.baseUrl}/api/document?path=project%2Fdocs`)
+  assert.equal(nestedDirectoryResponse.status, 200)
+  assert.deepEqual(await nestedDirectoryResponse.json(), {
+    active_source: 'path:project/docs/README.md',
+    content_markdown: '# Docs\n',
+    content_type: 'markdown',
+    source_label: 'project/docs/README.md',
+    title: 'README.md',
+  })
 
   const localResponse = await fetch(`${server.baseUrl}/api/document?path=project%2FREADME.md`)
   assert.equal(localResponse.status, 200)

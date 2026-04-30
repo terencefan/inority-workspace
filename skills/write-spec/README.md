@@ -1,7 +1,7 @@
 # Write Spec
 
-> 用于把粗糙需求、本地上下文和真实访谈收敛成可评审、可执行的 spec。  
-> Turns rough requirements, local repo context, and real interview answers into a reviewable, executable spec.
+> 用于把粗糙需求、本地上下文和真实访谈收敛成可评审的 spec。  
+> Turns rough requirements, local repo context, and real interview answers into a reviewable spec.
 
 ## 模块简介 | Overview
 
@@ -14,6 +14,7 @@
 - implementation plan
 
 它强调边界、contracts、红线行为、验收标准和真实访谈记录，并优先使用 diagram-driven 的写法。
+它默认回答“目标状态应该是什么”，而不是把 spec 扩写成执行手册。
 
 ## 职责边界 | Responsibilities
 
