@@ -57,6 +57,14 @@ function getDocumentRelativeLabel(selectionPath) {
   return selectionPath || ''
 }
 
+function getExternalLinkProtocol(url) {
+  try {
+    return new URL(url).protocol.replace(':', '').toUpperCase()
+  } catch {
+    return 'HTTP'
+  }
+}
+
 function buildTocTree(items) {
   const root = []
   const stack = []
@@ -800,6 +808,7 @@ function App({ themeMode, onToggleTheme }) {
   const [activeHeadingId, setActiveHeadingId] = useState('')
   const [collapsedTocIds, setCollapsedTocIds] = useState([])
   const [recentDocuments, setRecentDocuments] = useState(() => readRecentDocuments())
+  const [homeLinks, setHomeLinks] = useState([])
   const [documentData, setDocumentData] = useState({
     title: 'handbook',
     source_label: 'Project root',
@@ -897,6 +906,29 @@ function App({ themeMode, onToggleTheme }) {
     }
 
     loadFiles()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadHomeLinks() {
+      try {
+        const response = await fetch(buildApiPath('/api/home-links'), API_FETCH_OPTIONS)
+        const payload = await response.json()
+        if (!cancelled && response.ok) {
+          setHomeLinks(Array.isArray(payload.links) ? payload.links : [])
+        }
+      } catch {
+        if (!cancelled) {
+          setHomeLinks([])
+        }
+      }
+    }
+
+    loadHomeLinks()
     return () => {
       cancelled = true
     }
@@ -1653,6 +1685,44 @@ function App({ themeMode, onToggleTheme }) {
                   ) : (
                     <Typography className="mui-empty">
                       Open a document from the left directory tree. Recent items will appear here automatically.
+                    </Typography>
+                  )}
+                </CardContent>
+              </Card>
+            </Stack>
+
+            <Stack spacing={2} className="home-services-column" sx={{ minWidth: 0 }}>
+              <Card className="mui-panel-card">
+                <CardHeader
+                  avatar={<OpenInNewRoundedIcon color="primary" />}
+                  title="Service Shortcuts"
+                  subheader={`${homeLinks.length} configured links`}
+                  titleTypographyProps={{ variant: 'h6', fontWeight: 700 }}
+                />
+                <CardContent sx={{ pt: 0 }}>
+                  {homeLinks.length > 0 ? (
+                    <Box className="home-service-grid">
+                      {homeLinks.map((item) => (
+                        <a
+                          key={item.id}
+                          className="quick-link-card external-service-card"
+                          href={item.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <Box className="quick-link-meta">
+                            <span className="quick-link-eyebrow">{item.category || 'Service'}</span>
+                            <span className="quick-link-protocol">{getExternalLinkProtocol(item.url)}</span>
+                          </Box>
+                          <strong>{item.title}</strong>
+                          <span>{item.description}</span>
+                          <span className="quick-link-url">{item.url}</span>
+                        </a>
+                      ))}
+                    </Box>
+                  ) : (
+                    <Typography className="mui-empty">
+                      Add links to the home links JSON config to show service shortcuts here.
                     </Typography>
                   )}
                 </CardContent>

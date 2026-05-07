@@ -1,4 +1,4 @@
 interface:
   display_name: "Runbook"
   short_description: "Plan runbooks and orchestrate delivery."
-  default_prompt: "Use $runbook to produce a production-grade runbook plan and then choose solo or team delivery. Whenever planning needs a user question, route confirmation, or ambiguity reduction round, also load $inority-question."
+  default_prompt: "Use $runbook to produce a production-grade runbook plan and then choose solo or team delivery. In planning mode, always load $inority-question from the beginning and explicitly report the loaded skills/documents set in the main reply; do not wait until a question is obviously needed."

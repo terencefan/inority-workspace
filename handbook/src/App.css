@@ -529,7 +529,7 @@
 
 .home-service-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 1rem;
 }
 
@@ -873,6 +873,10 @@
 .quick-link-card span {
   color: #9da5b4;
   line-height: 1.45;
+}
+
+.external-service-card {
+  min-height: 148px;
 }
 
 .quick-link-eyebrow {
