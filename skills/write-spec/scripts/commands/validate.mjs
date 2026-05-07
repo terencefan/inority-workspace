@@ -17,6 +17,7 @@ const REQUIRED_H1 = [
   "架构总览",
   "架构分层",
   "模块划分",
+  "方案对比",
   "验收标准",
   "访谈记录",
   "参考资料",
@@ -290,6 +291,40 @@ function validateInterviewRecords(lines, h2Sections) {
   return errors;
 }
 
+function validateComparisonSection(lines, h2Sections) {
+  const errors = [];
+  const section = sectionSlice(h2Sections, "方案对比", lines.length);
+  if (section == null) {
+    return errors;
+  }
+
+  const [start, end] = section;
+  const groups = parseNestedSections(lines, start + 1, end, 3);
+  if (groups.length === 0) {
+    errors.push(err("E040", lines, start));
+    return errors;
+  }
+
+  for (const [groupStart, title, groupEnd] of groups) {
+    let hasConclusionNote = false;
+    for (let idx = groupStart + 1; idx < groupEnd; idx += 1) {
+      if (lines[idx].trim() !== "> [!NOTE]") {
+        continue;
+      }
+      const next = lines[idx + 1]?.trim() ?? "";
+      if (next.startsWith("> 对比结论：")) {
+        hasConclusionNote = true;
+        break;
+      }
+    }
+    if (!hasConclusionNote) {
+      errors.push(err("E041", lines, groupStart, title));
+    }
+  }
+
+  return errors;
+}
+
 export function collectErrors(text, { pathValue = null } = {}) {
   const normalized = text.replace(/\r\n/g, "\n");
   const lines = normalized.split("\n");
@@ -303,6 +338,7 @@ export function collectErrors(text, { pathValue = null } = {}) {
     errors.push(...validateExactSubsections(lines, h2Sections, "风险与红线", ["风险", "红线行为"], "E013"));
     errors.push(...validateBoundaryAndContractsDepth(lines, h2Sections));
     errors.push(...validateRequiredDiagrams(lines, h2Sections));
+    errors.push(...validateComparisonSection(lines, h2Sections));
     errors.push(...validateInterviewRecords(lines, h2Sections));
   }
 
@@ -325,18 +361,41 @@ function readStdin() {
   return fs.readFileSync(0, "utf8");
 }
 
+function formatCliError(error) {
+  const location = error.line == null ? "" : `:${error.line}`;
+  const content = error.content ? `\n  ${error.content}` : "";
+  return `${error.code}${location} ${error.message}${content}`;
+}
+
 export function main(argv = process.argv.slice(2), { stdin = readStdin(), stdout = process.stdout, stderr = process.stderr } = {}) {
   const useStdinJson = argv.includes("--stdin-json");
-  if (!useStdinJson) {
-    stderr.write("usage: validate.mjs --stdin-json\n");
+  if (useStdinJson) {
+    const payload = JSON.parse(stdin);
+    const text = typeof payload.text === "string" ? payload.text : "";
+    const pathValue = typeof payload.path === "string" ? payload.path : null;
+    const errors = collectErrors(text, { pathValue });
+    stdout.write(`${JSON.stringify({ errors }, null, 2)}\n`);
+    return 0;
+  }
+
+  if (argv.length !== 1) {
+    stderr.write("usage: validate.mjs --stdin-json | validate.mjs <path>\n");
     return 2;
   }
-  const payload = JSON.parse(stdin);
-  const text = typeof payload.text === "string" ? payload.text : "";
-  const pathValue = typeof payload.path === "string" ? payload.path : null;
+
+  const pathValue = path.resolve(argv[0]);
+  const text = fs.readFileSync(pathValue, "utf8");
   const errors = collectErrors(text, { pathValue });
-  stdout.write(`${JSON.stringify({ errors }, null, 2)}\n`);
-  return 0;
+  if (errors.length === 0) {
+    stdout.write(`spec ok: ${pathValue}\n`);
+    return 0;
+  }
+
+  stderr.write(`spec invalid: ${pathValue}\n`);
+  for (const error of errors) {
+    stderr.write(`${formatCliError(error)}\n`);
+  }
+  return 1;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

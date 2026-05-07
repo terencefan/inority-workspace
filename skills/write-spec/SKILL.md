@@ -45,8 +45,8 @@ Make the document scroll-friendly. Structure it so a reader can keep orientation
    - existing conventions in the same repo
    - if current-state facts are needed, use them to clarify constraints and gap context, not to turn the spec into a runbook
 6. 在正文定稿前，先通过真实用户问答做访谈收敛。
-7. 只要需要向用户提问、确认方案/路径、澄清事实，或主动提出需要用户拍板的建议/推荐方案，就显式加载 `$inority-clarify`，不要在本 skill 内再并行维护另一套提问纪律。
-8. authority 定稿前，必须累计至少 `5` 轮真实用户问答；如果不足 `5` 轮，默认动作是继续通过 `$inority-clarify` 补问，而不是先宣称 spec 已收敛。
+7. 只要需要向用户提问、确认方案/路径、澄清事实，或主动提出需要用户拍板的建议/推荐方案，就显式加载 `$inority-question`；如果当前会话里这个 skill 不可用，就按同样的短问答纪律直接向用户提问，不要在本 skill 内再并行维护另一套提问规范。
+8. authority 定稿前，必须累计至少 `5` 轮真实用户问答；如果不足 `5` 轮，默认动作是继续通过 `$inority-question` 补问，而不是先宣称 spec 已收敛。
 9. Make reasonable assumptions only when the remaining gaps are small, low-risk, and do not change scope, architecture, delivery risk, or the meaning of acceptance.
 10. Write the spec in a reviewable structure with concrete decisions, not brainstorming notes.
 11. Separate confirmed facts from inferred choices. Mark assumptions explicitly.
@@ -76,9 +76,10 @@ Unless the user asks for a narrower format, include these sections:
 6. `架构总览`
 7. `架构分层`
 8. `模块划分`
-9. `验收标准`
-10. `访谈记录`
-11. `参考资料`
+9. `方案对比`
+10. `验收标准`
+11. `访谈记录`
+12. `参考资料`
 
 Prefer the Chinese section names above when no repo-specific template exists. Rename them only when the surrounding project already uses a stable convention or the user explicitly asks for another heading style.
 
@@ -100,6 +101,7 @@ Use exactly these content-level second-level headings by default:
 - `架构总览`
 - `架构分层`
 - `模块划分`
+- `方案对比`
 - `验收标准`
 - `访谈记录`
 - `参考资料`
@@ -130,8 +132,8 @@ Within the second-level heading `风险与红线`, default to exactly these two 
 
 - 写 spec 时必须保留独立的 `访谈记录` 二级标题。
 - `访谈记录` 必须至少包含 `5` 轮真实用户问答。
-- 如果当前真实问答不足 `5` 轮，默认动作是继续加载 `$inority-clarify` 补问，而不是跳过或用作者自问自答补齐。
-- `访谈记录` 的问题收敛、选项设计、和多路径拍板由 `$inority-clarify` 统一负责；本 skill 只负责把真实问答按下面的 spec 记录格式写回。
+- 如果当前真实问答不足 `5` 轮，默认动作是继续加载 `$inority-question` 补问，而不是跳过或用作者自问自答补齐。
+- `访谈记录` 的问题收敛、选项设计、和多路径拍板由 `$inority-question` 统一负责；本 skill 只负责把真实问答按下面的 spec 记录格式写回。
 - 每轮记录都要显式写出：
   - quote 内分成两段：
     - `Q：...`
@@ -305,6 +307,20 @@ Only keep cross-section prose and formatting guidance here. Title hierarchy and 
 - Product wireframes should default to square-corner rectangles; avoid rounded boxes unless the document is intentionally emphasizing architecture rather than UI surface.
 - When listing fields, prefer a Markdown table with columns such as `字段名 | 字段描述` instead of a bullet list. Use this especially for schemas, outputs, required fields, optional fields, and report sections that enumerate structured fields.
 - For tool design sections, prefer list-style presentation over tables. A good default shape is one tool per bullet, followed by short labeled lines such as `输入` / `输出` / `用途` when helpful.
+
+### 方案对比与灯号
+
+- spec 默认保留独立的 `## 方案对比` 二级标题，位置固定在 `## 模块划分` 之后、`## 验收标准` 之前；不要把重要方案对比长期埋在 `边界与契约`、`风险与红线` 或其他正文段落里。
+- `## 方案对比` 下每个三级标题必须是一组具体对比，例如 `### kubelet/cAdvisor 采集链路方案对比`、`### 数据流分层方案对比`。
+- 当 spec 需要对比多个方案、路线、架构形态、数据流或控制流时，默认使用 Markdown 表格，并在每个方案单元格前加红黄绿灯号，直观表达该方案在该维度上的优劣。
+- 灯号含义固定为：
+  - `🟢`：优势明显、匹配度高、复杂度低，或风险低。
+  - `🟡`：可接受但需要约束、观察、补偿措施，或存在中等不确定性。
+  - `🔴`：劣势明显、风险高、复杂度高，或与当前目标 / 现状不匹配。
+- 对比表不能只给灯号；灯号后必须跟一句具体原因，例如 `🟢 路径短，复用现有 collector`。
+- 每组对比必须包含 GitHub Note 风格的结论块，格式为 `> [!NOTE]` 后接 `> 对比结论：...`，明确当前推荐、备选条件和不选择路径。
+- 如果表格有最终推荐方案，增加一行 `首选结论`、`推荐结论` 或等价维度，用灯号标出当前推荐与备选；这不能替代 Note 结论块。
+- 灯号评价必须服务于当前 spec 的评审目标；同一个方案在不同环境下可以有不同灯号，必须写清评价上下文，例如 `canary 当前链路`、`dev 当前链路`、`生产隔离风险`。
 
 ### 收口与扩展
 
