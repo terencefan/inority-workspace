@@ -7,45 +7,4 @@ if [[ "${1-}" == "validate" ]]; then
   shift
 fi
 
-if [[ $# -ne 1 ]]; then
-  echo "usage: specctl validate <path>" >&2
-  exit 2
-fi
-
-TARGET_PATH="$1"
-VALIDATOR="$SCRIPT_DIR/commands/validate.mjs"
-
-node - "$TARGET_PATH" "$VALIDATOR" <<'NODE'
-const fs = require("fs");
-const { spawnSync } = require("child_process");
-
-const targetPath = process.argv[2];
-const validator = process.argv[3];
-const text = fs.readFileSync(targetPath, "utf8");
-const payload = JSON.stringify({ path: targetPath, text });
-const result = spawnSync(process.execPath, [validator, "--stdin-json"], {
-  input: payload,
-  encoding: "utf8",
-});
-
-if (result.stderr) {
-  process.stderr.write(result.stderr);
-}
-
-if (result.status !== 0) {
-  process.stdout.write(result.stdout || "");
-  process.exit(result.status);
-}
-
-const parsed = JSON.parse(result.stdout);
-if (parsed.errors.length > 0) {
-  process.stdout.write(`[spec-validator] FAIL ${targetPath}\n`);
-  for (const error of parsed.errors) {
-    const line = error.line ? `:${error.line}` : "";
-    process.stdout.write(`- ${error.code}${line} ${error.message || ""}\n`);
-  }
-  process.exit(1);
-}
-
-process.stdout.write(`[spec-validator] PASS ${targetPath}\n`);
-NODE
+exec node "$SCRIPT_DIR/commands/validate.mjs" "$@"

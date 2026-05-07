@@ -17,6 +17,7 @@ const REQUIRED_H1 = [
   "架构总览",
   "架构分层",
   "模块划分",
+  "方案对比",
   "验收标准",
   "访谈记录",
   "参考资料",
@@ -290,6 +291,40 @@ function validateInterviewRecords(lines, h2Sections) {
   return errors;
 }
 
+function validateComparisonSection(lines, h2Sections) {
+  const errors = [];
+  const section = sectionSlice(h2Sections, "方案对比", lines.length);
+  if (section == null) {
+    return errors;
+  }
+
+  const [start, end] = section;
+  const groups = parseNestedSections(lines, start + 1, end, 3);
+  if (groups.length === 0) {
+    errors.push(err("E040", lines, start));
+    return errors;
+  }
+
+  for (const [groupStart, title, groupEnd] of groups) {
+    let hasConclusionNote = false;
+    for (let idx = groupStart + 1; idx < groupEnd; idx += 1) {
+      if (lines[idx].trim() !== "> [!NOTE]") {
+        continue;
+      }
+      const next = lines[idx + 1]?.trim() ?? "";
+      if (next.startsWith("> 对比结论：")) {
+        hasConclusionNote = true;
+        break;
+      }
+    }
+    if (!hasConclusionNote) {
+      errors.push(err("E041", lines, groupStart, title));
+    }
+  }
+
+  return errors;
+}
+
 export function collectErrors(text, { pathValue = null } = {}) {
   const normalized = text.replace(/\r\n/g, "\n");
   const lines = normalized.split("\n");
@@ -303,6 +338,7 @@ export function collectErrors(text, { pathValue = null } = {}) {
     errors.push(...validateExactSubsections(lines, h2Sections, "风险与红线", ["风险", "红线行为"], "E013"));
     errors.push(...validateBoundaryAndContractsDepth(lines, h2Sections));
     errors.push(...validateRequiredDiagrams(lines, h2Sections));
+    errors.push(...validateComparisonSection(lines, h2Sections));
     errors.push(...validateInterviewRecords(lines, h2Sections));
   }
 
