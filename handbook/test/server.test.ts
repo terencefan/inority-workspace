@@ -236,6 +236,57 @@ test('tree payload can include hidden markdown while still excluding internal ca
   ])
 })
 
+test('home links payload is loaded from JSON config and filters invalid entries', async (t) => {
+  const rootDir = await mkdtemp(path.join(tmpdir(), 'handbook-home-links-'))
+  const homeLinksFile = path.join(rootDir, 'home-links.json')
+  await writeFile(
+    homeLinksFile,
+    JSON.stringify({
+      links: [
+        {
+          id: 'grafana',
+          title: 'Grafana',
+          category: 'Observability',
+          description: 'Dashboards',
+          url: 'https://grafana.example.test/login',
+        },
+        {
+          id: 'grafana',
+          title: 'Duplicate',
+          url: 'https://duplicate.example.test/',
+        },
+        {
+          title: 'No URL',
+          url: '',
+        },
+        {
+          title: 'Unsupported protocol',
+          url: 'ftp://storage.example.test/',
+        },
+      ],
+    }),
+  )
+
+  const server = await startServer(t, { homeLinksFile })
+  if (!server) {
+    return
+  }
+  const response = await fetch(`${server.baseUrl}/api/home-links`)
+
+  assert.equal(response.status, 200)
+  assert.deepEqual(await response.json(), {
+    links: [
+      {
+        category: 'Observability',
+        description: 'Dashboards',
+        id: 'grafana',
+        title: 'Grafana',
+        url: 'https://grafana.example.test/login',
+      },
+    ],
+  })
+})
+
 test('document endpoint serves local and remote markdown payloads', async (t) => {
   const server = await startServer(t)
   if (!server) {

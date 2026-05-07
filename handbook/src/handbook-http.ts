@@ -48,10 +48,23 @@ type TreeResponse = {
 
 type DocumentResponse = MarkdownPayload
 
+type HomeLink = {
+  category: string
+  description: string
+  id: string
+  title: string
+  url: string
+}
+
+type HomeLinksResponse = {
+  links: HomeLink[]
+}
+
 export type HandbookServerOptions = {
   fetchImpl?: FetchLike
   graphvizCommandPath?: string
   graphvizModulePath?: string
+  homeLinksFile?: string
   ripgrepCommandPath?: string
   siteDistDir: string
   showHiddenInTree?: boolean
@@ -62,6 +75,7 @@ type NormalizedOptions = {
   fetchImpl: FetchLike
   graphvizCommandPathResolved: string
   graphvizModulePathResolved: string
+  homeLinksFileResolved: string
   ripgrepCommandPathResolved: string
   siteDistDirResolved: string
   showHiddenInTree: boolean
@@ -397,6 +411,7 @@ function normalizeOptions(options: HandbookServerOptions): NormalizedOptions {
       appRoot,
       options.graphvizModulePath,
     ),
+    homeLinksFileResolved: path.resolve(options.homeLinksFile || path.join(appRoot, 'src', 'home-links.json')),
     ripgrepCommandPathResolved: options.ripgrepCommandPath || DEFAULT_RIPGREP_COMMAND,
     showHiddenInTree: Boolean(options.showHiddenInTree),
     workspaceDirResolved: path.resolve(options.workspaceDir),
@@ -446,6 +461,12 @@ async function routeRequest(
     return
   }
 
+  if (requestUrl.pathname === '/api/home-links') {
+    const payload = await loadHomeLinksPayload(options)
+    sendJson(response, 200, payload, method)
+    return
+  }
+
   if (requestUrl.pathname === '/api/document') {
     const payload = await loadDocumentPayload(requestUrl, options)
     sendJson(response, 200, payload, method)
@@ -478,6 +499,27 @@ async function loadTreePayload(options: NormalizedOptions): Promise<TreeResponse
     files,
     tree: buildTree(files),
   }
+}
+
+async function loadHomeLinksPayload(options: NormalizedOptions): Promise<HomeLinksResponse> {
+  let rawConfig: string
+  try {
+    rawConfig = await fs.readFile(options.homeLinksFileResolved, 'utf8')
+  } catch (error) {
+    if (isMissingFileError(error)) {
+      return { links: [] }
+    }
+    throw error
+  }
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(rawConfig)
+  } catch {
+    throw new HttpError(500, 'Home links config must be valid JSON')
+  }
+
+  return { links: parseHomeLinks(parsed) }
 }
 
 async function loadDocumentPayload(
@@ -733,6 +775,55 @@ function buildSlidesPayload(project: SlidesProject): MarkdownPayload {
     slides_url: `${SLIDES_STATIC_PREFIX}${project.entryRelativePath.replace(/^slides\//u, '')}`,
     source_label: project.id,
     title: project.title,
+  }
+}
+
+function parseHomeLinks(config: unknown): HomeLink[] {
+  const entries = Array.isArray(config)
+    ? config
+    : config && typeof config === 'object' && Array.isArray((config as { links?: unknown }).links)
+      ? (config as { links: unknown[] }).links
+      : []
+  const seenIds = new Set<string>()
+  const links: HomeLink[] = []
+
+  for (const entry of entries) {
+    if (!entry || typeof entry !== 'object') {
+      continue
+    }
+
+    const item = entry as Record<string, unknown>
+    const title = typeof item.title === 'string' ? item.title.trim() : ''
+    const url = typeof item.url === 'string' ? item.url.trim() : ''
+    if (!title || !isHttpUrl(url)) {
+      continue
+    }
+
+    const fallbackId = title.toLowerCase().replace(/[^a-z0-9]+/gu, '-').replace(/^-|-$/gu, '') || url
+    const rawId = typeof item.id === 'string' && item.id.trim() ? item.id.trim() : fallbackId
+    if (seenIds.has(rawId)) {
+      continue
+    }
+
+    seenIds.add(rawId)
+    links.push({
+      category: typeof item.category === 'string' && item.category.trim() ? item.category.trim() : 'Service',
+      description: typeof item.description === 'string' ? item.description.trim() : '',
+      id: rawId,
+      title,
+      url,
+    })
+  }
+
+  return links
+}
+
+function isHttpUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value)
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+  } catch {
+    return false
   }
 }
 

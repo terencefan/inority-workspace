@@ -1,0 +1,39 @@
+{
+  "links": [
+    {
+      "id": "k8s-dashboard",
+      "title": "K8s Dashboard",
+      "category": "Kubernetes",
+      "description": "Cluster workload and resource dashboard",
+      "url": "http://k8s-dashboard.data.pjlab.in/"
+    },
+    {
+      "id": "grafana",
+      "title": "Grafana",
+      "category": "Observability",
+      "description": "Metrics, logs, traces, and service dashboards",
+      "url": "http://grafana.data.pjlab.in/dashboards"
+    },
+    {
+      "id": "minio-console",
+      "title": "MinIO Console",
+      "category": "Storage",
+      "description": "S3-compatible object storage console",
+      "url": "http://minio-console.data.pjlab.in/"
+    },
+    {
+      "id": "ceph-dashboard",
+      "title": "Ceph Dashboard",
+      "category": "Storage",
+      "description": "Ceph provider plane dashboard",
+      "url": "http://ceph-dashboard.data.pjlab.in/"
+    },
+    {
+      "id": "pgadmin",
+      "title": "pgAdmin",
+      "category": "Database",
+      "description": "PostgreSQL administration console for shared-postgresql",
+      "url": "http://pgadmin.data.pjlab.in/"
+    }
+  ]
+}

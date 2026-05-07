@@ -66,7 +66,26 @@ canary 相关的入口、`dev3` 边界和 `canary-env` 继承规则统一放在�
 2. `operation`
 3. `migration`
 
-进入正文规划前，主 rollout 必须先判定当前 runbook 属于哪一种主类型，再按需加载对应子文档：
+进入正文规划前，主 rollout 必须先判定当前 runbook 属于哪一种主类型，再按需加载对应子文档。
+
+规划态还额外有一个强制加载约束：
+
+- 只要当前处于 `$runbook` 规划态，就默认同时加载 `$inority-question`
+- 不要等到“感觉需要提问时”才临时想起来加载；规划态从一开始就带着它进入
+- 原因不是每一轮都必须立刻提问，而是规划态天然承担：
+  - ambiguity 收敛
+  - 路径拍板
+  - 访谈记录留档
+  - 10% gate 前的用户确认
+- 唯一允许不加载 `$inority-question` 的情况，是当前运行环境里这个 skill 客观不可用；这时主 rollout 也必须在主回复里显式说明“原本应加载 `$inority-question`，但当前不可用，因此退回到同纪律的直接提问”
+
+因此，规划态的默认加载集合是：
+
+- `$runbook`
+- `references/<type>-runbook.md`
+- `$inority-question`
+
+只有在确实需要图时，才额外补 `$draw-dot`。
 
 - `coding` -> `references/coding-runbook.md`
 - `operation` -> `references/operation-runbook.md`
@@ -77,10 +96,12 @@ canary 相关的入口、`dev3` 边界和 `canary-env` 继承规则统一放在�
 
 - 默认只加载一个主类型子文档，不要无差别把三个子文档都读进来。
 - 如果任务跨类型，先选一个主类型承载主路径，其余类型只在确实影响执行路径、回滚或验收时再补充加载。
-- 每次加载子文档时，主 rollout 都必须在主回复里显式说明：
+- 每次进入规划态或发生加载集合变化时，主 rollout 都必须在主回复里显式回报“已加载信息”：
   - 当前判定的 runbook 类型
-  - 本次加载了哪一个子文档
-  - 为什么要加载它
+  - 本次已加载的 skill / 子文档列表
+  - 每一项为什么要加载
+- 这里的“已加载信息”不是可选礼貌说明，而是规划态 authority surface 的一部分；如果没有这段回报，就视为本轮规划态说明不完整
+- 在规划态里，`$inority-question` 必须默认出现在这份已加载列表里；如果没有出现，只能说明本轮漏加载或漏汇报
 - 如果额外加载了 `$draw-dot`，也必须显式说明本次要产出的图类型，以及为什么这张图会影响 authority 收敛
 - 通过 `$draw-dot` 生成 Graphviz DOT 图时，默认优先沿用 `references/authority-runbook-template.md` 里的 DOT 骨架；至少要满足当前 validator 的硬约束：
   - 显式使用 `Noto Sans CJK SC`
@@ -189,7 +210,7 @@ canary 相关的入口、`dev3` 边界和 `canary-env` 继承规则统一放在�
 - 规划顺序是硬约束：
   1. 先完整读懂当前 runbook / 需求 / 现场证据
   2. 如果输入主体是 spec，先冻结当前现状，并对照 spec 目标做差异分析
-  3. 再补真实用户问答；只要需要向用户提问、确认路径、澄清事实，或主动提出需要用户拍板的建议/推荐方案，就显式加载 `$inority-clarify`；必要时再补只读侦察
+  3. 再补真实用户问答；规划态默认已经加载 `$inority-question`，只要需要向用户提问、确认路径、澄清事实，或主动提出需要用户拍板的建议/推荐方案，就直接通过它发起；必要时再补只读侦察
   4. 问答、侦察和差异分析把关键边界收敛后，才允许重构或大改 runbook 正文
   5. `## 思维脑图` 必须最后基于真实访谈记录与侦察证据落图，不能先画占位版
 - 规划的首要任务不是“补字数”，而是去掉会影响后续执行形状的未决项。
@@ -208,8 +229,8 @@ canary 相关的入口、`dev3` 边界和 `canary-env` 继承规则统一放在�
   - “确认 X”
   - “核定 X”
   - “统一 X”
-- 正确做法是：显式加载 `$inority-clarify`，按它的共享提问纪律写出当前不确定性、给出 `2-4` 个具体选项，并在拍板前把 downstream item 标成 blocked / gate。
-- 如果执行态带回了新的 blocker / 新事实，先把它们当成新的规划输入，再重新通过 `$inority-clarify` 发起下一轮澄清；不要把执行遇阻伪装成“继续执行的一部分”。
+- 正确做法是：通过已加载的 `$inority-question`，按它的共享提问纪律写出当前不确定性、给出 `2-4` 个具体选项，并在拍板前把 downstream item 标成 blocked / gate。
+- 如果执行态带回了新的 blocker / 新事实，先把它们当成新的规划输入，再重新通过 `$inority-question` 发起下一轮澄清；不要把执行遇阻伪装成“继续执行的一部分”。
 
 ## 10% Gate
 
@@ -245,15 +266,15 @@ canary 相关的入口、`dev3` 边界和 `canary-env` 继承规则统一放在�
 - 用户给的 runbook 与最新现场事实冲突
 - 用户给的 runbook 同时保留多个 materially different 路线
 
-命中这些情况时，显式加载 `$inority-clarify`。
+命中这些情况时，使用规划态默认已加载的 `$inority-question`。
 
-- `$inority-clarify` 负责共享提问纪律：
+- `$inority-question` 负责共享提问纪律：
   - 每轮只问一个问题
   - 每轮只围绕一个维度
   - 问题里带上当前目标、当前 ambiguity、当前最高风险
   - 如有必要，给出 `2-4` 个具体选项与取舍
 - authority 定稿前，必须累计至少 `5` 条真实的用户访谈记录；如果当前 runbook 没有 `## 访谈记录`，或记录数少于 `5`，主 rollout 必须继续补问，不能跳过。
-- 如果发现真实用户问答不足，默认动作不是先改文档，而是继续通过 `$inority-clarify` 提问；只有当这轮补问已经把关键边界收敛下来，才允许开始重构正文。
+- 如果发现真实用户问答不足，默认动作不是先改文档，而是继续通过 `$inority-question` 提问；只有当这轮补问已经把关键边界收敛下来，才允许开始重构正文。
 
 ## 何时必须侦察
 
@@ -290,6 +311,7 @@ authority runbook 的标准大纲放在独立文件里：
 authority 定稿前还必须通过统一控制入口：
 
 - [scripts/runctl](./scripts/runctl)
+- [scripts/runctl.mjs](./scripts/runctl.mjs)
 - [references/validator-error-codes.yaml](./references/validator-error-codes.yaml)
 
 `runctl` 串行约束：
@@ -300,11 +322,14 @@ authority 定稿前还必须通过统一控制入口：
 - 不要把两个 `runctl` 命令放到并发子代理、后台任务、或同一轮多路 shell 里同时跑，即使它们看起来是在改不同 section。
 - 每次 `runctl` 调用都必须等待前一条命令完整结束，并先读取退出码与写回结果，再决定下一条 `runctl`。
 - 在 `team` / `solo` 执行态里，这条串行约束同样成立；并行只允许发生在只读分析或纯证据采集上，不允许发生在同一 authority 文件的 `runctl` 写入上。
+- `scripts/runctl` 是 shell wrapper，不要写成 `python3 scripts/runctl ...`。
+- 如果当前沙箱或 wrapper 入口异常，改用等价底层入口 `node scripts/runctl.mjs ...`；不要退回到 Python 调用。
+- 新建 authority 时优先用 `init`、`add-step`、`add-qa`、`sync-records` 生成和同步骨架，避免手写漏掉 validator 要求的 alert、anchor、jump-link、执行记录字段和记录区对齐。
 
 常规工作流：
 
 1. 新建空白 authority：
-   `python3 scripts/runctl init <topic>-runbook.md`
+   `scripts/runctl init <topic>-runbook.md`
 2. 增量编辑结构：
    `add-step` / `add-qa` / `move-step` / `remove-step`
 3. 收口结构细节：
@@ -317,19 +342,19 @@ authority 定稿前还必须通过统一控制入口：
 只有当执行出问题、忘了参数、或需要确认完整 CLI 形状时，再看帮助：
 
 ```bash
-python3 scripts/runctl --help
+scripts/runctl --help
 ```
 
 初始化：
 
 ```bash
-python3 scripts/runctl init <topic>-runbook.md
+scripts/runctl init <topic>-runbook.md
 ```
 
 如果需要顺手替掉标题占位：
 
 ```bash
-python3 scripts/runctl init <topic>-runbook.md --title "<主题>执行手册"
+scripts/runctl init <topic>-runbook.md --title "<主题>执行手册"
 ```
 
 `init` 会从 authority 模板生成一份空白 runbook，后续 LLM 只需要按章节逐段填写，不需要自己从零搭正文骨架。
@@ -337,7 +362,7 @@ python3 scripts/runctl init <topic>-runbook.md --title "<主题>执行手册"
 计划区与访谈记录编辑：
 
 ```bash
-python3 scripts/runctl add-step <topic>-runbook.md --title "<步骤标题>" --after <n>
+scripts/runctl add-step <topic>-runbook.md --title "<步骤标题>" --after <n>
 ```
 
 如果不传 `--after`，默认追加到当前最后一个编号项后面。
@@ -345,13 +370,13 @@ python3 scripts/runctl add-step <topic>-runbook.md --title "<步骤标题>" --af
 `add-step` 会同时在 `## 执行计划` 和 `## 执行记录` 插入同标题的新编号项，并自动补齐最小可编辑骨架，后续 LLM 只需要专注填该步骤的正文内容。
 
 ```bash
-python3 scripts/runctl add-qa <topic>-runbook.md --question "<Q>" --answer "<A>" --time "<访谈时间>" --impact "<影响面>"
+scripts/runctl add-qa <topic>-runbook.md --question "<Q>" --answer "<A>" --time "<访谈时间>" --impact "<影响面>"
 ```
 
 `add-qa` 会在 `## 访谈记录` 末尾追加一条标准形态的问答记录，写成 `### Q：...`、`> A：...`，必填语义的 `访谈时间：...`，空一行后写正文影响面行；如果没有传 `--time`，脚本默认填当前本地时间。
 
 ```bash
-python3 scripts/runctl move-step <topic>-runbook.md --item <n> --after <m>
+scripts/runctl move-step <topic>-runbook.md --item <n> --after <m>
 ```
 
 如果 `--after 0`，表示把该步骤移到最前。
@@ -359,7 +384,7 @@ python3 scripts/runctl move-step <topic>-runbook.md --item <n> --after <m>
 `move-step` 会同时重排 `## 执行计划` 和 `## 执行记录` 的对应编号项，后续只需要继续编辑移动后的正文。
 
 ```bash
-python3 scripts/runctl remove-step <topic>-runbook.md --item <n>
+scripts/runctl remove-step <topic>-runbook.md --item <n>
 ```
 
 `remove-step` 会同时删除 `## 执行计划` 和 `## 执行记录` 里的对应步骤，并在写回前过一轮 normalize + validate。
@@ -367,13 +392,13 @@ python3 scripts/runctl remove-step <topic>-runbook.md --item <n>
 结构整理与校验：
 
 ```bash
-python3 scripts/runctl normalize <topic>-runbook.md
+scripts/runctl normalize <topic>-runbook.md
 ```
 
 `normalize` 会把编号、item anchor、执行/验收跳转链接整理到标准形态。
 
 ```bash
-python3 scripts/runctl validate <topic>-runbook.md
+scripts/runctl validate <topic>-runbook.md
 ```
 
 `validate` 在真正校验前，会先自动执行一轮与 `normalize` 相同的整理，再做结构检查。LLM 在起草这些带编号的小节时，不需要先手工抠编号细节；只要：
@@ -388,7 +413,7 @@ python3 scripts/runctl validate <topic>-runbook.md
 编号与记录同步：
 
 ```bash
-python3 scripts/runctl shift-items <topic>-runbook.md --start <x> --shift <n> --in-place
+scripts/runctl shift-items <topic>-runbook.md --start <x> --shift <n> --in-place
 ```
 
 这个辅助脚本会把现有 `x..末尾` 的 item 统一改成 `x+n..末尾+n`，同时更新：
@@ -403,7 +428,7 @@ python3 scripts/runctl shift-items <topic>-runbook.md --start <x> --shift <n> --
 改完后，runbook 中会空出 `x..x+n-1` 这些编号槽位，后续 agent 可以直接把新的编号项插进中间。
 
 ```bash
-python3 scripts/runctl sync-records <topic>-runbook.md
+scripts/runctl sync-records <topic>-runbook.md
 ```
 
 `sync-records` 会按 `## 执行计划` 的编号与标题重建/补齐 `## 执行记录` 的步骤骨架，适合 LLM 先专注写计划区、再统一补记录区。
@@ -418,20 +443,21 @@ python3 scripts/runctl sync-records <topic>-runbook.md
 并在写回前强制跑整份 validator；只有通过才会真正落盘。
 
 ```bash
-python3 scripts/runctl sign-step <topic>-runbook.md --item <n> --phase execution
+scripts/runctl sign-step <topic>-runbook.md --item <n> --phase execution
 ```
 
 ```bash
-python3 scripts/runctl sign-step <topic>-runbook.md --item <n> --phase acceptance
+scripts/runctl sign-step <topic>-runbook.md --item <n> --phase acceptance
 ```
 
 如果需要显式 signer 或固定时间戳：
 
 ```bash
-python3 scripts/runctl sign-step <topic>-runbook.md --item <n> --phase execution --signer codex --timestamp '2026-04-23 10:30 +0800'
+scripts/runctl sign-step <topic>-runbook.md --item <n> --phase execution --signer codex --timestamp '2026-04-23 10:30 +0800'
 ```
 
 凡是模板和 validator 已能稳定检测的禁写项与格式细节，例如禁用章节名、问答简写、脑图字体、占位签名、anchor / jump-link 形状，以及 `## 执行计划` / `## 执行记录` 的对齐关系，统一以脚本报错为准；不要在 skill 正文里再维护一套并行禁写清单。
+如果手工重写了大段正文，必须立即跑 `scripts/runctl validate <topic>-runbook.md`，并按错误码修到通过后再向用户声明 authority 可执行。
 
 ## 规划输出要求
 
@@ -599,7 +625,7 @@ python3 scripts/runctl sign-step <topic>-runbook.md --item <n> --phase execution
 
 此外还必须满足：
 
-- `python3 scripts/runctl validate <topic>-runbook.md` 返回 `0`
+- `scripts/runctl validate <topic>-runbook.md` 返回 `0`
 
 ## 停止条件
 

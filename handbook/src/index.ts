@@ -12,6 +12,7 @@ const DEFAULT_SITE_DIST_DIR = path.join(APP_DIR, 'src', 'dist')
 const DEFAULT_GRAPHVIZ_MODULE_PATH = REQUIRE_FROM_APP.resolve('@viz-js/viz')
 const DEFAULT_RIPGREP_COMMAND_PATH = process.env.HANDBOOK_RG_COMMAND || 'rg'
 const DEFAULT_WORKSPACE_DIR = path.resolve(APP_DIR, '..')
+const DEFAULT_HOME_LINKS_FILE = path.join(APP_DIR, 'src', 'home-links.json')
 
 const host = process.env.HANDBOOK_HOST || '0.0.0.0'
 const port = Number(process.env.HANDBOOK_PORT || '18080')
@@ -24,6 +25,7 @@ const siteDistDir =
 const server = createHandbookServer({
   graphvizCommandPath: DEFAULT_GRAPHVIZ_COMMAND_PATH,
   graphvizModulePath: process.env.HANDBOOK_GRAPHVIZ_MODULE_PATH || DEFAULT_GRAPHVIZ_MODULE_PATH,
+  homeLinksFile: process.env.HANDBOOK_HOME_LINKS_FILE || DEFAULT_HOME_LINKS_FILE,
   ripgrepCommandPath: DEFAULT_RIPGREP_COMMAND_PATH,
   siteDistDir,
   showHiddenInTree,
