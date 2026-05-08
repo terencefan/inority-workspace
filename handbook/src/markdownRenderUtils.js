@@ -19,3 +19,29 @@ export function isRenderableSvgSource(language, source) {
 
   return false
 }
+
+export function parseCitationMarkers(source) {
+  if (typeof source !== 'string' || source.length === 0) {
+    return []
+  }
+
+  const parts = []
+  const markerPattern = /\[@([1-9]\d*)\]/gu
+  let lastIndex = 0
+  let match
+
+  while ((match = markerPattern.exec(source)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({ type: 'text', value: source.slice(lastIndex, match.index) })
+    }
+
+    parts.push({ type: 'citation', value: match[1] })
+    lastIndex = markerPattern.lastIndex
+  }
+
+  if (lastIndex < source.length) {
+    parts.push({ type: 'text', value: source.slice(lastIndex) })
+  }
+
+  return parts
+}

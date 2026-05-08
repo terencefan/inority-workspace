@@ -56,6 +56,7 @@ canary 相关的入口、`dev3` 边界和 `canary-env` 继承规则统一放在�
 - 新建或迁移 authority runbook 时，默认放到目标项目自己的 `docs/runbook/YYYY-MM-DD/` 目录下；除非用户明确指定别的位置，不要把 authority 放回工作区根目录或 `docs/specs/`
 - 对应的 spec 默认放到目标项目自己的 `docs/specs/`；不要把 runbook 内容反向塞进 spec
 - 如果 authority 定义了“最终独立只读复核”或等价的最终 read-only recon，它属于完成条件本身，不是可选润色；在该复核完成或被明确阻塞前，不要宣称 runbook 已完成
+- runbook workflow 里需要确认是否继续、是否授权、是否采用某条路径时，可以让用户直接回复 `Y/N`
 - 如果本轮 runbook 规划、返工或续跑暴露出可复用教训，主 rollout 在收口时应把该教训记入当天 `.codex/memory/dairy/YYYY-MM-DD.md`
 
 ## 类型分流

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Inority Comparison"
+  short_description: "Draft decision-focused comparison reports."
+  default_prompt: "Use $inority-comparison to compare candidates in a reviewable Markdown report with parameter tables, glossary links, sources, and a practical recommendation."

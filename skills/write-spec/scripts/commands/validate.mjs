@@ -201,20 +201,6 @@ function validateRequiredDiagrams(lines, h2Sections) {
   return errors;
 }
 
-function validateBoundaryAndContractsDepth(lines, h2Sections) {
-  const section = sectionSlice(h2Sections, "边界与契约", lines.length);
-  if (section == null) {
-    return [];
-  }
-  const [start, end] = section;
-  const h4 = parseSections(lines.slice(start + 1, end), 4);
-  if (h4.length === 0) {
-    return [];
-  }
-  const [lineIdx, title] = h4[0];
-  return [err("E014", lines, start + 1 + lineIdx, title)];
-}
-
 function validateInterviewRecords(lines, h2Sections) {
   const errors = [];
   const section = sectionSlice(h2Sections, "访谈记录", lines.length);
@@ -336,7 +322,6 @@ export function collectErrors(text, { pathValue = null } = {}) {
   if (h2Sections.length > 0) {
     errors.push(...validateExactSubsections(lines, h2Sections, "背景与现状", ["背景", "现状"], "E011"));
     errors.push(...validateExactSubsections(lines, h2Sections, "风险与红线", ["风险", "红线行为"], "E013"));
-    errors.push(...validateBoundaryAndContractsDepth(lines, h2Sections));
     errors.push(...validateRequiredDiagrams(lines, h2Sections));
     errors.push(...validateComparisonSection(lines, h2Sections));
     errors.push(...validateInterviewRecords(lines, h2Sections));

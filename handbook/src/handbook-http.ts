@@ -473,6 +473,12 @@ async function routeRequest(
     return
   }
 
+  const workspaceStaticFile = await resolveWorkspaceStaticFile(requestUrl.pathname, options)
+  if (workspaceStaticFile) {
+    await sendStaticFile(response, workspaceStaticFile, method)
+    return
+  }
+
   if (requestUrl.pathname.startsWith(SLIDES_STATIC_PREFIX)) {
     await serveSlidesStatic(requestUrl.pathname, response, method, options)
     return
@@ -683,6 +689,37 @@ async function serveSiteEntry(
   }
 
   await sendStaticFile(response, indexFile, method)
+}
+
+async function resolveWorkspaceStaticFile(
+  pathname: string,
+  options: NormalizedOptions,
+): Promise<string | null> {
+  const normalizedPathname = decodePathname(pathname)
+  if (normalizedPathname === '/') {
+    return null
+  }
+
+  const relativeFilePath = normalizedPathname.replace(/^\/+/u, '')
+  if (!relativeFilePath) {
+    return null
+  }
+
+  const candidate = path.resolve(options.workspaceDirResolved, relativeFilePath)
+  if (!isWithinRoot(options.workspaceDirResolved, candidate)) {
+    throw new HttpError(400, 'Invalid workspace asset path')
+  }
+
+  const extension = path.extname(candidate).toLowerCase()
+  if (!extension || extension === '.md' || !STATIC_FILE_TYPES.has(extension)) {
+    return null
+  }
+
+  if (!(await fileExists(candidate))) {
+    return null
+  }
+
+  return candidate
 }
 
 async function serveSlidesStatic(

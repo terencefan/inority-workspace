@@ -1,0 +1,4 @@
+interface:
+  display_name: "SMZDM 价格参考（兼容）"
+  short_description: "Compatibility alias; SMZDM price research now lives in inority-price-hunter."
+  default_prompt: "Use $inority-price-hunter when legacy prompts mention $inority-smzdm, 什么值得买（smzdm.com） deal pages, historical lows, reference prices, or good-price context for a comparison report or buying guide."
