@@ -28,6 +28,8 @@ Poor fits:
 
 Run comparison work in stages. Do not jump into price hunting before the candidate set and technical/parameter structure are clear.
 
+When creating, validating, or editing comparison README scaffolds, prefer the local helper at `scripts/compctl`.
+
 ### Stage 1: Candidate And Technical Research
 
 1. Ask concise questions when needed to determine:
