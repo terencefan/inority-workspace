@@ -116,7 +116,7 @@ Within the second-level heading `边界与契约`, treat each child heading as a
 - 已确认的稳定前提直接写进具体契约块；限制条件、禁做边界统一收敛到 `风险与红线 -> 红线行为`
 - 可以按评审需要拆成 `稳定接口`、`状态语义`、`模块边界`、`调用边界` 等更贴合主题的块名
 - 重点是把边界、稳定 contract、限制条件和不做什么写清，而不是机械对齐标题字面
-- `边界与契约` 下只允许一层子标题；不要在这一章里继续下钻出四级标题
+- `边界与契约` 下允许使用四级标题描述具体 API、表、字段、状态语义或调用细节
 - 子标题本身默认不要再带 `contract` 后缀；把 `contract` 语义写在正文里，而不是重复塞进标题名
 
 Within the second-level heading `风险与红线`, default to exactly these two third-level headings:

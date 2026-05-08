@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import { buildMarkdownNodes } from '../src/markdownDocumentModel.js'
-import { isRenderableSvgSource, looksLikeSvgMarkup } from '../src/markdownRenderUtils.js'
+import { isRenderableSvgSource, looksLikeSvgMarkup, parseCitationMarkers } from '../src/markdownRenderUtils.js'
 
 function collectNodeText(node) {
   const content = node.token.content || ''
@@ -78,4 +78,17 @@ test('svg render utils detect fenced svg and html svg blocks', () => {
   assert.equal(isRenderableSvgSource('xml', svgMarkup), true)
   assert.equal(isRenderableSvgSource('bash', svgMarkup), false)
   assert.equal(looksLikeSvgMarkup('<div>not svg</div>'), false)
+})
+
+test('citation marker parser extracts source references from text', () => {
+  assert.deepEqual(parseCitationMarkers('1100W[@5] / 2700W[@12]'), [
+    { type: 'text', value: '1100W' },
+    { type: 'citation', value: '5' },
+    { type: 'text', value: ' / 2700W' },
+    { type: 'citation', value: '12' },
+  ])
+
+  assert.deepEqual(parseCitationMarkers('not a marker [@0] or [@x]'), [
+    { type: 'text', value: 'not a marker [@0] or [@x]' },
+  ])
 })

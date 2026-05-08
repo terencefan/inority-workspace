@@ -30,7 +30,7 @@ import {
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import { alpha } from '@mui/material/styles'
 import { buildMarkdownNodes, buildTokenTree } from './markdownDocumentModel.js'
-import { isRenderableSvgSource, looksLikeSvgMarkup } from './markdownRenderUtils.js'
+import { isRenderableSvgSource, looksLikeSvgMarkup, parseCitationMarkers } from './markdownRenderUtils.js'
 
 const GRAPHVIZ_LANGUAGES = new Set(['dot', 'graphviz'])
 const HIGHLIGHT_LANGUAGE_ALIASES = new Map([
@@ -232,6 +232,88 @@ function renderNodeChildren(children, keyPrefix, themeMode = 'dark') {
 
 function renderInlineChildren(tokens, keyPrefix, themeMode = 'dark') {
   return buildTokenTree(tokens).map((node, index) => renderMarkdownNode(node, `${keyPrefix}-${index}`, themeMode))
+}
+
+function collectInlineText(node) {
+  if (!node) {
+    return ''
+  }
+
+  const { token, children } = node
+
+  if (!children || children.length === 0) {
+    return token.content || ''
+  }
+
+  return children.map((child) => collectInlineText(child)).join('')
+}
+
+function parseCitationLabel(label) {
+  const match = (label || '').trim().match(/^\[?@(\d+)\]?$/u)
+  if (!match) {
+    return null
+  }
+
+  return match[1]
+}
+
+function getCitationLinkSx() {
+  return {
+    display: 'inline-block',
+    ml: '0.08em',
+    overflowWrap: 'normal',
+    whiteSpace: 'nowrap',
+    textDecorationThickness: 'from-font',
+    textUnderlineOffset: '0.08em',
+  }
+}
+
+function renderCitationLabel(number) {
+  return (
+    <Box
+      component="sup"
+      sx={{
+        position: 'relative',
+        top: '-0.22em',
+        fontSize: '0.72em',
+        lineHeight: 1,
+        fontWeight: 500,
+        letterSpacing: 0,
+      }}
+    >
+      [{number}]
+    </Box>
+  )
+}
+
+function renderTextWithCitations(content, key) {
+  const parts = parseCitationMarkers(content)
+
+  if (parts.length === 0) {
+    return <Fragment key={key}>{content}</Fragment>
+  }
+
+  return (
+    <Fragment key={key}>
+      {parts.map((part, index) => {
+        if (part.type === 'citation') {
+          return (
+            <Link
+              key={`${key}-citation-${index}`}
+              href={`#source-${part.value}`}
+              underline="hover"
+              color="primary.main"
+              sx={getCitationLinkSx()}
+            >
+              {renderCitationLabel(part.value)}
+            </Link>
+          )
+        }
+
+        return <Fragment key={`${key}-text-${index}`}>{part.value}</Fragment>
+      })}
+    </Fragment>
+  )
 }
 
 function MermaidBlock({ source }) {
@@ -601,6 +683,192 @@ function ZoomableSvgBlock({ svgMarkup, title, wrapperClassName, canvasClassName,
   )
 }
 
+function ImageLightboxDialog({ open, onClose, src, alt, title }) {
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth={false}
+      fullWidth
+      PaperProps={{
+        sx: {
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          width: 'min(96vw, 1600px)',
+          maxWidth: 'none',
+          height: 'min(92vh, 1200px)',
+          bgcolor: '#0b1220',
+          borderRadius: 0,
+          border: '1px solid rgba(148, 163, 184, 0.35)',
+          boxShadow: '0 28px 80px rgba(15, 23, 42, 0.65)',
+          backgroundImage: 'linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(8, 15, 28, 0.98))',
+        },
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 2,
+          px: 2.5,
+          py: 1.5,
+          borderBottom: '1px solid rgba(148, 163, 184, 0.22)',
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
+          <Typography
+            variant="subtitle2"
+            sx={{ color: '#dbeafe', letterSpacing: '0.06em', textTransform: 'uppercase' }}
+          >
+            {title}
+          </Typography>
+        </Box>
+        <Box
+          component="button"
+          type="button"
+          onClick={onClose}
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 36,
+            height: 36,
+            border: '1px solid rgba(148, 163, 184, 0.3)',
+            background: 'rgba(15, 23, 42, 0.6)',
+            color: '#e2e8f0',
+            cursor: 'pointer',
+            transition: 'border-color 0.2s ease, background-color 0.2s ease',
+            '&:hover': {
+              borderColor: 'rgba(125, 211, 252, 0.7)',
+              backgroundColor: 'rgba(14, 116, 144, 0.18)',
+            },
+          }}
+          aria-label={`关闭${title}`}
+        >
+          <CloseRoundedIcon fontSize="small" />
+        </Box>
+      </Box>
+      <Box
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          p: 2,
+        }}
+      >
+        <Box
+          sx={{
+            position: 'relative',
+            width: '100%',
+            height: '100%',
+            overflow: 'auto',
+            border: '1px solid rgba(148, 163, 184, 0.22)',
+            backgroundColor: 'rgba(2, 6, 23, 0.72)',
+            boxShadow: 'inset 0 0 0 1px rgba(15, 23, 42, 0.45)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Box
+            component="img"
+            src={src}
+            alt={alt}
+            title={title}
+            sx={{
+              display: 'block',
+              maxWidth: '100%',
+              maxHeight: '100%',
+              width: 'auto',
+              height: 'auto',
+              objectFit: 'contain',
+            }}
+          />
+          <Box
+            sx={{
+              position: 'absolute',
+              left: 16,
+              bottom: 14,
+              px: 1.1,
+              py: 0.45,
+              backgroundColor: 'rgba(8, 15, 28, 0.82)',
+              border: '1px solid rgba(125, 211, 252, 0.24)',
+              color: '#cbd5e1',
+              fontSize: '0.74rem',
+              letterSpacing: '0.03em',
+              pointerEvents: 'none',
+            }}
+          >
+            点击空白区域外关闭
+          </Box>
+        </Box>
+      </Box>
+    </Dialog>
+  )
+}
+
+function ZoomableImage({ src, alt, title }) {
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const previewTitle = title || alt || 'Image Preview'
+
+  function closePreview() {
+    setPreviewOpen(false)
+  }
+
+  function openPreview() {
+    if (!src) {
+      return
+    }
+    setPreviewOpen(true)
+  }
+
+  function handleKeyDown(event) {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return
+    }
+
+    event.preventDefault()
+    openPreview()
+  }
+
+  return (
+    <>
+      <Box sx={{ my: 2 }}>
+        <Box
+          component="img"
+          src={src}
+          alt={alt}
+          title={title}
+          loading="lazy"
+          role={src ? 'button' : undefined}
+          tabIndex={src ? 0 : undefined}
+          aria-label={src ? `打开放大${previewTitle}` : undefined}
+          onClick={src ? openPreview : undefined}
+          onKeyDown={src ? handleKeyDown : undefined}
+          sx={{
+            maxWidth: '100%',
+            height: 'auto',
+            display: 'block',
+            cursor: src ? 'zoom-in' : 'default',
+          }}
+        />
+        {src ? (
+          <Box
+            component="button"
+            type="button"
+            className="graphviz-zoom-hint"
+            onClick={openPreview}
+          >
+            点击放大
+          </Box>
+        ) : null}
+      </Box>
+      <ImageLightboxDialog open={previewOpen} onClose={closePreview} src={src} alt={alt} title={previewTitle} />
+    </>
+  )
+}
+
 function GraphvizBlock({ source, engine, themeMode = 'dark' }) {
   const [svgMarkup, setSvgMarkup] = useState('')
   const [renderState, setRenderState] = useState('loading')
@@ -805,7 +1073,7 @@ function renderMarkdownNode(node, key, themeMode = 'dark') {
     case 'inline':
       return <Fragment key={key}>{renderInlineChildren(token.children || [], `${key}-inline`, themeMode)}</Fragment>
     case 'text':
-      return <Fragment key={key}>{token.content}</Fragment>
+      return renderTextWithCitations(token.content, key)
     case 'softbreak':
       return <Fragment key={key}>{'\n'}</Fragment>
     case 'hardbreak':
@@ -844,17 +1112,7 @@ function renderMarkdownNode(node, key, themeMode = 'dark') {
         />
       )
     case 'image':
-      return (
-        <Box
-          key={key}
-          component="img"
-          src={attrs.src}
-          alt={attrs.alt || token.content || ''}
-          title={attrs.title}
-          loading="lazy"
-          sx={{ maxWidth: '100%', height: 'auto', display: 'block', my: 2 }}
-        />
-      )
+      return <ZoomableImage key={key} src={attrs.src} alt={attrs.alt || token.content || ''} title={attrs.title} />
     case 'paragraph_open':
       return (
         <Typography
@@ -1101,6 +1359,7 @@ function renderMarkdownNode(node, key, themeMode = 'dark') {
     case 'link_open': {
       const href = attrs.href || ''
       const external = isExternalHref(href)
+      const citationNumber = parseCitationLabel(children.length === 1 ? collectInlineText(children[0]) : '')
       return (
         <Link
           key={key}
@@ -1110,9 +1369,9 @@ function renderMarkdownNode(node, key, themeMode = 'dark') {
           color="primary.main"
           target={external ? '_blank' : undefined}
           rel={external ? 'noreferrer noopener' : undefined}
-          sx={{ overflowWrap: 'anywhere' }}
+          sx={citationNumber ? getCitationLinkSx() : { overflowWrap: 'anywhere' }}
         >
-          {renderNodeChildren(children, `${key}-link`, themeMode)}
+          {citationNumber ? renderCitationLabel(citationNumber) : renderNodeChildren(children, `${key}-link`, themeMode)}
         </Link>
       )
     }

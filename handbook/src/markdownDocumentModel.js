@@ -264,8 +264,96 @@ function transformRunbookExternalLinksTables(nodes) {
   }
 }
 
+function extractCitationTitleMap(source) {
+  const lines = (source || '').split('\n')
+  const titleMap = new Map()
+  let inSourcesSection = false
+
+  for (const line of lines) {
+    if (/^\s*##\s+资料来源\s*$/u.test(line)) {
+      inSourcesSection = true
+      continue
+    }
+
+    if (inSourcesSection && /^\s*##\s+/u.test(line)) {
+      break
+    }
+
+    if (!inSourcesSection) {
+      continue
+    }
+
+    const match = line.match(/^\s*(\d+)\.\s+\[([^\]]+)\]\((https?:\/\/[^)]+)\)\s*$/u)
+    if (!match) {
+      continue
+    }
+
+    titleMap.set(match[1], match[2].trim())
+  }
+
+  return titleMap
+}
+
+function setTokenAttribute(token, name, value) {
+  if (typeof token?.attrSet === 'function') {
+    token.attrSet(name, value)
+    return
+  }
+
+  const attrs = token?.attrs || []
+  const existingIndex = attrs.findIndex(([attrName]) => attrName === name)
+
+  if (existingIndex >= 0) {
+    attrs[existingIndex] = [name, value]
+  } else {
+    attrs.push([name, value])
+  }
+
+  token.attrs = attrs
+}
+
+function annotateCitationLinkTitles(tokens, citationTitleMap) {
+  if (!(citationTitleMap instanceof Map) || citationTitleMap.size === 0) {
+    return
+  }
+
+  for (const token of tokens) {
+    if (token.type !== 'inline' || !Array.isArray(token.children)) {
+      continue
+    }
+
+    const inlineChildren = token.children
+
+    for (let index = 0; index < inlineChildren.length; index += 1) {
+      const currentToken = inlineChildren[index]
+      if (currentToken.type !== 'link_open') {
+        continue
+      }
+
+      const nextTextToken = inlineChildren[index + 1]
+      if (!nextTextToken || nextTextToken.type !== 'text') {
+        continue
+      }
+
+      const match = nextTextToken.content.match(/^\[?@(\d+)\]?$/u)
+      if (!match) {
+        continue
+      }
+
+      const citationTitle = citationTitleMap.get(match[1])
+      if (!citationTitle) {
+        continue
+      }
+
+      setTokenAttribute(currentToken, 'title', citationTitle)
+    }
+  }
+}
+
 export function buildMarkdownNodes(source) {
   const tokens = markdownParser.parse(source || '', {})
+  const citationTitleMap = extractCitationTitleMap(source)
+  annotateCitationLinkTitles(tokens, citationTitleMap)
   const tocItems = collectHeadingMetadata(tokens)
   const nodes = buildTokenTree(tokens)
   transformRunbookExternalLinksTables(nodes)

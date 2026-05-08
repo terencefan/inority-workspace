@@ -1,0 +1,4 @@
+interface:
+  display_name: "电商价格猎手"
+  short_description: "Collect SMZDM historical lows plus Taobao/Tmall and JD.com merchant price snapshots."
+  default_prompt: "Use $inority-price-hunter when you need SMZDM historical lows/deal pages, current Taobao/Tmall or JD.com product search, store price snapshots, original prices, coupon prices, preorder prices, estimated final prices from product images, rapidocr price extraction, or merchant price context for a comparison report."
