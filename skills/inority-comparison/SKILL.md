@@ -43,7 +43,14 @@ Run comparison work in stages. Do not jump into price hunting before the candida
    - `## Term explanation`
    - `## 下单前复核清单` or `## 落地前复核清单`
 4. If the comparison depends on current facts, availability, model parameters, laws, or docs, verify with current sources before writing. Prefer official product pages, manuals, datasheets, release notes, standards, and primary docs. Use third-party sources only for missing fields or cross-checking, and label that口径.
-5. When the user asks `<term> 是什么`, add `<term>` to `## Term explanation` instead of answering only in chat, then link meaningful body occurrences to that glossary heading.
+5. For product parameters, prioritize manuals/instructions/datasheets over product titles, marketing images, retailer summaries, and review articles:
+   - First search for official manuals,说明书, installation guides, datasheets, or PDF downloads for the exact SKU/model.
+   - Download each found manual/PDF into `/tmp` with a stable filename such as `/tmp/<model>-manual.pdf`; do not stream binary PDF content into chat or terminal output.
+   - Analyze the local file with local tools first, for example `pdfinfo`, `pdftotext`, `rg`, `file`, and page screenshots only when text extraction fails.
+   - Extract and cite the exact parameter table fields from the local manual text: model, rated power, input/output power, flow rate, capacity, dimensions, pressure, temperature range, efficiency, installation constraints, and test conditions.
+   - If a retailer title conflicts with the manual, the manual wins for parameter tables; keep the retailer title only as a渠道/营销口径 note.
+   - If the manual lists a related-but-different semantic, such as `L/h` heating capacity instead of `L/min` flow, keep it in a separate row and explicitly say it is not interchangeable.
+6. When the user asks `<term> 是什么`, add `<term>` to `## Term explanation` instead of answering only in chat, then link meaningful body occurrences to that glossary heading.
 
 ### Stage 2: Price Research
 
@@ -150,6 +157,9 @@ For technical方案 comparisons, rename `下单前复核清单` to `落地前复
 ## Source Hygiene
 
 - Prefer official sources for specifications and compatibility claims.
+- For product/device parameter research, treat official manuals,说明书, installation guides, datasheets, and PDF spec sheets as the highest-priority parameter source. Download them into `/tmp` and analyze the local copy before filling parameter tables.
+- When using local manual/PDF analysis, cite the original URL in `## External Links` / `## 资料来源`, and optionally note the local extraction method in prose only when it affects confidence.
+- Do not let retailer titles, search snippets, OCR from marketing images, review articles, or AI-generated buying guides override manual/datasheet parameter values. Use them only as discovery, price, or secondary confirmation sources.
 - For market pricing, use `$inority-price-hunter` for SMZDM historical lows plus Taobao/Tmall and JD.com current merchant samples when the user wants street-price context.
 - Record dates for volatile claims such as price, stock, promotions, current model lineup, regulations, and cloud/service feature availability.
 - If using third-party sources, say what they are used for: missing parameter, price sample, user review, benchmark, or secondary confirmation.
