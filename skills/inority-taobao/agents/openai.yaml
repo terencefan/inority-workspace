@@ -1,4 +1,0 @@
-interface:
-  display_name: "淘宝价格参考"
-  short_description: "Collect Taobao/Tmall flagship-store price snapshots."
-  default_prompt: "Use $inority-taobao when you need Taobao/Tmall product search, flagship-store price snapshots, crossed-out list prices, image-based final-price claims, or current merchant price context for a comparison report or buying guide."
