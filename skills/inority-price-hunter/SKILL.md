@@ -78,12 +78,13 @@ Do not average prices. If multiple final-price claims appear, record the most re
 Use a normal browser flow when SMZDM, Taobao/Tmall, or JD.com requires login or browser state.
 
 1. Prefer a normal browser flow over raw scraping.
-2. If no usable login state is available, provide the target login/search URL and ask the user to log in manually.
-3. If the local browser profile is locked or risky to control, open a temporary browser profile with a local DevTools debugging port.
-4. If a slider verification or captcha appears, keep a user-operable browser session on that page, tell the user to complete verification, then wait. Continue only after the user confirms completion.
-5. Do not ask for account names, passwords, cookies, tokens, SMS codes, QR login screenshots, or payment information.
-6. Do not bypass captcha, slider verification, anti-bot checks, paywalls, rate limits, or access controls.
-7. Close temporary browser sessions after collection.
+2. If no usable login state is available, the agent may open a visible local browser at the target login/search URL and hand control to the user for login.
+3. Tell the user exactly which site is open and what action is needed, for example “请在这个浏览器里登录京东，完成后告诉我继续”.
+4. If the local browser profile is locked or risky to control, open a temporary browser profile with a local DevTools debugging port.
+5. If a slider verification or captcha appears, keep a user-operable browser session on that page, tell the user to complete verification, then wait. Continue only after the user confirms completion.
+6. Do not ask for account names, passwords, cookies, tokens, SMS codes, QR login screenshots, or payment information.
+7. Do not bypass captcha, slider verification, anti-bot checks, paywalls, rate limits, or access controls.
+8. Close temporary browser sessions after collection unless the user asks to keep the session open.
 
 ## Current Merchant Search Workflow
 

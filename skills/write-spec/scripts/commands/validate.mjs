@@ -167,6 +167,68 @@ function validateExactSubsections(lines, h2Sections, sectionTitle, expected, err
   return [err(errorCode, lines, lineIdx, found.join(" / ") || "<missing>")];
 }
 
+function validateRedLineCautions(lines, h2Sections) {
+  const errors = [];
+  const section = sectionSlice(h2Sections, "风险与红线", lines.length);
+  if (section == null) {
+    return errors;
+  }
+  const [start, end] = section;
+  const h3 = parseNestedSections(lines, start + 1, end, 3);
+  const redLines = h3.find(([, title]) => title === "红线行为");
+  if (redLines == null) {
+    return errors;
+  }
+
+  const [, , redLinesEnd] = redLines;
+  let idx = redLines[0] + 1;
+  let cautionCount = 0;
+
+  while (idx < redLinesEnd) {
+    const trimmed = lines[idx].trim();
+    if (!trimmed) {
+      idx += 1;
+      continue;
+    }
+
+    if (trimmed !== "> [!CAUTION]") {
+      errors.push(err("E014", lines, idx));
+      idx += 1;
+      continue;
+    }
+
+    cautionCount += 1;
+    idx += 1;
+    let hasCautionBody = false;
+    while (idx < redLinesEnd) {
+      const bodyLine = lines[idx].trim();
+      if (!bodyLine) {
+        break;
+      }
+      if (bodyLine === "> [!CAUTION]") {
+        break;
+      }
+      if (!bodyLine.startsWith(">")) {
+        errors.push(err("E014", lines, idx));
+        break;
+      }
+      if (bodyLine !== ">") {
+        hasCautionBody = true;
+      }
+      idx += 1;
+    }
+    if (!hasCautionBody) {
+      errors.push(err("E014", lines, idx - 1));
+    }
+  }
+
+  if (cautionCount === 0) {
+    errors.push(err("E014", lines, redLines[0]));
+  }
+
+  return errors;
+}
+
 function validateRequiredDiagrams(lines, h2Sections) {
   const errors = [];
 
@@ -322,6 +384,7 @@ export function collectErrors(text, { pathValue = null } = {}) {
   if (h2Sections.length > 0) {
     errors.push(...validateExactSubsections(lines, h2Sections, "背景与现状", ["背景", "现状"], "E011"));
     errors.push(...validateExactSubsections(lines, h2Sections, "风险与红线", ["风险", "红线行为"], "E013"));
+    errors.push(...validateRedLineCautions(lines, h2Sections));
     errors.push(...validateRequiredDiagrams(lines, h2Sections));
     errors.push(...validateComparisonSection(lines, h2Sections));
     errors.push(...validateInterviewRecords(lines, h2Sections));

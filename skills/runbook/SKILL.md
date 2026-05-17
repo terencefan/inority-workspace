@@ -583,9 +583,9 @@ scripts/runctl sign-step <topic>-runbook.md --item <n> --phase execution --signe
   - 如果当轮是多选项提问，`A：...` 必须回填用户实际选中的完整选项内容
   - 必须基于本轮真实问答，不要用占位问答冒充规划收敛
 
-- `## 文档链接`
+- `## 参考资料`
   - 必须独立存在
-  - 使用 Markdown 列表
+  - 使用四列表格：`name` / `type` / `link` / `desc`
   - 只放与当前 authority 直接相关的上游 / 下游 / 旁路文档
   - 如果输入主体是 spec，必须把该 spec 放在最靠前的位置，并把它视为 authority source，而不是普通参考文档
 - 章节禁写项、问答形状、脑图字体、签名 / anchor / jump-link 细节、占位签名与对齐关系统一由 validator 强制校验；正文不要再和脚本维护两套并行约束。
@@ -689,8 +689,8 @@ scripts/runctl sign-step <topic>-runbook.md --item <n> --phase execution --signe
   - authority 含有一个合格的 `## 访谈记录`
   - 至少有 `5` 条真实用户访谈
 
-- `## 文档链接`
-  - 生产执行手册有独立的 `## 文档链接` 章节
+- `## 参考资料`
+  - 生产执行手册有独立的 `## 参考资料` 章节
 
 - 流程级标准
   - 主 skill 的 scope 保持在规划，不漂移到执行
