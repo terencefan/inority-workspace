@@ -12,6 +12,8 @@ E011:
   message: "“背景与现状”下的三级标题必须且只能是：背景 / 现状"
 E013:
   message: "“风险与红线”下的三级标题必须且只能是：风险 / 红线行为"
+E014:
+  message: "“红线行为”下的具体条目必须使用 GitHub 风格的 `> [!CAUTION]` callout"
 E020:
   message: "“现状”三级小节必须包含 fenced `dot` 或 `graphviz` 图"
 E021:

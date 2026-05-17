@@ -8,6 +8,7 @@
 }
 
 .workspace-layout {
+  --handbook-sticky-top: 80px;
   display: flex;
   align-items: stretch;
   gap: 1rem;
@@ -16,7 +17,7 @@
 
 .workspace-sidebar {
   position: sticky;
-  top: 88px;
+  top: var(--handbook-sticky-top);
   align-self: flex-start;
   max-height: calc(100vh - 112px);
 }
@@ -542,7 +543,7 @@
 
 .home-services-column {
   position: sticky;
-  top: 88px;
+  top: var(--handbook-sticky-top);
 }
 
 .recent-doc-grid {
@@ -591,7 +592,7 @@
 
 .doc-toc-card {
   position: sticky;
-  top: 96px;
+  top: var(--handbook-sticky-top);
   display: flex;
   flex-direction: column;
   max-height: calc(100vh - 120px);

@@ -30,6 +30,16 @@
     "expected_codes": ["E011"]
   },
   {
+    "name": "red-line-without-caution",
+    "replacements": [
+      {
+        "old": "> [!CAUTION]\n> 不允许绕过现有鉴权边界。\n>\n> 不允许引入新的外部依赖。",
+        "new": "- 不允许绕过现有鉴权边界。\n- 不允许引入新的外部依赖。"
+      }
+    ],
+    "expected_codes": ["E014"]
+  },
+  {
     "name": "missing-current-dot",
     "replacements": [
       {
