@@ -67,6 +67,41 @@ test('non-external-links tables keep the original link column', () => {
   )
 })
 
+test('inline color span syntax emits constrained color tokens', () => {
+  const { nodes } = buildMarkdownNodes('Status: [ok]{#abcdef} and [warn]{#FA0}.')
+  const paragraph = nodes.find((node) => node.token.type === 'paragraph_open')
+  const inline = paragraph?.children.find((node) => node.token.type === 'inline')
+  const tokens = inline?.token.children || []
+
+  assert.deepEqual(
+    tokens.map((token) => token.type),
+    ['text', 'span_open', 'text', 'span_close', 'text', 'span_open', 'text', 'span_close', 'text'],
+  )
+  assert.equal(tokens[1].attrGet('data-md-color'), '#abcdef')
+  assert.equal(tokens[2].content, 'ok')
+  assert.equal(tokens[5].attrGet('data-md-color'), '#fa0')
+  assert.equal(tokens[6].content, 'warn')
+})
+
+test('table cells support inline color span syntax', () => {
+  const source = `| Hex |
+|---|
+| [#abcdef]{#abcdef} |
+`
+
+  const { nodes } = buildMarkdownNodes(source)
+  const tableNode = nodes.find((node) => node.token.type === 'table_open')
+  const bodyNode = tableNode?.children.find((child) => child.token.type === 'tbody_open')
+  const bodyRow = getTableRows(bodyNode)[0]
+  const cell = bodyRow.children.find((child) => child.token.type === 'td_open')
+  const inline = cell?.children.find((node) => node.token.type === 'inline')
+  const tokens = inline?.token.children || []
+
+  assert.deepEqual(tokens.map((token) => token.type), ['span_open', 'text', 'span_close'])
+  assert.equal(tokens[0].attrGet('data-md-color'), '#abcdef')
+  assert.equal(tokens[1].content, '#abcdef')
+})
+
 test('svg render utils detect fenced svg and html svg blocks', () => {
   const svgMarkup = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
   <rect x="10" y="10" width="80" height="80" />

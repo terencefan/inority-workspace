@@ -21,6 +21,27 @@ When a spec needs a Graphviz diagram, `$write-spec` can and should use `$draw-do
 
 Make the document scroll-friendly. Structure it so a reader can keep orientation while scrolling, quickly jump between major views, and consume the content chunk by chunk instead of needing the whole document in view at once.
 
+## 默认加载约束
+
+只要当前处于 `$write-spec` 规划态，就默认同时加载 `$inority-question`。
+
+- 不要等到“感觉需要提问时”才临时想起来加载；spec 规划态从一开始就带着它进入。
+- 原因不是每一轮都必须立刻提问，而是 spec 规划态天然承担：
+  - ambiguity 收敛
+  - 路径拍板
+  - 访谈记录留档
+  - authority 定稿前的用户确认
+- 唯一允许不加载 `$inority-question` 的情况，是当前运行环境里这个 skill 客观不可用；这时主 rollout 必须在主回复里显式说明“原本应加载 `$inority-question`，但当前不可用，因此退回到同纪律的直接提问”。
+
+因此，spec 规划态的默认加载集合是：
+
+- `$write-spec`
+- `references/<product|technical>-spec-template.md`
+- `references/interview-record-template.md`
+- `$inority-question`
+
+只有在确实需要结构图、关系图或架构图时，才额外补 `$draw-dot`。
+
 ## Workflow
 
 1. 先明确这份文档属于哪一类 spec。
@@ -44,8 +65,8 @@ Make the document scroll-friendly. Structure it so a reader can keep orientation
    - neighboring modules that reveal naming, boundaries, and constraints
    - existing conventions in the same repo
    - if current-state facts are needed, use them to clarify constraints and gap context, not to turn the spec into a runbook
-6. 在正文定稿前，先通过真实用户问答做访谈收敛。
-7. 只要需要向用户提问、确认方案/路径、澄清事实，或主动提出需要用户拍板的建议/推荐方案，就显式加载 `$inority-question`；如果当前会话里这个 skill 不可用，就按同样的短问答纪律直接向用户提问，不要在本 skill 内再并行维护另一套提问规范。
+6. 在正文定稿前，先通过真实用户问答做访谈收敛。访谈记录里的 `Q` 必须是 agent 为降低歧义、确认路径或冻结验收含义而主动问用户的问题，`A` 必须是用户对该问题的真实回答；用户最初提出的需求、命令或任务描述不能倒填成访谈 Q/A。
+7. `$inority-question` 是 spec 规划态默认加载项；只要需要向用户提问、确认方案/路径、澄清事实，或主动提出需要用户拍板的建议/推荐方案，就直接按它的一问一维度协议发问，不要在本 skill 内再并行维护另一套提问规范。
 8. authority 定稿前，必须累计至少 `5` 轮真实用户问答；如果不足 `5` 轮，默认动作是继续通过 `$inority-question` 补问，而不是先宣称 spec 已收敛。
 9. Make reasonable assumptions only when the remaining gaps are small, low-risk, and do not change scope, architecture, delivery risk, or the meaning of acceptance.
 10. Write the spec in a reviewable structure with concrete decisions, not brainstorming notes.
@@ -134,6 +155,7 @@ Within the second-level heading `风险与红线`, default to exactly these two 
 - `访谈记录` 必须至少包含 `5` 轮真实用户问答。
 - 如果当前真实问答不足 `5` 轮，默认动作是继续加载 `$inority-question` 补问，而不是跳过或用作者自问自答补齐。
 - `访谈记录` 的问题收敛、选项设计、和多路径拍板由 `$inority-question` 统一负责；本 skill 只负责把真实问答按下面的 spec 记录格式写回。
+- `访谈记录` 的 `Q` 是 agent 按 `$inority-question` 提出的澄清 / 选路 / 验收问题，`A` 是用户随后给出的回答；不要把用户的原始需求、命令式输入或问题改写成 `Q`，也不要把 agent 的方案解释改写成 `A`。
 - 每轮记录都要显式写出：
   - quote 内分成两段：
     - `Q：...`
