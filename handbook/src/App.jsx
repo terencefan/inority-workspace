@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import mermaid from 'mermaid'
 import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded'
 import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined'
@@ -662,16 +662,21 @@ function scrollToHashTarget(hash) {
 }
 
 function readSelection() {
+  const url = new URL(window.location.href)
   return {
-    path: routeToPath(window.location.pathname),
-    url: '',
+    path: url.searchParams.get('url') ? '' : routeToPath(window.location.pathname),
+    url: url.searchParams.get('url') || '',
   }
 }
 
 function updateSelection(nextSelection) {
   let href = withBasePath('/')
 
-  if (nextSelection.path) {
+  if (nextSelection.url) {
+    const params = new URLSearchParams()
+    params.set('url', nextSelection.url)
+    href = `${withBasePath('/')}?${params.toString()}`
+  } else if (nextSelection.path) {
     href = pathToRoute(nextSelection.path)
   }
 
@@ -771,10 +776,12 @@ function upsertRecentDocument(currentItems, nextItem) {
   return [nextItem, ...deduped].slice(0, MAX_RECENT_DOCUMENTS)
 }
 
-function buildDocumentEndpoint(selectionPath) {
+function buildDocumentEndpoint(selection) {
   const params = new URLSearchParams()
-  if (selectionPath) {
-    params.set('path', selectionPath)
+  if (selection.url) {
+    params.set('url', selection.url)
+  } else if (selection.path) {
+    params.set('path', selection.path)
   }
 
   return params.toString()
@@ -1030,7 +1037,7 @@ function App({ themeMode, onToggleTheme }) {
       }
 
       try {
-        const response = await fetch(buildDocumentEndpoint(selection.path), API_FETCH_OPTIONS)
+        const response = await fetch(buildDocumentEndpoint(selection), API_FETCH_OPTIONS)
         const payload = await response.json()
         if (!response.ok) {
           throw new Error(payload.detail || `Document request failed with ${response.status}`)
@@ -1064,7 +1071,7 @@ function App({ themeMode, onToggleTheme }) {
     return () => {
       cancelled = true
     }
-  }, [selection.path, documentRevision, files, fileMeta])
+  }, [selection, documentRevision, files, fileMeta])
 
   useEffect(() => {
     if (!isPageVisible) {
@@ -1118,7 +1125,7 @@ function App({ themeMode, onToggleTheme }) {
 
     async function refreshDocument() {
       try {
-        const response = await fetch(buildDocumentEndpoint(selectionRef.current.path), API_FETCH_OPTIONS)
+        const response = await fetch(buildDocumentEndpoint(selectionRef.current), API_FETCH_OPTIONS)
         const payload = await response.json()
         if (!response.ok || cancelled) {
           return
@@ -1172,6 +1179,7 @@ function App({ themeMode, onToggleTheme }) {
       return next
     })
   }, [
+    documentData,
     documentData.source_label,
     documentData.content_markdown,
     documentData.title,
@@ -1180,7 +1188,7 @@ function App({ themeMode, onToggleTheme }) {
     selection.path,
   ])
 
-  const showHome = !selection.path
+  const showHome = !selection.path && !selection.url
   const isSlidesDocument = documentData.content_type === 'slides'
   const slidesAssetUrl = resolveSlidesAssetUrl(documentData.slides_url)
   const hasDocument = renderedDocument.nodes.length > 0
@@ -1201,8 +1209,6 @@ function App({ themeMode, onToggleTheme }) {
     renderedDocument.tocItems.length > 0 ? (activeHeadingNumber / renderedDocument.tocItems.length) * 100 : 0
   const activeHeadingText =
     activeHeadingIndex >= 0 ? renderedDocument.tocItems[activeHeadingIndex]?.text || '' : renderedDocument.tocItems[0]?.text || ''
-  const visibleDocumentTitle =
-    !showHome && renderedDocument.primaryTitle ? renderedDocument.primaryTitle : documentData.title
   function handleLocalSelect(path) {
     const nextSelection = { path, url: '' }
     updateSelection(nextSelection)
@@ -1232,7 +1238,7 @@ function App({ themeMode, onToggleTheme }) {
     setRecentDocuments([])
   }
 
-  function handleDocumentNavigation(event) {
+  const handleDocumentNavigation = useCallback((event) => {
     const link = event.target.closest('a[href]')
     if (!link) {
       return
@@ -1254,8 +1260,8 @@ function App({ themeMode, onToggleTheme }) {
     }
 
     const nextSelection = {
-      path: routeToPath(nextUrl.pathname),
-      url: '',
+      path: nextUrl.searchParams.get('url') ? '' : routeToPath(nextUrl.pathname),
+      url: nextUrl.searchParams.get('url') || '',
     }
     const currentSelection = readSelection()
     const selectionChanged =
@@ -1280,7 +1286,7 @@ function App({ themeMode, onToggleTheme }) {
 
     window.history.pushState({}, '', `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`)
     scrollToHashTarget(nextUrl.hash)
-  }
+  }, [selection.path])
 
   useEffect(() => {
     setExpandedItems((current) => {
@@ -1308,7 +1314,7 @@ function App({ themeMode, onToggleTheme }) {
         target.removeEventListener('click', listener, true)
       })
     }
-  }, [renderedDocument.nodes, renderedDocument.tocItems, selection.path])
+  }, [handleDocumentNavigation, renderedDocument.nodes, renderedDocument.tocItems])
 
   useEffect(() => {
     if (documentLoading) {

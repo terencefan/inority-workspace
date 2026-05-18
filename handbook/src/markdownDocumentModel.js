@@ -7,6 +7,9 @@ const markdownParser = new MarkdownIt({
 })
 
 applyTaskListPlugin(markdownParser)
+applyColorSpanPlugin(markdownParser)
+
+const COLOR_SPAN_PATTERN = /\[([^\]\n]+)\]\{(#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?)\}/gu
 
 function applyTaskListPlugin(renderer) {
   renderer.core.ruler.after('inline', 'task_list_items', (state) => {
@@ -62,6 +65,69 @@ function applyTaskListPlugin(renderer) {
       }
     }
   })
+}
+
+function applyColorSpanPlugin(renderer) {
+  renderer.core.ruler.after('inline', 'color_spans', (state) => {
+    for (const token of state.tokens) {
+      if (token.type !== 'inline' || !token.children?.length) {
+        continue
+      }
+
+      const nextChildren = []
+
+      for (const childToken of token.children) {
+        if (childToken.type !== 'text' || !childToken.content) {
+          nextChildren.push(childToken)
+          continue
+        }
+
+        const expandedTokens = expandColorSpanTextToken(childToken, state.Token)
+        nextChildren.push(...expandedTokens)
+      }
+
+      token.children = nextChildren
+    }
+  })
+}
+
+function expandColorSpanTextToken(token, Token) {
+  const source = token.content
+  const expandedTokens = []
+  let lastIndex = 0
+
+  for (const match of source.matchAll(COLOR_SPAN_PATTERN)) {
+    const matchIndex = match.index || 0
+
+    if (matchIndex > lastIndex) {
+      const textToken = new Token('text', '', 0)
+      textToken.content = source.slice(lastIndex, matchIndex)
+      expandedTokens.push(textToken)
+    }
+
+    const openToken = new Token('span_open', 'span', 1)
+    openToken.attrs = [['data-md-color', match[2].toLowerCase()]]
+    expandedTokens.push(openToken)
+
+    const coloredTextToken = new Token('text', '', 0)
+    coloredTextToken.content = match[1]
+    expandedTokens.push(coloredTextToken)
+
+    expandedTokens.push(new Token('span_close', 'span', -1))
+    lastIndex = matchIndex + match[0].length
+  }
+
+  if (lastIndex === 0) {
+    return [token]
+  }
+
+  if (lastIndex < source.length) {
+    const textToken = new Token('text', '', 0)
+    textToken.content = source.slice(lastIndex)
+    expandedTokens.push(textToken)
+  }
+
+  return expandedTokens
 }
 
 export function buildTokenTree(tokens) {

@@ -103,6 +103,11 @@ function getTokenAttributes(token) {
   return Object.fromEntries(token.attrs || [])
 }
 
+function normalizeMarkdownHexColor(value) {
+  const color = (value || '').trim()
+  return /^#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?$/u.test(color) ? color.toLowerCase() : null
+}
+
 function getHighlightMarkup(code, language) {
   const normalizedLanguage = (language || '').trim().toLowerCase()
   const trimmedCode = code.trimEnd()
@@ -1393,6 +1398,14 @@ function renderMarkdownNode(node, key, themeMode = 'dark') {
           {renderNodeChildren(children, `${key}-s`, themeMode)}
         </Box>
       )
+    case 'span_open': {
+      const color = normalizeMarkdownHexColor(attrs['data-md-color'])
+      return (
+        <Box key={key} component="span" sx={color ? { color } : undefined}>
+          {renderNodeChildren(children, `${key}-span`, themeMode)}
+        </Box>
+      )
+    }
     default:
       if (children.length > 0) {
         return <Fragment key={key}>{renderNodeChildren(children, `${key}-children`, themeMode)}</Fragment>
