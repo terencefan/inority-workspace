@@ -16,6 +16,7 @@ Its Git baseline should match `$checkin`:
 - fetch the latest remote default branch
 - refresh local default-branch context
 - keep the repository on its current working branch
+- squash the current branch's publish-intended commits into one review commit before rebasing when the branch contains multiple local commits for the same PR scope
 - rebase the current branch onto the latest default branch tip
 
 The difference from `$checkin` is what happens after that sync step: `checkout` stages, commits, pushes, and opens the PR or MR.
@@ -104,18 +105,21 @@ For each approved repository:
 1. Refresh the repository default branch according to local rules.
 2. Keep the current working branch checked out. Do not create a new branch if the repository is already on the intended review branch.
    - If the repository is still on `main` or `master`, stop and ask the user before proceeding instead of publishing directly from the default branch.
-3. Rebase the current working branch onto the latest default branch tip before staging or publishing.
+3. If the current working branch contains multiple local commits for the same PR scope, squash them into one intentional review commit before rebasing.
+   - Prefer a soft reset against the merge-base with the default branch or another non-interactive flow over interactive rebase.
+   - The resulting branch should normally publish as one commit unless repository-local rules or the user explicitly require a stacked review.
+4. Rebase the current working branch onto the latest default branch tip before staging or publishing.
    - If the rebase hits conflicts or any other blocker, stop that repository immediately and ask the user before proceeding.
-4. Stage only the intended files.
-5. Create one intentional commit for that repository's selected scope.
-6. Run the most relevant available checks when they are obvious and cheap enough.
-7. Push the branch.
-8. Create the PR or MR using the forge-specific path:
+5. Stage only the intended files.
+6. Create one intentional commit for that repository's selected scope if the squash step did not already produce the publish commit.
+7. Run the most relevant available checks when they are obvious and cheap enough.
+8. Push the branch.
+9. Create the PR or MR using the forge-specific path:
    - GitHub: prefer `github:yeet`
    - GitLab: follow `$git` commit workflow and create the MR in the same pass
   - enterprise Gitee: use `$pjlab-gitee`
      - If enterprise Gitee token auth does not verify and the browser session is missing or expired, stop and give the user the login URL first; continue only after the browser login is refreshed.
-9. After the PR or MR is created successfully, remain on the current working branch unless a repository-local rule explicitly requires another landing state.
+10. After the PR or MR is created successfully, remain on the current working branch unless a repository-local rule explicitly requires another landing state.
 
 If a repository hits a conflict or publish blocker mid-flight, stop that repository, record the blocker, and continue only with other repositories that are independent and still safe to process.
 
@@ -145,6 +149,7 @@ If every in-scope repository has been fully processed for this checkout wave, en
 - Never auto-publish a repository whose scope is unclear.
 - Never skip repository-local workflow rules.
 - If the repository is still on its default branch and publishing would require a new branch, stop and ask the user instead of improvising a branch strategy.
+- Do not carry a long local commit stack into review by default; collapse same-scope local commits into one publish commit before rebasing and opening the PR unless the user explicitly asks for stacked history.
 - If rebasing onto the default branch hits any conflict or blocker, stop and ask the user instead of resolving it speculatively.
 - Never treat "all dirty repos" as approval to leave the machine; still perform the single explicit publish confirmation round.
 - If a repository cannot produce a PR or MR link, say so explicitly instead of pretending the workflow succeeded.
