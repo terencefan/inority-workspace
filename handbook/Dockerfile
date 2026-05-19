@@ -5,7 +5,10 @@
 # React app, packages Markdown sources, and serves everything from one Node
 # process.
 
-FROM node:22-bookworm-slim AS site-builder
+ARG BASE_IMAGE_PREFIX=
+ARG NODE_BASE_IMAGE=library/node:22-bookworm-slim
+
+FROM ${BASE_IMAGE_PREFIX}${NODE_BASE_IMAGE} AS site-builder
 
 WORKDIR /src/handbook
 
@@ -20,7 +23,7 @@ COPY inority-workspace/handbook/src ./src
 RUN npm run build
 
 
-FROM node:22-bookworm-slim AS markdown-packager
+FROM ${BASE_IMAGE_PREFIX}${NODE_BASE_IMAGE} AS markdown-packager
 
 WORKDIR /src/workspace
 
@@ -37,7 +40,7 @@ RUN mkdir -p /out/workspace \
         -exec cp --parents {} /out/workspace \; 2>/dev/null || true
 
 
-FROM node:22-bookworm-slim AS runtime
+FROM ${BASE_IMAGE_PREFIX}${NODE_BASE_IMAGE} AS runtime
 
 WORKDIR /workspace/handbook
 

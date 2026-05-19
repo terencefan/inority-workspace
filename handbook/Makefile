@@ -4,6 +4,8 @@ APP_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 WORKSPACE_ROOT := $(abspath $(APP_ROOT)/../..)
 
 IMAGE_REPOSITORY ?= handbook
+BASE_IMAGE_PREFIX ?=
+NODE_BASE_IMAGE ?= library/node:22-bookworm-slim
 ifeq ($(origin TAG), undefined)
 TAG := $(shell date +%Y-%m-%d-%H%M%S)
 endif
@@ -25,7 +27,9 @@ help:
 	'' \
 	'Variables:' \
 	'  TAG=2026-03-19-1                 Override the image tag' \
-	'  IMAGE_REPOSITORY=ghcr.io/acme/handbook'
+	'  IMAGE_REPOSITORY=ghcr.io/acme/handbook' \
+	'  BASE_IMAGE_PREFIX=registry.example.com/' \
+	'  NODE_BASE_IMAGE=org/base-node:22-bookworm-slim'
 
 build:
 	cd $(APP_ROOT) && npm run build
@@ -54,7 +58,12 @@ install-git-hooks:
 	cd $(APP_ROOT) && npm run install-hooks
 
 image-build:
-	docker build -f $(APP_ROOT)/Dockerfile -t $(IMAGE) $(WORKSPACE_ROOT)
+	docker build \
+		--build-arg BASE_IMAGE_PREFIX=$(BASE_IMAGE_PREFIX) \
+		--build-arg NODE_BASE_IMAGE=$(NODE_BASE_IMAGE) \
+		-f $(APP_ROOT)/Dockerfile \
+		-t $(IMAGE) \
+		$(WORKSPACE_ROOT)
 
 image-push:
 	docker push $(IMAGE)
