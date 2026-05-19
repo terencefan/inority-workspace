@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import mermaid from 'mermaid'
 import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded'
 import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined'
@@ -52,6 +52,34 @@ const MAX_QUICK_ACCESS_DOCUMENTS = 5
 const DOCUMENT_POLL_INTERVAL_MS = 3000
 const TREE_POLL_INTERVAL_MS = 5000
 const API_FETCH_OPTIONS = { cache: 'no-store' }
+const BUILD_VERSION = import.meta.env.VITE_BUILD_VERSION || 'unknown'
+
+function isLocalHostname(hostname) {
+  return (
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === '0.0.0.0' ||
+    hostname === '::1' ||
+    hostname.endsWith('.local')
+  )
+}
+
+function formatCurrentVersionTimestamp(date = new Date()) {
+  const formatter = new Intl.DateTimeFormat('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  })
+  const parts = formatter.formatToParts(date)
+  const valueByType = new Map(parts.map((part) => [part.type, part.value]))
+  return `${valueByType.get('year')}-${valueByType.get('month')}-${valueByType.get('day')} ${valueByType.get('weekday')} ${valueByType.get('hour')}:${valueByType.get('minute')}:${valueByType.get('second')}`
+}
 
 function getDocumentRelativeLabel(selectionPath) {
   return selectionPath || ''
@@ -875,6 +903,13 @@ function App({ themeMode, onToggleTheme }) {
     primaryTitle: '',
   })
   const [isPageVisible, setIsPageVisible] = useState(() => !document.hidden)
+  const [localVersionTimestamp, setLocalVersionTimestamp] = useState(() => formatCurrentVersionTimestamp())
+  const displayedBuildVersion = useMemo(() => {
+    if (typeof window === 'undefined') {
+      return BUILD_VERSION
+    }
+    return isLocalHostname(window.location.hostname) ? localVersionTimestamp : BUILD_VERSION
+  }, [localVersionTimestamp])
 
   useEffect(() => {
     selectionRef.current = selection
@@ -902,6 +937,16 @@ function App({ themeMode, onToggleTheme }) {
       theme: 'dark',
       securityLevel: 'loose',
     })
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !isLocalHostname(window.location.hostname)) {
+      return undefined
+    }
+    const timer = window.setInterval(() => {
+      setLocalVersionTimestamp(formatCurrentVersionTimestamp())
+    }, 1000)
+    return () => window.clearInterval(timer)
   }, [])
 
   useEffect(() => {
@@ -1614,7 +1659,7 @@ function App({ themeMode, onToggleTheme }) {
             onClick={handleGoHome}
           >
             <Typography variant="overline" sx={{ color: 'primary.light', letterSpacing: '0.12em' }}>
-              {showHome ? 'Documentation Hub' : 'Markdown Viewer'}
+              {showHome ? 'Documentation Hub' : `当前版本 ${displayedBuildVersion}`}
             </Typography>
             <Typography variant="h5" sx={{ fontWeight: 700 }} noWrap>
               handbook

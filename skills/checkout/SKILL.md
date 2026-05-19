@@ -31,7 +31,7 @@ Load these helpers instead of re-inventing their behavior:
   - Use for workspace repo discovery, repo status summaries, repository-local rules, current-branch rebase preparation, commit preparation, and GitLab-style MR workflows.
 - `github:yeet`
   - Prefer for GitHub repositories after scope is confirmed and the repo is ready to publish.
-- `$create-gitee-enterprise-pr`
+- `$pjlab-gitee`
   - Use for `gitee.pjlab.org.cn` repositories when a PR must be created on the enterprise Gitee instance.
 
 ## Workflow
@@ -113,7 +113,7 @@ For each approved repository:
 8. Create the PR or MR using the forge-specific path:
    - GitHub: prefer `github:yeet`
    - GitLab: follow `$git` commit workflow and create the MR in the same pass
-   - enterprise Gitee: use `$create-gitee-enterprise-pr`
+  - enterprise Gitee: use `$pjlab-gitee`
      - If enterprise Gitee token auth does not verify and the browser session is missing or expired, stop and give the user the login URL first; continue only after the browser login is refreshed.
 9. After the PR or MR is created successfully, remain on the current working branch unless a repository-local rule explicitly requires another landing state.
 

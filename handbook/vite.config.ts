@@ -6,6 +6,9 @@ import react from '@vitejs/plugin-react'
 
 const backendTarget = process.env.HANDBOOK_DEV_BACKEND || 'http://127.0.0.1:18080'
 const APP_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'src')
+const buildVersion = process.env.VITE_BUILD_VERSION || new Date().toISOString().slice(0, 19).replace('T', ' ')
+
+process.env.VITE_BUILD_VERSION = buildVersion
 
 export default defineConfig({
   root: APP_DIR,
