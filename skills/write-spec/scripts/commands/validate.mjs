@@ -23,6 +23,9 @@ const REQUIRED_H1 = [
   "参考资料",
 ];
 const DOT_FENCE_RE = /^```(?:dot|graphviz)\s*$/;
+const ANSWER_OPTION_SHORTHAND_RE = /^> A：\s*(?:(?:选项|选)\s*`?(?:\d+|[A-Za-z])`?|`?(?:\d+|[A-Za-z])`?)(?:[。；，,\s]|$)/;
+const QUESTION_OPTION_SLASH_RE = /^Q：.*\b\d+\s*[/／]\s*\d+(?:\s*[/／]\s*\d+)+/;
+const QUESTION_OPTION_MARKER_RE = /(?:^|[\s（(])(?:\d+[.、)）:]|[A-Za-z][.、)）:]|[一二三四五六七八九十]+[、)）:])/g;
 
 let errorCatalogCache = null;
 
@@ -124,6 +127,15 @@ function hasDotFence(lines, start, end) {
     }
   }
   return false;
+}
+
+function questionContainsOptions(questionHeading) {
+  if (QUESTION_OPTION_SLASH_RE.test(questionHeading)) {
+    return true;
+  }
+  const questionBody = questionHeading.replace(/^Q：/, "").trim();
+  const matches = questionBody.match(QUESTION_OPTION_MARKER_RE);
+  return matches != null && matches.length >= 2;
 }
 
 function validateHeadingStructure(lines, pathValue) {
@@ -298,6 +310,9 @@ function validateInterviewRecords(lines, h2Sections) {
 
     rounds += 1;
     const questionIdx = idx;
+    if (questionContainsOptions(trimmed.replace(/^>\s*/, ""))) {
+      errors.push(err("E049", lines, questionIdx));
+    }
     idx += 1;
 
     let sawBlankQuote = false;
@@ -318,6 +333,9 @@ function validateInterviewRecords(lines, h2Sections) {
     if (!answerLine.startsWith("> A：")) {
       errors.push(err("E033", lines, idx));
     } else {
+      if (ANSWER_OPTION_SHORTHAND_RE.test(answerLine)) {
+        errors.push(err("E039", lines, idx));
+      }
       idx += 1;
     }
 
