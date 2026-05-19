@@ -4,6 +4,27 @@ import { currentInterviewTime, cleanSingleLine, splitLinesKeepEnds } from "./sha
 import { normalizeFile, parseSections, sectionSlice } from "./normalize.mjs";
 import { collectErrors, filterIncrementalDraftErrors, printFail } from "./validate.mjs";
 
+const ANSWER_OPTION_SHORTHAND_RE = /^(?:(?:选项|选)\s*`?(?:\d+|[A-Za-z])`?|`?(?:\d+|[A-Za-z])`?)(?:[。；，,\s]|$)/;
+const QUESTION_OPTION_SLASH_RE = /^.*\b\d+\s*[/／]\s*\d+(?:\s*[/／]\s*\d+)+/;
+const QUESTION_OPTION_MARKER_RE = /(?:^|[\s（(])(?:\d+[.、)）:]|[A-Za-z][.、)）:]|[一二三四五六七八九十]+[、)）:])/g;
+
+function questionContainsOptions(question) {
+  if (QUESTION_OPTION_SLASH_RE.test(question)) {
+    return true;
+  }
+  const matches = question.trim().match(QUESTION_OPTION_MARKER_RE);
+  return matches != null && matches.length >= 2;
+}
+
+function assertDurableQaShape(question, answer) {
+  if (questionContainsOptions(question)) {
+    throw new Error("question must contain only the prompt body, without inline numbered options");
+  }
+  if (ANSWER_OPTION_SHORTHAND_RE.test(answer.trim())) {
+    throw new Error("answer must be a full natural-language answer, not only an option shorthand");
+  }
+}
+
 export function addQa(text, question, answer, impact, interviewTime = null) {
   const lines = splitLinesKeepEnds(text);
   if (lines.length === 0) {
@@ -26,6 +47,7 @@ export async function handleAddQa(args) {
     const question = cleanSingleLine("question", args.question);
     const answer = cleanSingleLine("answer", args.answer);
     const impact = cleanSingleLine("impact", args.impact);
+    assertDurableQaShape(question, answer);
     const interviewTime = args.time == null ? null : cleanSingleLine("time", args.time);
     const rewritten = addQa(await fs.readFile(filePath, "utf8"), question, answer, impact, interviewTime);
     await fs.writeFile(filePath, rewritten, "utf8");

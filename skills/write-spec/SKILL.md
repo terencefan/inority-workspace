@@ -156,6 +156,7 @@ Within the second-level heading `风险与红线`, default to exactly these two 
 - 如果当前真实问答不足 `5` 轮，默认动作是继续加载 `$inority-question` 补问，而不是跳过或用作者自问自答补齐。
 - `访谈记录` 的问题收敛、选项设计、和多路径拍板由 `$inority-question` 统一负责；本 skill 只负责把真实问答按下面的 spec 记录格式写回。
 - `访谈记录` 的 `Q` 是 agent 按 `$inority-question` 提出的澄清 / 选路 / 验收问题，`A` 是用户随后给出的回答；不要把用户的原始需求、命令式输入或问题改写成 `Q`，也不要把 agent 的方案解释改写成 `A`。
+- 写回时必须遵守 `$inority-question` 的 durable Q/A 规则：`Q` 只保留问题本体，不带编号选项或推荐语；`A` 必须写成完整答案，不允许只写 `1`、`2`、`A`、`B` 这类编号。
 - 每轮记录都要显式写出：
   - quote 内分成两段：
     - `Q：...`

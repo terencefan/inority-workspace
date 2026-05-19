@@ -10,6 +10,16 @@
     "expected_codes": ["E049"]
   },
   {
+    "name": "answer-option-shorthand",
+    "replacements": [
+      {
+        "old": "> A：<...>",
+        "new": "> A：A"
+      }
+    ],
+    "expected_codes": ["E039"]
+  },
+  {
     "name": "interview-time-needs-blank-line-before-impact",
     "replacements": [
       {

@@ -86,3 +86,38 @@ test("runctl add-qa supports blank init output", async () => {
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("runctl add-qa rejects inline option questions and shorthand answers", async () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "runbook-add-qa-"));
+  try {
+    const runbookPath = path.join(dir, "authority.md");
+    writeFileSync(runbookPath, loadText(REFERENCE_TEMPLATE), "utf8");
+    const badQuestion = await runRunctl([
+      "add-qa",
+      runbookPath,
+      "--question",
+      "这次走 1. 本地 2. canary 3. prod 哪个入口？",
+      "--answer",
+      "走 canary",
+      "--impact",
+      "冻结环境范围",
+    ]);
+    assert.equal(badQuestion.status, 1);
+    assert.match(badQuestion.stderr, /question must contain only the prompt body/);
+
+    const badAnswer = await runRunctl([
+      "add-qa",
+      runbookPath,
+      "--question",
+      "这次先走哪个环境",
+      "--answer",
+      "1",
+      "--impact",
+      "冻结环境范围",
+    ]);
+    assert.equal(badAnswer.status, 1);
+    assert.match(badAnswer.stderr, /answer must be a full natural-language answer/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

@@ -63,6 +63,13 @@ When the parent artifact requires interview history, record each round in this s
 - `Q` and `A` stay inside the quote block.
 - `收敛影响` stays outside the quote block.
 - Only record real user answers; do not backfill fake Q/A.
+- `Q` must contain only the actual question sentence. Do not copy the numbered options, recommendation text, or custom-answer hint into `Q`.
+- If the live round used numbered options, keep those options in the chat turn only; when writing back into a runbook or spec, rewrite `Q` into a clean option-free question.
+- `A` must contain the user's substantive answer in natural language, not just the selected option index, letter, or shorthand such as `1`, `2`, `A`, `B`.
+- If the user answered with only an index or letter, expand it during write-back into the full chosen meaning, using the exact option text that the user selected.
+- If the user answered with an option plus custom detail, `A` should preserve both the chosen route and the custom detail as one complete answer.
+- If the user answered outside the prepared option wording, but their intent clearly matches one of the existing options, normalize the write-back to that matched option wording first, then append any extra custom detail that materially changes scope or constraints.
+- Only keep the answer as a fully custom variant when it does not clearly map onto any prepared option.
 
 ## Parent-Skill Boundary
 

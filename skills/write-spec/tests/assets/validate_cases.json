@@ -118,5 +118,25 @@
       }
     ],
     "expected_codes": ["E034"]
+  },
+  {
+    "name": "inline-question-options",
+    "replacements": [
+      {
+        "old": "> Q：这次变更是否只覆盖接入链路，不触碰鉴权模型？",
+        "new": "> Q：这次变更走 1. 只改接入链路 2. 一并改鉴权模型？"
+      }
+    ],
+    "expected_codes": ["E049"]
+  },
+  {
+    "name": "answer-option-shorthand",
+    "replacements": [
+      {
+        "old": "> A：是，本轮只覆盖接入链路，鉴权模型保持不变。",
+        "new": "> A：1"
+      }
+    ],
+    "expected_codes": ["E039"]
   }
 ]

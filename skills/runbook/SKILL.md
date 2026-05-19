@@ -276,6 +276,7 @@ canary 相关的入口、`dev3` 边界和 `canary-env` 继承规则统一放在�
   - 如有必要，给出 `2-4` 个具体选项与取舍
 - authority 定稿前，必须累计至少 `5` 条真实的用户访谈记录；如果当前 runbook 没有 `## 访谈记录`，或记录数少于 `5`，主 rollout 必须继续补问，不能跳过。
 - 如果发现真实用户问答不足，默认动作不是先改文档，而是继续通过 `$inority-question` 提问；只有当这轮补问已经把关键边界收敛下来，才允许开始重构正文。
+- 把访谈记录回写到 runbook 时，必须遵守 `$inority-question` 的 durable Q/A 规则：`Q` 只写问题本体，不带编号选项或推荐语；`A` 必须展开成完整答案，不允许只写 `1`、`2`、`A`、`B` 这类编号。
 
 ## 何时必须侦察
 
@@ -374,7 +375,7 @@ scripts/runctl add-step <topic>-runbook.md --title "<步骤标题>" --after <n>
 scripts/runctl add-qa <topic>-runbook.md --question "<Q>" --answer "<A>" --time "<访谈时间>" --impact "<影响面>"
 ```
 
-`add-qa` 会在 `## 访谈记录` 末尾追加一条标准形态的问答记录，写成 `### Q：...`、`> A：...`，必填语义的 `访谈时间：...`，空一行后写正文影响面行；如果没有传 `--time`，脚本默认填当前本地时间。
+`add-qa` 会在 `## 访谈记录` 末尾追加一条标准形态的问答记录，写成 `### Q：...`、`> A：...`，必填语义的 `访谈时间：...`，空一行后写正文影响面行；如果没有传 `--time`，脚本默认填当前本地时间。传参时也必须遵守 `$inority-question` 的 durable Q/A 规则：`--question` 只写问题本体，不带编号选项或推荐语；`--answer` 必须写完整答案，不允许只传 `1`、`2`、`A`、`B` 这类编号。
 
 ```bash
 scripts/runctl move-step <topic>-runbook.md --item <n> --after <m>
