@@ -58,6 +58,12 @@
   min-width: 0;
 }
 
+.handbook-build-version {
+  color: rgba(148, 163, 184, 0.92);
+  font-size: 0.74rem;
+  line-height: 1.2;
+}
+
 .doc-shell {
   display: grid;
   gap: 1rem;
