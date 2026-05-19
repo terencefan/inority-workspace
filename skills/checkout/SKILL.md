@@ -102,20 +102,24 @@ Process repositories serially. Do not run concurrent Git write flows in the same
 For each approved repository:
 
 1. Refresh the repository default branch according to local rules.
-2. Keep the current working branch checked out. Do not create a new branch if the repository is already on the intended review branch.
+2. Inspect the current branch's review status before deciding whether to reuse it.
+   - If the current branch backs an open PR or MR for the same scope, you may keep using it.
+   - If the current branch backs a PR or MR that is already merged or closed, do not push new work to that branch.
+   - In that merged or closed case, create a fresh review branch from the latest default branch tip first, then cherry-pick or squash the intended scope onto it before publishing.
+3. Keep the current working branch checked out only when it is still the intended live review branch.
    - If the repository is still on `main` or `master`, stop and ask the user before proceeding instead of publishing directly from the default branch.
-3. Rebase the current working branch onto the latest default branch tip before staging or publishing.
+4. Rebase the publish branch onto the latest default branch tip before staging or publishing.
    - If the rebase hits conflicts or any other blocker, stop that repository immediately and ask the user before proceeding.
-4. Stage only the intended files.
-5. Create one intentional commit for that repository's selected scope.
-6. Run the most relevant available checks when they are obvious and cheap enough.
-7. Push the branch.
-8. Create the PR or MR using the forge-specific path:
+5. Stage only the intended files.
+6. Create one intentional commit for that repository's selected scope.
+7. Run the most relevant available checks when they are obvious and cheap enough.
+8. Push the branch.
+9. Create the PR or MR using the forge-specific path:
    - GitHub: prefer `github:yeet`
    - GitLab: follow `$git` commit workflow and create the MR in the same pass
   - enterprise Gitee: use `$pjlab-gitee`
      - If enterprise Gitee token auth does not verify and the browser session is missing or expired, stop and give the user the login URL first; continue only after the browser login is refreshed.
-9. After the PR or MR is created successfully, remain on the current working branch unless a repository-local rule explicitly requires another landing state.
+10. After the PR or MR is created successfully, remain on the current working branch unless a repository-local rule explicitly requires another landing state.
 
 If a repository hits a conflict or publish blocker mid-flight, stop that repository, record the blocker, and continue only with other repositories that are independent and still safe to process.
 
@@ -141,6 +145,7 @@ If every in-scope repository has been fully processed for this checkout wave, en
 ## Safety Rules
 
 - Never push directly to `main` or `master`.
+- Never push new work onto a branch whose previous PR or MR is already merged or closed; start a fresh branch from the latest default branch instead.
 - Never silently stage unrelated changes.
 - Never auto-publish a repository whose scope is unclear.
 - Never skip repository-local workflow rules.
