@@ -103,9 +103,12 @@ For each approved repository:
 
 1. Refresh the repository default branch according to local rules.
 2. Inspect the current branch's review status before deciding whether to reuse it.
+   - Always refresh the target branch first and compare it with the current branch before reporting or creating a PR.
+   - Do not assume a previously-created PR or MR is still open; verify its current state from the forge detail page/API when possible.
    - If the current branch backs an open PR or MR for the same scope, you may keep using it.
    - If the current branch backs a PR or MR that is already merged or closed, do not push new work to that branch.
    - In that merged or closed case, create a fresh review branch from the latest default branch tip first, then cherry-pick or squash the intended scope onto it before publishing.
+   - If a previous PR was squash-merged and the local branch still contains extra commits, carry forward only the still-unmerged delta onto the fresh branch.
 3. Keep the current working branch checked out only when it is still the intended live review branch.
    - If the repository is still on `main` or `master`, stop and ask the user before proceeding instead of publishing directly from the default branch.
 4. Rebase the publish branch onto the latest default branch tip before staging or publishing.
@@ -146,6 +149,8 @@ If every in-scope repository has been fully processed for this checkout wave, en
 
 - Never push directly to `main` or `master`.
 - Never push new work onto a branch whose previous PR or MR is already merged or closed; start a fresh branch from the latest default branch instead.
+- Never report an existing PR or MR as the active review target until its current state has been checked.
+- Never create a duplicate PR for commits that are already represented in the refreshed target branch.
 - Never silently stage unrelated changes.
 - Never auto-publish a repository whose scope is unclear.
 - Never skip repository-local workflow rules.
