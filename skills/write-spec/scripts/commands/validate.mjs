@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { collectMarkdownDotErrors } from "../../../draw-dot/scripts/dotctl.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -407,6 +408,7 @@ export function collectErrors(text, { pathValue = null } = {}) {
     errors.push(...validateComparisonSection(lines, h2Sections));
     errors.push(...validateInterviewRecords(lines, h2Sections));
   }
+  errors.push(...collectMarkdownDotErrors(normalized, { allowNoBlocks: true }));
 
   return dedupeErrors(errors);
 }

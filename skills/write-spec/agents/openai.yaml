@@ -1,4 +1,4 @@
 interface:
   display_name: "Write Spec"
-  short_description: "Draft product and technical specs from concrete requirements."
-  default_prompt: "Use this skill to turn rough requirements into a clear, reviewable spec with assumptions, scope, boundaries, and a crisp target-state design. Whenever you need to ask the user a clarification, route-selection, or disambiguation question, also load $inority-question."
+  short_description: "把粗糙需求整理成可评审的产品或技术 spec。"
+  default_prompt: "使用这个 skill 将粗糙需求、本地仓库事实和用户访谈整理成边界清晰、可评审、可验收的 spec；需要澄清、选路或确认验收含义时，同时加载 $inority-question。"

@@ -6,7 +6,25 @@ import react from '@vitejs/plugin-react'
 
 const backendTarget = process.env.HANDBOOK_DEV_BACKEND || 'http://127.0.0.1:18080'
 const APP_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'src')
-const buildVersion = process.env.VITE_BUILD_VERSION || new Date().toISOString().slice(0, 19).replace('T', ' ')
+
+function formatBuildVersion(date = new Date()) {
+  const formatter = new Intl.DateTimeFormat('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  })
+  const parts = formatter.formatToParts(date)
+  const valueByType = new Map(parts.map((part) => [part.type, part.value]))
+  return `${valueByType.get('year')}-${valueByType.get('month')}-${valueByType.get('day')} ${valueByType.get('weekday')} ${valueByType.get('hour')}:${valueByType.get('minute')}:${valueByType.get('second')}`
+}
+
+const buildVersion = process.env.VITE_BUILD_VERSION || formatBuildVersion()
 
 process.env.VITE_BUILD_VERSION = buildVersion
 

@@ -6,29 +6,35 @@ Use these as starting points. Adapt labels and grouping to the real subject.
 
 ```dot
 digraph G {
-  graph [fontname="Noto Sans CJK SC", rankdir=LR];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded"];
-  edge [fontname="Noto Sans CJK SC"];
+  graph [fontname="Noto Sans CJK SC", rankdir=LR, bgcolor="transparent"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
 
-  user [label="用户 / 调用方"];
+  user [label="用户 / 调用方", fillcolor="#dbeafe"];
 
   subgraph cluster_entry {
     label="入口层";
-    gateway [label="API Gateway"];
-    web [label="Web / CLI"];
+    color="#94a3b8";
+    fontcolor="#475569";
+    gateway [label="API Gateway", fillcolor="#fef3c7"];
+    web [label="Web / CLI", fillcolor="#fef3c7"];
   }
 
   subgraph cluster_core {
     label="核心域";
-    service_a [label="服务 A"];
-    service_b [label="服务 B"];
+    color="#94a3b8";
+    fontcolor="#475569";
+    service_a [label="服务 A", fillcolor="#dbeafe"];
+    service_b [label="服务 B", fillcolor="#dbeafe"];
   }
 
   subgraph cluster_data {
     label="数据层";
-    db [label="主数据库"];
-    cache [label="缓存"];
-    mq [label="消息队列"];
+    color="#94a3b8";
+    fontcolor="#475569";
+    db [label="主数据库", fillcolor="#dcfce7"];
+    cache [label="缓存", fillcolor="#dcfce7"];
+    mq [label="消息队列", fillcolor="#dcfce7"];
   }
 
   user -> gateway;
@@ -45,9 +51,9 @@ digraph G {
 
 ```dot
 digraph G {
-  graph [fontname="Noto Sans CJK SC", rankdir=LR];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded"];
-  edge [fontname="Noto Sans CJK SC"];
+  graph [fontname="Noto Sans CJK SC", rankdir=LR, bgcolor="transparent"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#dbeafe"];
+  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
 
   step_1 [label="接收请求"];
   step_2 [label="校验参数"];
@@ -63,9 +69,9 @@ digraph G {
 
 ```dot
 digraph G {
-  graph [fontname="Noto Sans CJK SC", rankdir=LR];
-  node [fontname="Noto Sans CJK SC", shape=ellipse];
-  edge [fontname="Noto Sans CJK SC"];
+  graph [fontname="Noto Sans CJK SC", rankdir=LR, bgcolor="transparent"];
+  node [fontname="Noto Sans CJK SC", shape=ellipse, style="filled", color="#64748b", fontcolor="#0f172a", fillcolor="#fef3c7"];
+  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
 
   pending [label="待处理"];
   running [label="执行中"];
@@ -83,27 +89,31 @@ digraph G {
 
 ```dot
 digraph G {
-  graph [fontname="Noto Sans CJK SC", rankdir=LR];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded"];
-  edge [fontname="Noto Sans CJK SC"];
+  graph [fontname="Noto Sans CJK SC", rankdir=LR, bgcolor="transparent"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
 
   subgraph cluster_current {
     label="现状";
-    curr_entry [label="单入口服务"];
-    curr_db [label="共享数据库"];
-    curr_ops [label="人工运维"];
+    color="#94a3b8";
+    fontcolor="#475569";
+    curr_entry [label="单入口服务", fillcolor="#dbeafe"];
+    curr_db [label="共享数据库", fillcolor="#dcfce7"];
+    curr_ops [label="人工运维", fillcolor="#fef3c7"];
     curr_entry -> curr_db;
     curr_ops -> curr_entry;
   }
 
   subgraph cluster_target {
     label="目标";
-    tgt_gateway [label="统一入口"];
-    tgt_service_a [label="服务 A"];
-    tgt_service_b [label="服务 B"];
-    tgt_db_a [label="库 A"];
-    tgt_db_b [label="库 B"];
-    tgt_runbook [label="标准化 runbook"];
+    color="#94a3b8";
+    fontcolor="#475569";
+    tgt_gateway [label="统一入口", fillcolor="#fef3c7"];
+    tgt_service_a [label="服务 A", fillcolor="#dbeafe"];
+    tgt_service_b [label="服务 B", fillcolor="#dbeafe"];
+    tgt_db_a [label="库 A", fillcolor="#dcfce7"];
+    tgt_db_b [label="库 B", fillcolor="#dcfce7"];
+    tgt_runbook [label="标准化 runbook", fillcolor="#f8fafc"];
     tgt_gateway -> tgt_service_a -> tgt_db_a;
     tgt_gateway -> tgt_service_b -> tgt_db_b;
     tgt_runbook -> tgt_gateway;
@@ -115,21 +125,21 @@ digraph G {
 
 ```dot
 digraph G {
-  graph [fontname="Noto Sans CJK SC", rankdir=TB];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded"];
-  edge [fontname="Noto Sans CJK SC"];
+  graph [fontname="Noto Sans CJK SC", rankdir=TB, bgcolor="transparent"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
 
-  root [label="主题"];
-  area_1 [label="维度一"];
-  area_2 [label="维度二"];
-  area_3 [label="维度三"];
+  root [label="主题", fillcolor="#dbeafe"];
+  area_1 [label="维度一", fillcolor="#fef3c7"];
+  area_2 [label="维度二", fillcolor="#fef3c7"];
+  area_3 [label="维度三", fillcolor="#fef3c7"];
 
-  leaf_11 [label="要点 1"];
-  leaf_12 [label="要点 2"];
-  leaf_21 [label="要点 1"];
-  leaf_22 [label="要点 2"];
-  leaf_31 [label="要点 1"];
-  leaf_32 [label="要点 2"];
+  leaf_11 [label="要点 1", fillcolor="#f8fafc"];
+  leaf_12 [label="要点 2", fillcolor="#f8fafc"];
+  leaf_21 [label="要点 1", fillcolor="#f8fafc"];
+  leaf_22 [label="要点 2", fillcolor="#f8fafc"];
+  leaf_31 [label="要点 1", fillcolor="#f8fafc"];
+  leaf_32 [label="要点 2", fillcolor="#f8fafc"];
 
   root -> area_1;
   root -> area_2;
