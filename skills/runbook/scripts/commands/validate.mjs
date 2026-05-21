@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { normalizeFile, normalizeRunbookNumbering } from "./normalize.mjs";
+import { collectMarkdownDotErrors } from "../../../draw-dot/scripts/dotctl.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -940,6 +941,7 @@ function collectErrors(text, pathValue = null) {
     ...validateFinalAcceptance(lines, h2Sections),
     ...validateRollbackPlan(lines, h2Sections),
     ...validateExternalLinks(lines, h2Sections),
+    ...collectMarkdownDotErrors(normalizedText, { allowNoBlocks: true }),
   );
 
   return errors;

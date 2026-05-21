@@ -23,12 +23,13 @@
 ```dot
 digraph CurrentState {
   rankdir=LR;
-  graph [bgcolor="transparent"];
-  node [shape=box, style="rounded"];
+  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
 
-  current_user [label="当前用户入口"];
-  current_flow [label="当前流程"];
-  current_result [label="当前结果"];
+  current_user [label="当前用户入口", fillcolor="#dbeafe"];
+  current_flow [label="当前流程", fillcolor="#fef3c7"];
+  current_result [label="当前结果", fillcolor="#dcfce7"];
 
   current_user -> current_flow -> current_result;
 }
@@ -43,12 +44,13 @@ digraph CurrentState {
 ```dot
 digraph TargetState {
   rankdir=LR;
-  graph [bgcolor="transparent"];
-  node [shape=box, style="rounded"];
+  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
 
-  target_user [label="目标用户入口"];
-  target_flow [label="目标流程"];
-  target_result [label="目标结果"];
+  target_user [label="目标用户入口", fillcolor="#dbeafe"];
+  target_flow [label="目标流程", fillcolor="#fef3c7"];
+  target_result [label="目标结果", fillcolor="#dcfce7"];
 
   target_user -> target_flow -> target_result;
 }
@@ -89,25 +91,28 @@ digraph TargetState {
 ```dot
 digraph ArchitectureOverview {
   rankdir=TB;
-  graph [bgcolor="transparent"];
-  node [shape=box, style="rounded"];
+  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
 
   subgraph cluster_ns {
     label="架构分层（南北向）";
-    color=gray70;
-    user [label="用户入口层"];
-    interaction [label="交互 / 流程层"];
-    capability [label="核心能力层"];
-    support [label="支撑与数据层"];
+    color="#94a3b8";
+    fontcolor="#475569";
+    user [label="用户入口层", fillcolor="#dbeafe"];
+    interaction [label="交互 / 流程层", fillcolor="#fef3c7"];
+    capability [label="核心能力层", fillcolor="#dbeafe"];
+    support [label="支撑与数据层", fillcolor="#dcfce7"];
     user -> interaction -> capability -> support;
   }
 
   subgraph cluster_ew {
     label="模块划分（东西向）";
-    color=gray70;
-    moduleA [label="模块 A"];
-    moduleB [label="模块 B"];
-    moduleC [label="模块 C"];
+    color="#94a3b8";
+    fontcolor="#475569";
+    moduleA [label="模块 A", fillcolor="#dbeafe"];
+    moduleB [label="模块 B", fillcolor="#fef3c7"];
+    moduleC [label="模块 C", fillcolor="#dcfce7"];
   }
 
   interaction -> moduleA [style=dashed];

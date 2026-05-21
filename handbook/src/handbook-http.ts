@@ -97,6 +97,7 @@ const STATIC_FILE_TYPES = new Map([
   ['.jpg', 'image/jpeg'],
   ['.js', 'application/javascript; charset=utf-8'],
   ['.json', 'application/json; charset=utf-8'],
+  ['.jsonl', 'application/x-ndjson; charset=utf-8'],
   ['.map', 'application/json; charset=utf-8'],
   ['.png', 'image/png'],
   ['.svg', 'image/svg+xml; charset=utf-8'],

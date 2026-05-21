@@ -23,12 +23,13 @@
 ```dot
 digraph CurrentState {
   rankdir=LR;
-  graph [bgcolor="transparent"];
-  node [shape=box, style="rounded"];
+  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
 
-  current_a [label="当前组件 A"];
-  current_b [label="当前组件 B"];
-  current_c [label="当前组件 C"];
+  current_a [label="当前组件 A", fillcolor="#dbeafe"];
+  current_b [label="当前组件 B", fillcolor="#fef3c7"];
+  current_c [label="当前组件 C", fillcolor="#dcfce7"];
 
   current_a -> current_b -> current_c;
 }
@@ -43,12 +44,13 @@ digraph CurrentState {
 ```dot
 digraph TargetState {
   rankdir=LR;
-  graph [bgcolor="transparent"];
-  node [shape=box, style="rounded"];
+  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
 
-  target_a [label="目标组件 A"];
-  target_b [label="目标组件 B"];
-  target_c [label="目标组件 C"];
+  target_a [label="目标组件 A", fillcolor="#dbeafe"];
+  target_b [label="目标组件 B", fillcolor="#fef3c7"];
+  target_c [label="目标组件 C", fillcolor="#dcfce7"];
 
   target_a -> target_b -> target_c;
 }
@@ -89,25 +91,28 @@ digraph TargetState {
 ```dot
 digraph ArchitectureOverview {
   rankdir=TB;
-  graph [bgcolor="transparent"];
-  node [shape=box, style="rounded"];
+  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
 
   subgraph cluster_ns {
     label="架构分层（南北向）";
-    color=gray70;
-    external [label="外部入口层"];
-    gateway [label="接入 / 网关层"];
-    service [label="业务服务层"];
-    data [label="数据与基础设施层"];
+    color="#94a3b8";
+    fontcolor="#475569";
+    external [label="外部入口层", fillcolor="#dbeafe"];
+    gateway [label="接入 / 网关层", fillcolor="#fef3c7"];
+    service [label="业务服务层", fillcolor="#dbeafe"];
+    data [label="数据与基础设施层", fillcolor="#dcfce7"];
     external -> gateway -> service -> data;
   }
 
   subgraph cluster_ew {
     label="模块划分（东西向）";
-    color=gray70;
-    moduleA [label="模块 A"];
-    moduleB [label="模块 B"];
-    moduleC [label="模块 C"];
+    color="#94a3b8";
+    fontcolor="#475569";
+    moduleA [label="模块 A", fillcolor="#dbeafe"];
+    moduleB [label="模块 B", fillcolor="#fef3c7"];
+    moduleC [label="模块 C", fillcolor="#dcfce7"];
   }
 
   gateway -> moduleA [style=dashed];

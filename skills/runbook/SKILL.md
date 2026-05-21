@@ -104,7 +104,7 @@ canary 相关的入口、`dev3` 边界和 `canary-env` 继承规则统一放在�
 - 这里的“已加载信息”不是可选礼貌说明，而是规划态 authority surface 的一部分；如果没有这段回报，就视为本轮规划态说明不完整
 - 在规划态里，`$inority-question` 必须默认出现在这份已加载列表里；如果没有出现，只能说明本轮漏加载或漏汇报
 - 如果额外加载了 `$draw-dot`，也必须显式说明本次要产出的图类型，以及为什么这张图会影响 authority 收敛
-- 通过 `$draw-dot` 生成 Graphviz DOT 图时，默认优先沿用 `references/authority-runbook-template.md` 里的 DOT 骨架；至少要满足当前 validator 的硬约束：
+- 通过 `$draw-dot` 生成 Graphviz DOT 图时，默认优先沿用 `references/authority-runbook-template.md` 里的结构骨架；DOT 的布局、节点配色、cluster 样式和 dark-mode 适配统一以 `$draw-dot/references/style-guide.md` 为准。至少要满足当前 validator 的硬约束：
   - 显式使用 `Noto Sans CJK SC`
   - 不要继续使用 `Arial`
   - `### 现状`、`### 目标` 和 `## 思维脑图` 都必须各自包含 dot 代码块
@@ -218,6 +218,7 @@ canary 相关的入口、`dev3` 边界和 `canary-env` 继承规则统一放在�
 - 只要还存在 materially different 的候选路线，就不要把 runbook 写成已拍板。
 - 编号步骤必须保持单一主动作；不要写成 `A 与 B` 这种把两件 materially different 的事绑在一个步骤里的形态。
 - 如果确实需要先后完成两件不同动作，例如“创建 secret 再 apply workload”或“改配置再重启服务”，就拆成两个编号步骤，而不是继续塞进同一个步骤标题或 scope。
+- 如果 authority 已经进入内部结构重排阶段，例如重编号、拆步骤、补锚点、迁日期目录、拆分跨主机 scope、把隐含前提改成显式编号项，这些都属于规划主 skill 的默认职责；除非会改变用户已拍板的目标、边界或风险承受，不要为了“是否要重排结构”再停下来问用户。
 - 不要再写 `## 当前已决策` 这种作者口吻的小结节；规划态收敛必须改写为 `## 访谈记录`，把 planning 阶段向用户提出的问题、用户回答以及影响面显式留档。
 - 对会改变实现、验收、回滚或影响面的具体选择，必须显式收敛：
   - 版本 / 发行版
@@ -294,7 +295,7 @@ canary 相关的入口、`dev3` 边界和 `canary-env` 继承规则统一放在�
 
 如果 `## 思维脑图`、`### 现状`、风险判断或路径选择需要依赖现场事实，先补 reconnaissance，再落这些章节；不要凭旧印象、旧 runbook 或推测先写图、再补证据。
 
-一旦这些章节需要真正落成 Graphviz DOT 图，默认通过 `$draw-dot` 收敛图结构、布局和样式，而不是在 `$runbook` 正文里临时手写一版随意 DOT。
+一旦这些章节需要真正落成 Graphviz DOT 图，默认通过 `$draw-dot` 收敛图结构、布局、节点配色和 dark-mode 样式，而不是在 `$runbook` 正文里临时手写一版随意 DOT。
 
 ## Authority Runbook 模板
 

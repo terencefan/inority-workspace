@@ -11,6 +11,7 @@ ARG NODE_BASE_IMAGE=library/node:22-bookworm-slim
 FROM ${BASE_IMAGE_PREFIX}${NODE_BASE_IMAGE} AS site-builder
 
 WORKDIR /src/handbook
+ENV NODE_ENV=development
 
 COPY inority-workspace/handbook/package.json ./package.json
 COPY inority-workspace/handbook/package-lock.json ./package-lock.json
@@ -27,12 +28,23 @@ FROM ${BASE_IMAGE_PREFIX}${NODE_BASE_IMAGE} AS markdown-packager
 
 WORKDIR /src/workspace
 
+COPY dataset-asset-dashboard ./dataset-asset-dashboard
 COPY . ./
 
 RUN mkdir -p /out/workspace \
     && find . \
         \( -path "./.*" -o -path "*/.*" -o -path "./AGENTS.md" -o -path "./.codex" -o -path "./.codex/*" -o -path "*/node_modules" \) -prune -o \
-        -type f -name "*.md" \
+        -type f \
+        \( \
+          -name "*.md" -o \
+          -name "*.json" -o \
+          -name "*.jsonl" -o \
+          -name "*.png" -o \
+          -name "*.svg" -o \
+          -name "*.jpg" -o \
+          -name "*.jpeg" -o \
+          -name "*.txt" \
+        \) \
         -exec cp --parents {} /out/workspace \; \
     && find ./slides \
         \( -path "./slides/.*" -o -path "./slides/*/node_modules" -o -path "./slides/*/node_modules/*" \) -prune -o \

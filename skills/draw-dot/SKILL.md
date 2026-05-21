@@ -7,6 +7,8 @@ description: Generate or refine Graphviz DOT diagrams for architecture overviews
 
 Use this skill when the deliverable is a Graphviz DOT diagram, either standalone or embedded in Markdown.
 
+This skill is the style authority for DOT snippets used by `runbook`, `write-spec`, and adjacent Markdown-document skills. Those skills may define what a diagram must express, but DOT layout, node styling, color usage, and dark-mode behavior should converge here.
+
 ## Output Contract
 
 - Default to a fenced `dot` block unless the user explicitly asks for raw DOT only.
@@ -30,21 +32,32 @@ Use this skill when the deliverable is a Graphviz DOT diagram, either standalone
    - `graph [fontname="Noto Sans CJK SC"]`
    - `node [fontname="Noto Sans CJK SC"]`
    - `edge [fontname="Noto Sans CJK SC"]`
+   - embedded Markdown diagrams should not rely on renderer defaults for node contrast; give nodes explicit `style`, `fillcolor`, `color`, and `fontcolor`
+   - default to `style="rounded,filled"` for box-like nodes unless another shape semantic is more important
+   - when the rendering context is unknown, prefer cross-theme fills with explicit borders so nodes stay readable on both light and dark canvases
    - if the diagram is intended for dark mode with transparent background, edge-label text must use a light font color so labels stay readable on dark canvases
    - for dark-mode or TOC-style renders, default both line color and text color toward light tones instead of dark grays
-7. Choose direction deliberately:
+7. Use color deliberately:
+   - nodes should usually have explicit fills rather than unstyled transparent boxes
+   - keep the palette small and semantic; a good default is 3-4 fill colors for distinct roles, not one color per node
+   - use fill color for role grouping, not decoration
+   - keep node text readable against the chosen fill; do not pair light text with light fills or dark text with dark fills
+   - cluster borders and labels should be styled explicitly when the graph uses transparent background
+8. Choose direction deliberately:
    - `rankdir=TB` for hierarchies, steps, trees
    - `rankdir=LR` for pipelines, data paths, layered architecture
-8. Use `subgraph cluster_*` only when grouping materially improves readability.
-9. Avoid decorative noise:
+9. Use `subgraph cluster_*` only when grouping materially improves readability.
+10. Avoid decorative noise:
    - too many colors
    - mixed shape semantics
    - crossing edges that can be removed by regrouping
-10. Do not emit placeholder nodes like `模块A/模块B/...` unless the user asked for a skeleton.
-11. If the target rendering context is dark mode and the background is transparent, treat edge-label contrast as mandatory:
+11. Do not emit placeholder nodes like `模块A/模块B/...` unless the user asked for a skeleton.
+12. If the target rendering context is dark mode and the background is transparent, treat contrast as mandatory for the whole graph, not only the edges:
    - prefer a light edge font color such as `fontcolor="#e5e7eb"`
    - when needed, also use a light stroke color such as `color="#cbd5e1"` so the line and its label remain visually coherent
    - apply the same preference to TOC-style connectors, guide lines, and cluster labels: keep both strokes and text light by default
+   - if nodes are unfilled in that context, they must switch to a dark fill + light text or a light fill + explicit border that still stands off from the page background
+   - do not leave cluster labels, edge labels, or guide text at renderer-default black on a transparent dark canvas
 
 ## Diagram Style
 
@@ -71,6 +84,14 @@ Use this skill when the deliverable is a Graphviz DOT diagram, either standalone
   - balanced braces
   - semicolons or newline-separated statements are coherent
   - every referenced node id is defined or intentionally implicit
+- For Markdown-embedded diagrams, also do a visual pass mentally:
+  - node fill, border, and text all have explicit contrast
+  - edge labels are readable against the likely page background
+  - cluster labels do not fall back to unreadable default black on transparent dark canvases
+- When the workspace needs an executable check, use `scripts/dotctl`:
+  - `dotctl validate <file>`: auto-detect Markdown vs raw DOT
+  - `dotctl validate-markdown <file>`: extract fenced `dot` / `graphviz` blocks and validate them
+  - `dotctl validate-dot <file>`: validate a raw `.dot` / `.gv` file
 - If `dot` is available locally and the diagram is non-trivial, run a render smoke check.
 
 ## References

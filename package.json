@@ -22,6 +22,7 @@
     "handbook:start": "npm run start --workspace handbook",
     "handbook:test": "npm run test --workspace handbook",
     "handbook:lint": "npm run lint --workspace handbook",
+    "dot:test": "node ./skills/draw-dot/tests/run.mjs",
     "runbook:test": "node ./skills/runbook/tests/run.mjs",
     "slides:test": "node ./skills/inority-slides/tests/run.mjs",
     "spec:test": "node ./skills/write-spec/tests/run.mjs"

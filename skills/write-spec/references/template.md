@@ -54,6 +54,8 @@
 - `现状` 必须包含 fenced `dot` 图
 - `目标` 必须包含 fenced `dot` 图
 - `架构总览` 必须包含 fenced `dot` 图
+- 所有 Markdown 内嵌 `dot` 图都应显式设置 node / edge / cluster 样式，不依赖默认配色
+- DOT 的节点配色、边颜色、cluster 样式和 dark-mode 适配统一遵循 `$draw-dot/references/style-guide.md`
 - 这张 `dot` 图必须同时体现：
   - `架构分层` 的南北向结构
   - `模块划分` 的东西向结构
