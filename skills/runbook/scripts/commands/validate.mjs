@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { normalizeFile, normalizeRunbookNumbering } from "./normalize.mjs";
+import { INTERVIEW_TIME_VALUE_PATTERN } from "./shared.mjs";
 import { collectMarkdownDotErrors } from "../../../draw-dot/scripts/dotctl.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -48,7 +49,7 @@ const EXTERNAL_LINK_HEADER_RE = /^\|\s*(?:name|名称)\s*\|\s*(?:type|类型)\s*
 const EXTERNAL_LINK_SEPARATOR_RE = /^\|\s*:?-{3,}:?\s*\|\s*:?-{3,}:?\s*\|\s*:?-{3,}:?\s*\|\s*:?-{3,}:?\s*\|\s*$/;
 const EXTERNAL_LINK_ROW_RE = /^\|\s*[^|]+\s*\|\s*[^|]+\s*\|\s*\[[^\]]+\]\([^)]+\)\s*\|\s*[^|。！？.!?]+[。！？.!?]?\s*\|\s*$/;
 const ANSWER_OPTION_SHORTHAND_RE = /^> A：\s*(?:(?:选项|选)\s*`?(?:\d+|[A-Za-z])`?|`?(?:\d+|[A-Za-z])`?)(?:[。；，,\s]|$)/;
-const INTERVIEW_TIME_RE = /^访谈时间：\s*\S.*$/;
+const INTERVIEW_TIME_RE = new RegExp(`^访谈时间：\\s*${INTERVIEW_TIME_VALUE_PATTERN}$`);
 const QUESTION_OPTION_SLASH_RE = /^Q：.*\b\d+\s*[/／]\s*\d+(?:\s*[/／]\s*\d+)+/;
 const QUESTION_OPTION_MARKER_RE = /(?:^|[\s（(])(?:\d+[.、)）:]|[A-Za-z][.、)）:]|[一二三四五六七八九十]+[、)）:])/g;
 const TRANSFER_ACTION_RE = /^\s*(?:scp|sftp|rsync|kubectl\s+cp|docker\s+cp|rclone\s+copy|curl\b.*(?:-T|--upload-file))\b/gim;

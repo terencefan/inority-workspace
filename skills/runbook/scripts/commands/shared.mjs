@@ -1,5 +1,8 @@
 import { promises as fs } from "node:fs";
 
+export const INTERVIEW_TIME_VALUE_PATTERN = "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2} [A-Za-z0-9:+-]+";
+export const INTERVIEW_TIME_VALUE_RE = new RegExp(`^${INTERVIEW_TIME_VALUE_PATTERN}$`);
+
 export function splitLinesKeepEnds(text) {
   const matches = text.match(/[^\n]*\n|[^\n]+/g);
   return matches ? matches : [];
@@ -47,6 +50,13 @@ export function currentInterviewTime() {
   }).formatToParts(now);
   const get = (type) => parts.find((part) => part.type === type)?.value ?? "";
   return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")} ${get("timeZoneName")}`;
+}
+
+export function assertInterviewTimeFormat(value) {
+  if (!INTERVIEW_TIME_VALUE_RE.test(value)) {
+    throw new Error("`--time` must use format YYYY-MM-DD HH:MM TZ");
+  }
+  return value;
 }
 
 export function parseSimpleYamlMap(text) {

@@ -46,9 +46,16 @@
 
 ```bash
 scripts/runctl init <topic>-runbook.md --title "<主题>执行手册"
+scripts/runctl init <topic>-runbook.md --title "<主题>执行手册" --mode migration --source ./<authority-spec>.md
 scripts/runctl validate <topic>-runbook.md
 scripts/runctl normalize <topic>-runbook.md
 ```
+
+`runctl init` 兼容两种初始化方式：
+
+- 不带 `--mode`：生成最小兼容骨架，适合旧工作流或纯空白起稿。
+- 带 `--mode coding|operation|migration`：直接渲染 authority 富模板，预置模式 note、dot 骨架、执行计划骨架、最终验收、回滚方案和参考资料表格。
+- 带 `--source`：把 authority source 直接注入 `### 目标`，避免后续手工替换占位链接。
 
 ## 相关文件 | Related Files
 
