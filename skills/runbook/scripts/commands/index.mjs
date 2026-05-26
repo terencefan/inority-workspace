@@ -11,7 +11,7 @@ import { handleValidate } from "./validate.mjs";
 import { handleValidatePlanningMode } from "./validate_planning_mode.mjs";
 
 const COMMANDS = {
-  init: { handler: handleInit, options: ["path", "--title", "--force"] },
+  init: { handler: handleInit, options: ["path", "--title", "--mode", "--source", "--force"] },
   "add-step": { handler: handleAddStep, options: ["path", "--title", "--after"] },
   "add-qa": { handler: handleAddQa, options: ["path", "--question", "--answer", "--time", "--impact"] },
   "move-step": { handler: handleMoveStep, options: ["path", "--item", "--after"] },
@@ -82,7 +82,13 @@ function ensurePositional(argv, index, name) {
 function parseArgs(command, argv) {
   switch (command) {
     case "init":
-      return { path: ensurePositional(argv, 0, "path"), title: parseFlagValue(argv, "--title"), force: hasFlag(argv, "--force") };
+      return {
+        path: ensurePositional(argv, 0, "path"),
+        title: parseFlagValue(argv, "--title"),
+        mode: parseFlagValue(argv, "--mode"),
+        source: parseFlagValue(argv, "--source"),
+        force: hasFlag(argv, "--force"),
+      };
     case "add-step":
       return { path: ensurePositional(argv, 0, "path"), title: parseFlagValue(argv, "--title"), after: parseIntegerFlag(argv, "--after") };
     case "add-qa":

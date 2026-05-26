@@ -1,6 +1,6 @@
 import path from "node:path";
 import { promises as fs } from "node:fs";
-import { currentInterviewTime, cleanSingleLine, splitLinesKeepEnds } from "./shared.mjs";
+import { assertInterviewTimeFormat, currentInterviewTime, cleanSingleLine, splitLinesKeepEnds } from "./shared.mjs";
 import { normalizeFile, parseSections, sectionSlice } from "./normalize.mjs";
 import { collectErrors, filterIncrementalDraftErrors, printFail } from "./validate.mjs";
 
@@ -48,7 +48,7 @@ export async function handleAddQa(args) {
     const answer = cleanSingleLine("answer", args.answer);
     const impact = cleanSingleLine("impact", args.impact);
     assertDurableQaShape(question, answer);
-    const interviewTime = args.time == null ? null : cleanSingleLine("time", args.time);
+    const interviewTime = args.time == null ? null : assertInterviewTimeFormat(cleanSingleLine("time", args.time));
     const rewritten = addQa(await fs.readFile(filePath, "utf8"), question, answer, impact, interviewTime);
     await fs.writeFile(filePath, rewritten, "utf8");
     const { normalized } = await normalizeFile(filePath);

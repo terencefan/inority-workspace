@@ -13,7 +13,7 @@ import {
   loadText,
   runRunctl,
 } from "./helpers.mjs";
-import { SKELETON_TEMPLATE } from "../scripts/commands/init.mjs";
+import { SKELETON_TEMPLATE, renderTemplate } from "../scripts/commands/init.mjs";
 import { normalizeRunbookNumbering } from "../scripts/commands/normalize.mjs";
 import { collectErrors, errorMessage, filterIncrementalDraftErrors, loadErrorCatalog } from "../scripts/commands/validate.mjs";
 import { collectPlanningModeErrors } from "../scripts/commands/validate_planning_mode.mjs";
@@ -82,6 +82,49 @@ await runCase("init supports title and force overwrite", async () => {
     result = await runRunctl(["init", runbookPath, "--title", "Fresh Runbook", "--force"]);
     assert.equal(result.status, 0);
     assert.match(result.stdout, /\[runbook-init] overwrote/);
+  });
+});
+
+await runCase("init supports mode-aware authority template and source injection", async () => {
+  await withTempDir("runbook-init-mode-", async (dir) => {
+    const runbookPath = path.join(dir, "authority.md");
+    const sourcePath = path.join(dir, "upstream-spec.md");
+    writeFileSync(sourcePath, "# upstream\n", "utf8");
+    let result = await runRunctl(["init", runbookPath, "--title", "Migration Authority", "--mode", "migration"]);
+    assert.equal(result.status, 0);
+    let created = readFileSync(runbookPath, "utf8");
+    assert.equal(created, await renderTemplate({ title: "Migration Authority", mode: "migration", targetPath: runbookPath }));
+    assert.ok(created.includes("> 当前模式：`migration`"));
+    assert.ok(created.includes("| name | type | link | desc |"));
+
+    result = await runRunctl([
+      "init",
+      runbookPath,
+      "--title",
+      "Coding Authority",
+      "--mode",
+      "coding",
+      "--source",
+      sourcePath,
+      "--force",
+    ]);
+    assert.equal(result.status, 0);
+    created = readFileSync(runbookPath, "utf8");
+    assert.ok(created.includes("### 🟢 1. 保证工作区干净"));
+    assert.ok(created.includes("[upstream-spec.md](./upstream-spec.md)"));
+  });
+});
+
+await runCase("init rejects invalid mode combinations", async () => {
+  await withTempDir("runbook-init-invalid-", async (dir) => {
+    const runbookPath = path.join(dir, "authority.md");
+    let result = await runRunctl(["init", runbookPath, "--mode", "migration"]);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /--mode` requires `--title`/);
+
+    result = await runRunctl(["init", runbookPath, "--title", "Bad Source", "--source", "spec.md"]);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /--source` requires `--mode`/);
   });
 });
 
