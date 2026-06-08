@@ -5,9 +5,30 @@ import { loadJson, loadText, applyReplacements, ASSETS_DIR, ERROR_CODE_CATALOG, 
 import { collectErrors, errorMessage, loadErrorCatalog, main } from "../scripts/commands/validate.mjs";
 
 const REFERENCE_SPEC = path.join(ASSETS_DIR, "reference-spec.md");
+const REFERENCE_LLM_SPEC = path.join(ASSETS_DIR, "reference-llm-spec.md");
 
 test("reference spec passes validation", () => {
   assert.deepEqual(collectErrors(loadText(REFERENCE_SPEC), { pathValue: REFERENCE_SPEC }), []);
+});
+
+test("reference llm spec passes validation", () => {
+  assert.deepEqual(collectErrors(loadText(REFERENCE_LLM_SPEC), { pathValue: REFERENCE_LLM_SPEC }), []);
+});
+
+test("llm spec requires explicit system and user prompt sections", () => {
+  const mutated = loadText(REFERENCE_LLM_SPEC)
+    .replace(`### system prompt
+
+给出目标状态下的 system prompt 原文示例；默认用 fenced code block 内嵌完整原文，不要只写摘要。
+
+`, "")
+    .replace(`### user prompt
+
+给出目标状态下的 user payload 示例；展示 JSON 时默认给关键字段加行内注释，说明字段来源、用途和 authority evidence 边界。
+
+`, "");
+  const codes = new Set(collectErrors(mutated, { pathValue: REFERENCE_LLM_SPEC }).map((item) => item.code));
+  assert.ok(codes.has("E006"));
 });
 
 test("error code catalog covers runtime codes", () => {

@@ -63,4 +63,6 @@
 - 面向暗色模式的 `dot` 图，边的默认颜色应优先选择浅色高对比方案，而不是深灰连接线；纯白可以接受，但略微柔化的近白通常更好。
 - 绘制目录或 TOC 类图时，也要默认考虑 dark mode，避免只在浅色背景下可读的文字、边线和填充色。
 - 默认把 `spec` 和 `runbook` 视为不同制品：`spec` 定义目标状态，`runbook` 描述从当前状态走到目标状态的执行路径。
+- 当 `runbook` 或 `spec` 已落盘并需要在回复中给出链接时，默认优先给 `https://handbook.data.pjlab.tefa/...` 形态的 handbook URL，而不是本地文件路径。
 - 部署引用私有 registry 镜像的 Kubernetes 资源时，必须配置对应的 image pull secret；否则集群无法拉取镜像。
+- 只读 Kubernetes 操作优先使用 K8s MCP；只有需要写操作、执行态调试或 MCP 无法覆盖时，才退回命令行方式。

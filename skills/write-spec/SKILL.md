@@ -1,6 +1,6 @@
 ---
 name: write-spec
-description: 用于编写或整理产品 spec、技术 spec、需求文档、方案文档、接口设计、变更提案和实施计划。用户提到“写 spec”“写方案”“写技术方案”“写需求文档”“整理需求”“补规格”“输出 PRD”，或需要一份包含范围、假设、边界、设计决策和验收标准的可评审 Markdown 文档时使用。
+description: 用于编写或整理产品 spec、技术 spec、llm 节点 spec、需求文档、方案文档、接口设计、变更提案和实施计划。用户提到“写 spec”“写方案”“写技术方案”“写需求文档”“整理需求”“补规格”“输出 PRD”，或需要一份包含范围、假设、边界、设计决策和验收标准的可评审 Markdown 文档时使用。
 ---
 
 # Write Spec
@@ -17,7 +17,7 @@ spec 主要定义目标状态：规则、边界、目标、契约、接口、验
 
 - `$write-spec`
 - `$inority-question`
-- `references/product-spec-template.md` 或 `references/technical-spec-template.md`
+- `references/product-spec-template.md`、`references/technical-spec-template.md` 或 `references/llm-node-spec-template.md`
 - `references/interview-record-template.md`
 
 只有确实需要结构图、关系图、架构图或 Graphviz 片段时，额外使用 `$draw-dot`。DOT 的布局、节点配色、cluster 样式和 dark-mode 适配由 `$draw-dot` 统一负责，`$write-spec` 只定义图里必须表达什么。如果 `$inority-question` 在当前环境不可用，必须在主回复中说明，并按同样纪律直接提问。
@@ -27,11 +27,13 @@ spec 主要定义目标状态：规则、边界、目标、契约、接口、验
 1. 判定 spec 类型。
    - 产品向 spec：用户问题、目标、范围、体验、规则、成功信号。
    - 技术向 spec：架构、数据流、接口、迁移、运行、风险。
-   - `ui` 类需求默认偏产品向；`data` 类需求默认偏技术向。
-   - 产品和技术混合时，先判断本次评审主重心，再选择产品向或技术向模板；不要另造 mixed 模板。
+   - llm 节点 spec：单个 LLM 节点或 agent 节点的 prompt、输入输出契约、本地 reconcile、状态写回与评审边界。
+   - `ui` 类需求默认偏产品向；`data` 类需求默认偏技术向；聚焦单个 prompt / tool / state contract 的 LLM 节点默认偏 `llm 节点 spec`。
+   - 产品和技术混合时，先判断本次评审主重心，再选择对应模板；不要另造 mixed 模板。
 2. 读取匹配模板。
    - 产品向：`references/product-spec-template.md`
    - 技术向：`references/technical-spec-template.md`
+   - llm 节点：`references/llm-node-spec-template.md`
    - 访谈记录：`references/interview-record-template.md`
 3. 如果用户指定了现有草稿或目标文件，先读取它；如果要新建或修订落盘文件，先收敛命名。
 4. 读取必要本地上下文，优先使用仓库事实而不是泛化措辞。
@@ -45,7 +47,8 @@ spec 主要定义目标状态：规则、边界、目标、契约、接口、验
 6. authority spec 定稿前，至少累计 `5` 轮真实用户问答；不足时继续通过 `$inority-question` 补问，不要自问自答。
 7. 写成可评审结构：明确结论、边界、假设、取舍和验收标准，不保留头脑风暴痕迹。
 8. 定稿前优先运行 `scripts/specctl validate <path>`。如果 validator 报错，先修正文档或模板漂移，再宣称收敛。
-9. 如果用户在本轮给出可复用的 spec 写作偏好，结束前更新本 skill 或对应 reference。
+9. 如果仓库已有或即将拥有多份 authority spec，检查并维护仓库级 spec 入口；新建第二份及以上 authority spec 时，默认补齐或更新该入口。
+10. 如果用户在本轮给出可复用的 spec 写作偏好，结束前更新本 skill 或对应 reference。
 
 ## Validator 优先级
 
@@ -138,6 +141,15 @@ spec 主要定义目标状态：规则、边界、目标、契约、接口、验
 ### 边界与契约
 
 写清稳定 contract、模块边界、调用边界、状态语义、输入输出和 ownership。
+
+- 对 `llm 节点 spec`，必须显式包含 `Prompt 设计` 二级标题，并在其下显式包含 `system prompt` 和 `user prompt` 两个三级标题；不能只写“prompt contract”之类的合并块。
+- 对 `llm 节点 spec`，`system prompt` 章节默认必须内嵌目标态 system prompt 原文，优先用 fenced code block 完整展示，不要只写摘要、转述或 bullet 解释。
+- 对 `llm 节点 spec`，`user prompt` 章节下还必须有一张图，说明 `user_payload` 如何从上游 state 经压缩、筛选、映射后被生产出来。
+- 对 `llm 节点 spec`，当展示 `user prompt`、`user_payload`、`context contract` 或其他 prompt 相关 JSON 示例时，默认必须在 JSON block 中加入行内注释，说明字段来源、用途、是否为 authority evidence，以及哪些字段只是示意或可选；不要给出无注释的裸 JSON。
+- 对 `llm 节点 spec`，必须显式包含 `Context 设计` 二级标题，把 context source、context 装配和 context contract 当作一级公民来写。
+- 对 `llm 节点 spec`，不默认要求 `架构总览 / 架构分层 / 模块划分 / 方案对比`；这类章节只在该节点确实存在非写不可的拓扑或路线比较时再增加。
+- 对 `llm 节点 spec`，建议在 `边界与契约` 下固定按 `输出契约 -> 字段映射 -> 本地规则边界 -> 失败契约` 的顺序组织，减少评审路径漂移。
+- 对 `llm 节点 spec`，默认只写目标状态 authority contract；只有用户明确要求现状差异时，才额外补充实现现状或迁移 gap。
 
 - 子标题按评审需要命名，例如 `稳定接口`、`状态语义`、`模块边界`、`调用边界`。
 - 不强制固定成某组小标题。
@@ -242,6 +254,8 @@ digraph Example {
 - 产品向 spec 要覆盖用户流程、边界情况和成功信号。
 - 技术向 spec 要覆盖接口、数据模型、失败处理、可观测性、迁移、兼容性和运行影响。
 - 结构化字段、schema、输出项优先用表格，例如 `字段名 | 字段描述`。
+- 流程阶段、Receiver、goroutine、pipeline 节点或同类执行单元表格，默认包含 **做什么** 列，写可观察行为与副作用，不要只写组件名、输入、输出或代码落点。
+- 这类表格默认可再配 `输入`、`输出 / 副作用`、`经 channel`（如适用）、`代码落点` 等列；**做什么** 列必须能单独读懂该单元职责。
 - 工具设计可用列表，并用 `输入` / `输出` / `用途` 等短标签说明。
 
 ## 合理假设
@@ -263,6 +277,40 @@ digraph Example {
 - 访谈问答实际收敛了哪些决策？
 
 如果任一答案薄弱，先收紧 draft 再结束。
+
+## 仓库 spec 入口
+
+当目标仓库存在两份及以上 authority spec 时，默认维护 `docs/spec/README.md` 作为人类可读入口；它本身不是 authority spec，不走 `specctl validate`。
+
+### 根 spec 定义
+
+- 根 spec 冻结仓库级系统或产品的目标态全貌：主数据流、模块 ownership、外部契约、真相源语义、运行边界与非目标。
+- 拆仓、迁移、重构、上线切换、单组件优化、单表增量等专题，默认落在专题 spec，不要用它们顶替根 spec。
+- 若仓库尚无系统级根 spec，索引页必须显式标注缺口与计划文件名；可列出临时参照 spec，并说明其不能代替根 spec 的原因。
+
+### 必备内容
+
+- 首段用一句话说明该仓库 spec 集合覆盖什么，以及根 spec 是哪一份或为何待建。
+- 显式列出根 spec，并说明它冻结的系统边界或 contract；已存在则链到文件，待建则写清计划文件名与覆盖范围。
+- 按评审主题分组列出专题 spec；每条附一行职责说明，不要只堆文件名。组织演进、迁移、拆仓类 spec 默认单独成组。
+- 给出推荐阅读顺序；存在明显依赖时，用 fenced `dot` 图画出根 spec 与专题 spec 的依赖关系。
+- 链到相关 runbook、项目 README 或其他非 spec 文档入口。
+
+### 维护规则
+
+- 仓库根 `README.md` 默认链接到 `docs/spec/README.md`，不要只链某一份专题 spec。
+- 新建、重命名、废弃或拆分 authority spec 后，同步更新 `docs/spec/README.md` 与根 `README.md` 中的 spec 入口说明。
+- 专题 spec 的 `参考资料` 可以继续互链；索引页负责总览，不替代单份 spec 内的局部引用。
+- 只有用户明确要求或仓库已有稳定分层时，才在 `docs/spec/` 下再开子目录索引；默认优先扁平 `docs/spec/README.md`。
+
+### 索引页写法
+
+- 文件名固定为 `docs/spec/README.md`。
+- H1 标题默认写成 `Spec 设计索引`。
+- H1 下用 Markdown quote 给出仓库级结论，不写“本文将介绍”这类元叙事。
+- 二级标题默认使用：`根 spec`、`专题 spec`、`推荐阅读顺序`、`相关文档`。
+- `专题 spec` 下按自然主题再分三级标题，例如 `路由与访问`、`scan-worker 运行`、`扫描写回数据模型`。
+- 索引页不要求 `访谈记录`、`验收标准` 等 authority spec 章节，也不要伪装成 `-spec.md` 文件。
 
 ## 读取入口
 

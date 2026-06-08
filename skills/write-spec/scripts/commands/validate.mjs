@@ -10,19 +10,46 @@ const __dirname = path.dirname(__filename);
 const ERROR_CODE_CATALOG_PATH = path.resolve(__dirname, "..", "..", "references", "validator-error-codes.yaml");
 const SPEC_FILENAME_SUFFIX = "-spec.md";
 const SPEC_TITLE_SUFFIX = "设计文档";
-const REQUIRED_H1 = [
-  "背景与现状",
-  "目标与非目标",
-  "风险与红线",
-  "边界与契约",
-  "架构总览",
-  "架构分层",
-  "模块划分",
-  "方案对比",
-  "验收标准",
-  "访谈记录",
-  "参考资料",
-];
+const ALLOWED_SPEC_TYPES = ["产品向 spec", "技术向 spec", "llm 节点 spec"];
+const REQUIRED_H2_BY_TYPE = {
+  "产品向 spec": [
+    "背景与现状",
+    "目标与非目标",
+    "风险与红线",
+    "边界与契约",
+    "架构总览",
+    "架构分层",
+    "模块划分",
+    "方案对比",
+    "验收标准",
+    "访谈记录",
+    "参考资料",
+  ],
+  "技术向 spec": [
+    "背景与现状",
+    "目标与非目标",
+    "风险与红线",
+    "边界与契约",
+    "架构总览",
+    "架构分层",
+    "模块划分",
+    "方案对比",
+    "验收标准",
+    "访谈记录",
+    "参考资料",
+  ],
+  "llm 节点 spec": [
+    "背景与现状",
+    "目标与非目标",
+    "风险与红线",
+    "Prompt 设计",
+    "Context 设计",
+    "边界与契约",
+    "验收标准",
+    "访谈记录",
+    "参考资料",
+  ],
+};
 const DOT_FENCE_RE = /^```(?:dot|graphviz)\s*$/;
 const ANSWER_OPTION_SHORTHAND_RE = /^> A：\s*(?:(?:选项|选)\s*`?(?:\d+|[A-Za-z])`?|`?(?:\d+|[A-Za-z])`?)(?:[。；，,\s]|$)/;
 const QUESTION_OPTION_SLASH_RE = /^Q：.*\b\d+\s*[/／]\s*\d+(?:\s*[/／]\s*\d+)+/;
@@ -139,6 +166,17 @@ function questionContainsOptions(questionHeading) {
   return matches != null && matches.length >= 2;
 }
 
+function parseSpecType(lines) {
+  const noteLineIdx = firstNonEmptyLineIdx(lines, 1, lines.length);
+  if (noteLineIdx == null || lines[noteLineIdx].trim() !== "> [!NOTE]") {
+    return null;
+  }
+  const typeLineIdx = firstNonEmptyLineIdx(lines, noteLineIdx + 1, lines.length);
+  const typeLine = typeLineIdx == null ? "" : lines[typeLineIdx].trim();
+  const match = typeLine.match(/^> 当前 spec 类型：(.+)$/);
+  return match ? match[1].trim() : null;
+}
+
 function validateHeadingStructure(lines, pathValue) {
   const errors = [];
   const firstLine = lines[0] ?? "";
@@ -156,11 +194,27 @@ function validateHeadingStructure(lines, pathValue) {
     errors.push(err("E003", lines, null, path.basename(pathValue)));
   }
 
+  const noteLineIdx = firstNonEmptyLineIdx(lines, 1, lines.length);
+  if (noteLineIdx == null || lines[noteLineIdx].trim() !== "> [!NOTE]") {
+    errors.push(err("E004", lines, noteLineIdx ?? 0));
+  } else {
+    const typeLineIdx = firstNonEmptyLineIdx(lines, noteLineIdx + 1, lines.length);
+    const typeLine = typeLineIdx == null ? "" : lines[typeLineIdx].trim();
+    const match = typeLine.match(/^> 当前 spec 类型：(.+)$/);
+    if (!match) {
+      errors.push(err("E005", lines, typeLineIdx ?? noteLineIdx));
+    } else if (!ALLOWED_SPEC_TYPES.includes(match[1].trim())) {
+      errors.push(err("E005", lines, typeLineIdx, typeLine));
+    }
+  }
+
   const h2Sections = parseSections(lines, 2);
   const h2Titles = h2Sections.map(([, sectionTitle]) => sectionTitle);
-  if (JSON.stringify(h2Titles) !== JSON.stringify(REQUIRED_H1)) {
+  const specType = parseSpecType(lines);
+  const expectedH2 = specType == null ? null : REQUIRED_H2_BY_TYPE[specType];
+  if (expectedH2 != null && JSON.stringify(h2Titles) !== JSON.stringify(expectedH2)) {
     const lineIdx = h2Sections.length > 0 ? h2Sections[0][0] : 0;
-    errors.push(err("E010", lines, lineIdx, h2Titles.join(" / ")));
+    errors.push(err("E010", lines, lineIdx, h2Titles.join(" / "), { expected: expectedH2.join(" / ") }));
   }
 
   return errors;
@@ -358,8 +412,52 @@ function validateInterviewRecords(lines, h2Sections) {
   return errors;
 }
 
+function validateLlmPromptSections(lines, h2Sections) {
+  const errors = [];
+  if (parseSpecType(lines) !== "llm 节点 spec") {
+    return errors;
+  }
+
+  const section = sectionSlice(h2Sections, "Prompt 设计", lines.length);
+  if (section == null) {
+    return [err("E006", lines, 0)];
+  }
+
+  const [start, end] = section;
+  const found = parseSections(lines.slice(start + 1, end), 3).map(([, title]) => title);
+  const required = ["system prompt", "user prompt"];
+  const missing = required.filter((title) => !found.includes(title));
+  if (missing.length > 0) {
+    const lineIdx = firstNonEmptyLineIdx(lines, start + 1, end) ?? start;
+    errors.push(err("E006", lines, lineIdx, missing.join(" / ")));
+  }
+  return errors;
+}
+
+function validateLlmUserPromptDiagram(lines, h2Sections) {
+  const errors = [];
+  if (parseSpecType(lines) !== "llm 节点 spec") {
+    return errors;
+  }
+
+  const section = sectionSlice(h2Sections, "Prompt 设计", lines.length);
+  if (section == null) {
+    return [err("E007", lines, 0)];
+  }
+  const [start, end] = section;
+  const h3 = parseNestedSections(lines, start + 1, end, 3);
+  const userPrompt = h3.find(([, title]) => title === "user prompt");
+  if (userPrompt == null || !hasDotFence(lines, userPrompt[0], userPrompt[2])) {
+    errors.push(err("E007", lines, userPrompt == null ? start : userPrompt[0]));
+  }
+  return errors;
+}
+
 function validateComparisonSection(lines, h2Sections) {
   const errors = [];
+  if (parseSpecType(lines) === "llm 节点 spec") {
+    return errors;
+  }
   const section = sectionSlice(h2Sections, "方案对比", lines.length);
   if (section == null) {
     return errors;
@@ -405,6 +503,8 @@ export function collectErrors(text, { pathValue = null } = {}) {
     errors.push(...validateExactSubsections(lines, h2Sections, "风险与红线", ["风险", "红线行为"], "E013"));
     errors.push(...validateRedLineCautions(lines, h2Sections));
     errors.push(...validateRequiredDiagrams(lines, h2Sections));
+    errors.push(...validateLlmPromptSections(lines, h2Sections));
+    errors.push(...validateLlmUserPromptDiagram(lines, h2Sections));
     errors.push(...validateComparisonSection(lines, h2Sections));
     errors.push(...validateInterviewRecords(lines, h2Sections));
   }

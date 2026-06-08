@@ -6,8 +6,16 @@ E002:
   message: "spec 标题必须以“设计文档”结尾"
 E003:
   message: "spec 文件名必须以“-spec.md”结尾"
+E004:
+  message: "H1 下的第一个非空块必须是 GitHub 风格的 `> [!NOTE]` spec 类型说明"
+E005:
+  message: "spec 类型只能是：产品向 spec / 技术向 spec / llm 节点 spec"
+E006:
+  message: "llm 节点 spec 在“Prompt 设计”下必须显式包含：system prompt / user prompt"
+E007:
+  message: "llm 节点 spec 的“Prompt 设计 -> user prompt”章节必须包含 fenced `dot` 或 `graphviz` 图，用来说明 user prompt 的生产过程"
 E010:
-  message: "内容级二级标题必须严格按默认顺序收敛为：背景与现状 / 目标与非目标 / 风险与红线 / 边界与契约 / 架构总览 / 架构分层 / 模块划分 / 方案对比 / 验收标准 / 访谈记录 / 参考资料"
+  message: "内容级二级标题必须严格按当前 spec 类型的默认顺序收敛为：{expected}"
 E011:
   message: "“背景与现状”下的三级标题必须且只能是：背景 / 现状"
 E013:
