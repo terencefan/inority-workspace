@@ -9,6 +9,7 @@
 
 - product spec
 - technical spec
+- llm node spec
 - change proposal
 - API / interface spec
 - implementation plan
@@ -24,6 +25,7 @@
 - 用真实问答收敛边界
 - 生成可评审的结构化 spec
 - 明确稳定契约、风险、红线行为和验收标准
+- 为多 spec 仓库维护 `docs/spec/README.md` 索引入口
 
 不负责：
 
@@ -40,6 +42,7 @@
 - 模板索引：`references/template.md`
 - product spec 模板：`references/product-spec-template.md`
 - technical spec 模板：`references/technical-spec-template.md`
+- llm 节点 spec 模板：`references/llm-node-spec-template.md`
 - interview record 模板：`references/interview-record-template.md`
 - validator 错误码：`references/validator-error-codes.yaml`
 - CLI：`scripts/specctl validate <path>`
@@ -54,6 +57,12 @@
 | `references/template.md` | spec 模板入口索引 |
 | `references/product-spec-template.md` | product spec 模板 |
 | `references/technical-spec-template.md` | technical spec 模板 |
+| `references/llm-node-spec-template.md` | llm 节点 spec 模板 |
 | `references/interview-record-template.md` | 访谈记录模板 |
 | `references/validator-error-codes.yaml` | spec validator 错误码目录 |
 | `scripts/specctl` | `specctl` CLI 入口 |
+
+仓库级 spec 索引默认落在目标仓库的 `docs/spec/README.md`；详见 `SKILL.md` 的 `仓库 spec 入口` 章节。
+
+- `llm 节点 spec` 必须显式包含 `system prompt` 与 `user prompt` 章节，不能省略或合并命名。
+- `llm 节点 spec` 的 `user prompt` 章节下必须带一张图，说明 `user prompt` 的生产过程。

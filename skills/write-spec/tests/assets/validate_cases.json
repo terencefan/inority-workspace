@@ -1,5 +1,25 @@
 [
   {
+    "name": "missing-spec-type-note",
+    "replacements": [
+      {
+        "old": "> [!NOTE]\n> 当前 spec 类型：技术向 spec\n\n",
+        "new": ""
+      }
+    ],
+    "expected_codes": ["E004"]
+  },
+  {
+    "name": "invalid-spec-type",
+    "replacements": [
+      {
+        "old": "> 当前 spec 类型：技术向 spec",
+        "new": "> 当前 spec 类型：数据库 spec"
+      }
+    ],
+    "expected_codes": ["E005"]
+  },
+  {
     "name": "title-suffix",
     "replacements": [
       {

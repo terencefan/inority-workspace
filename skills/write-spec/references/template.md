@@ -2,7 +2,7 @@
 
 不同类型的 spec 使用不同的模板文件，不再共用一个大模板正文。
 
-默认正文二级标题仍然使用这一组固定标题：
+产品向 spec / 技术向 spec 默认正文二级标题仍然使用这一组固定标题：
 
 - `背景与现状`
 - `目标与非目标`
@@ -16,10 +16,23 @@
 - `访谈记录`
 - `参考资料`
 
+`llm 节点 spec` 使用单独的二级标题序：
+
+- `背景与现状`
+- `目标与非目标`
+- `风险与红线`
+- `Prompt 设计`
+- `Context 设计`
+- `边界与契约`
+- `验收标准`
+- `访谈记录`
+- `参考资料`
+
 ## 模板选择
 
 - 产品向 spec：使用 [product-spec-template.md](./product-spec-template.md)
 - 技术向 spec：使用 [technical-spec-template.md](./technical-spec-template.md)
+- llm 节点 spec：使用 [llm-node-spec-template.md](./llm-node-spec-template.md)
 - 通用访谈记录：使用 [interview-record-template.md](./interview-record-template.md)
 
 ## 选择建议
@@ -27,7 +40,18 @@
 - 当主要目标是澄清用户价值、流程规则、体验方案或策略边界时，优先使用 `product-spec-template.md`
 - 当主要目标是设计架构、接口、迁移、运行方式或可观测性时，优先使用 `technical-spec-template.md`
 - 当需求同时包含产品和技术内容时，先判断“主要评审重心”属于哪一类，再选择对应模板；不要再使用单独的 mixed 模板
+- 当主要目标是冻结单个 LLM 节点的 system prompt、user prompt、工具边界、输入输出 schema 或本地 reconcile 规则时，优先使用 `llm-node-spec-template.md`
 - 所有类型的 spec 都必须带 `访谈记录` 二级标题，并复用 `interview-record-template.md`
+
+## 仓库 spec 入口
+
+- 当仓库存在两份及以上 authority spec 时，默认维护 `docs/spec/README.md` 作为 spec 索引入口。
+- 根 `README.md` 应链接到该索引，而不是只指向某一份专题 spec。
+- 根 spec 指系统或产品级目标态 authority，不是拆仓、迁移、重构或单组件优化 spec。
+- 索引页列出根 spec（或待建缺口）、分组后的专题 spec、推荐阅读顺序，以及必要的依赖关系图。
+- 拆仓、迁移、上线切换类 spec 默认归入“组织演进”等专题分组，不顶替根 spec。
+- 索引页不是 authority spec，不要求 `-spec.md` 后缀，也不走 `specctl validate`。
+- 新建或废弃 authority spec 后，同步更新索引页与根 `README.md`。
 
 ## 统一约束
 
@@ -64,11 +88,16 @@
 - `方案对比` 固定放在 `验收标准` 之前
 - `方案对比` 下每个三级标题是一组具体对比
 - 每组对比必须包含 GitHub Note 风格的结论块：`> [!NOTE]` 后接 `> 对比结论：...`
+- 上面这组 `架构* / 方案对比` 默认要求只适用于产品向 spec / 技术向 spec，不默认施加给 `llm 节点 spec`
 - `访谈记录` 必须至少保留 `5` 轮真实用户问答
 - 不要用作者自问自答伪造访谈记录
 
 ## 补充规则
 
+- Receiver / pipeline 阶段表写法：
+  - 默认包含 `做什么` 列，写可观察行为，不只写组件名
+  - 可再配 `输入`、`输出 / 副作用`、`经 channel`、`代码落点` 等列
+  - `做什么` 列应能单独读懂该阶段职责
 - 验收标准写法：
   - 每一条都应可测试、可验证或可评审
   - 优先写可观察结果，不要只写模糊目标
@@ -85,3 +114,10 @@
   - 灯号后必须写具体原因，不能只放颜色
   - 每组对比都必须有 `> [!NOTE]` + `> 对比结论：...`
   - 有推荐路线时，表格应包含 `首选结论`、`推荐结论` 或等价行，明确推荐方案与备选方案
+
+- `llm 节点 spec` 必须显式包含 `Prompt 设计` 二级标题，且在其下显式包含 `system prompt` 与 `user prompt` 两个三级标题，不能省略或合并命名。
+- `llm 节点 spec` 的 `user prompt` 章节必须包含一张 fenced `dot` / `graphviz` 图，用来表达 `user_payload` 的生产过程。
+- `llm 节点 spec` 必须显式包含 `Context 设计` 二级标题，把 context source、装配链和 context contract 当作一级公民来写。
+- `llm 节点 spec` 不默认要求 `架构总览 / 架构分层 / 模块划分 / 方案对比`；只有在该节点确实存在非写不可的拓扑或路线比较时才额外加入。
+- `llm 节点 spec` 建议把 `边界与契约` 固定成 `输出契约 / 字段映射 / 本地规则边界 / 失败契约` 四块。
+- `llm 节点 spec` 默认只写目标状态 authority contract，不再要求 `当前实现 / 兼容期约束` 三视图；只有用户明确要求现状差异时才额外补充。
