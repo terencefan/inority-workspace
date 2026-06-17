@@ -73,6 +73,7 @@ description: >-
 - 当前 `## 执行记录`
 - 当前 `## 最终验收`
 - 当前 stop boundary
+- 当前 item 依赖的 rollout 资产是否已经在规划态落盘并被 authority 明确引用
 
 如果 authority runbook 路径不在当前本地日期目录下，或者 title / 文件名仍然包含日期、旧目标、或不能表达当前 authority 目标，先退出 solo，回 `$runbook` 规划态完成迁移、重命名和标题修正；迁移后必须用新路径重新跑 `runctl validate`，并重新请求用户确认进入 `solo`。不要从旧路径继续分派 execution / acceptance，也不要把新证据写回旧文件。
 
@@ -97,13 +98,14 @@ description: >-
 - `## 执行计划` 与 `## 执行记录` 不对齐
 - authority 仍保留多条 materially different 路线
 - 最新证据已经和 authority 冲突
+- 当前 item 仍依赖未在规划态落盘的配置、代码、模板、脚本或 Secret 资产
 
 ## Solo 推进循环
 
 solo 推进固定按这个顺序走：
 
 1. 读取 authority 当前状态，锁定下一个未完成 item
-2. 如果 authority 已经处于半执行状态，或当前 item 还依赖未补齐的 live 事实，就停止 solo，回 `$runbook` 规划态并先侦察现场
+2. 如果 authority 已经处于半执行状态，或当前 item 还依赖未补齐的 live 事实，或 rollout 资产尚未在规划态准备完毕，就停止 solo，回 `$runbook` 规划态并先补证 / 补资产
 3. 事实充分后，切 `$runbook-executor` 完成该 item 的 `#### 执行`
 4. `#### 执行` 成功写回后，切 `$runbook-acceptor` 完成同一 item 的 `#### 验收`
 5. `#### 验收` 通过后，才允许推进到下一个 item

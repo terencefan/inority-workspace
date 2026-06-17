@@ -36,7 +36,7 @@ type MarkdownPayload = {
 
 type FileMeta = {
   bytes: number
-  kind?: 'markdown' | 'slides'
+  kind?: 'markdown' | 'json' | 'jsonl' | 'slides'
   title: string
 }
 
@@ -66,6 +66,7 @@ export type HandbookServerOptions = {
   graphvizModulePath?: string
   homeLinksFile?: string
   ripgrepCommandPath?: string
+  siteRequestHandler?: (request: IncomingMessage, response: ServerResponse) => Promise<void>
   siteDistDir: string
   showHiddenInTree?: boolean
   workspaceDir: string
@@ -77,6 +78,7 @@ type NormalizedOptions = {
   graphvizModulePathResolved: string
   homeLinksFileResolved: string
   ripgrepCommandPathResolved: string
+  siteRequestHandler?: (request: IncomingMessage, response: ServerResponse) => Promise<void>
   siteDistDirResolved: string
   showHiddenInTree: boolean
   workspaceDirResolved: string
@@ -105,6 +107,7 @@ const STATIC_FILE_TYPES = new Map([
 ])
 
 const EXCLUDED_DIR_NAMES = new Set(['.git', '.venv', 'node_modules'])
+const DOCUMENT_FILE_EXTENSIONS = new Set(['.md', '.json', '.jsonl'])
 const DEFAULT_GRAPHVIZ_COMMAND = 'dot'
 const DEFAULT_RIPGREP_COMMAND = 'rg'
 const GRAPHVIZ_ENGINES = new Set(['dot'])
@@ -157,24 +160,32 @@ export function createHandbookServer(options: HandbookServerOptions): Server {
   })
 }
 
-export async function listMarkdownFiles(
+export async function listDocumentationFiles(
   options: Pick<NormalizedOptions, 'ripgrepCommandPathResolved' | 'showHiddenInTree' | 'workspaceDirResolved'>,
 ): Promise<string[]> {
   try {
-    return await listMarkdownFilesWithRipgrep(options)
+    return await listDocumentationFilesWithRipgrep(options)
   } catch (error) {
-    console.warn(`ripgrep markdown scan failed, falling back to fs walk: ${stringifyError(error)}`)
-    return await listMarkdownFilesWithFsWalk(options)
+    console.warn(`ripgrep documentation scan failed, falling back to fs walk: ${stringifyError(error)}`)
+    return await listDocumentationFilesWithFsWalk(options)
   }
 }
 
-async function listMarkdownFilesWithRipgrep(
+async function listDocumentationFilesWithRipgrep(
   options: Pick<NormalizedOptions, 'ripgrepCommandPathResolved' | 'showHiddenInTree' | 'workspaceDirResolved'>,
 ): Promise<string[]> {
   const args = [
     '--files',
     '--glob',
     '*.md',
+    '--glob',
+    'docs/**/*.json',
+    '--glob',
+    'docs/**/*.jsonl',
+    '--glob',
+    '**/docs/**/*.json',
+    '--glob',
+    '**/docs/**/*.jsonl',
   ]
 
   if (options.showHiddenInTree) {
@@ -191,11 +202,11 @@ async function listMarkdownFilesWithRipgrep(
     .map((entry) => entry.trim())
     .filter(Boolean)
     .map((entry) => toPosixPath(entry))
-    .filter((entry) => options.showHiddenInTree || !isHiddenMarkdown(entry))
+    .filter((entry) => options.showHiddenInTree || !isHiddenDocumentationPath(entry))
     .sort((left, right) => left.localeCompare(right))
 }
 
-async function listMarkdownFilesWithFsWalk(
+async function listDocumentationFilesWithFsWalk(
   options: Pick<NormalizedOptions, 'showHiddenInTree' | 'workspaceDirResolved'>,
 ): Promise<string[]> {
   const files: string[] = []
@@ -214,13 +225,16 @@ async function listMarkdownFilesWithFsWalk(
         continue
       }
 
-      if (!entry.isFile() || path.extname(entry.name).toLowerCase() !== '.md') {
+      if (!entry.isFile()) {
         continue
       }
 
       const relativePath = path.relative(options.workspaceDirResolved, absolutePath)
       const normalizedPath = toPosixPath(relativePath)
-      if (!options.showHiddenInTree && isHiddenMarkdown(normalizedPath)) {
+      if (!isDocumentationPath(normalizedPath)) {
+        continue
+      }
+      if (!options.showHiddenInTree && isHiddenDocumentationPath(normalizedPath)) {
         continue
       }
       files.push(normalizedPath)
@@ -232,7 +246,7 @@ async function listMarkdownFilesWithFsWalk(
   return files
 }
 
-export async function collectMarkdownFileMeta(
+export async function collectDocumentationFileMeta(
   workspaceDirResolved: string,
   paths: string[],
 ): Promise<Record<string, FileMeta>> {
@@ -245,10 +259,11 @@ export async function collectMarkdownFileMeta(
         fs.stat(absolutePath),
         fs.readFile(absolutePath, 'utf8'),
       ])
+      const extension = path.extname(rawPath).toLowerCase()
       fileMeta[rawPath] = {
         bytes: statResult.size,
-        kind: 'markdown',
-        title: extractMarkdownPrimaryTitle(source, path.basename(rawPath)),
+        kind: extension === '.json' ? 'json' : extension === '.jsonl' ? 'jsonl' : 'markdown',
+        title: extension === '.md' ? extractMarkdownPrimaryTitle(source, path.basename(rawPath)) : path.basename(rawPath),
       }
     } catch (error) {
       if (!isMissingFileError(error)) {
@@ -268,10 +283,10 @@ type SlidesProject = {
 
 async function collectWorkspaceFileMeta(
   workspaceDirResolved: string,
-  markdownPaths: string[],
+  documentPaths: string[],
   slidesProjects: SlidesProject[],
 ): Promise<Record<string, FileMeta>> {
-  const markdownMeta = await collectMarkdownFileMeta(workspaceDirResolved, markdownPaths)
+  const documentMeta = await collectDocumentationFileMeta(workspaceDirResolved, documentPaths)
   const slidesMeta = Object.fromEntries(
     slidesProjects.map((project) => [
       project.id,
@@ -284,7 +299,7 @@ async function collectWorkspaceFileMeta(
   )
 
   return {
-    ...markdownMeta,
+    ...documentMeta,
     ...slidesMeta,
   }
 }
@@ -342,6 +357,18 @@ function extractMarkdownPrimaryTitle(source: string, fallbackTitle: string): str
     return match[1].trim()
   }
   return fallbackTitle
+}
+
+function isDocumentationPath(relativePath: string): boolean {
+  const normalizedPath = toPosixPath(relativePath)
+  const extension = path.extname(normalizedPath).toLowerCase()
+  if (extension === '.md') {
+    return true
+  }
+  if (extension !== '.json' && extension !== '.jsonl') {
+    return false
+  }
+  return normalizedPath.startsWith('docs/') || normalizedPath.includes('/docs/')
 }
 
 export function buildTree(paths: string[]): TreeNode[] {
@@ -492,17 +519,22 @@ async function routeRequest(
     return
   }
 
+  if (options.siteRequestHandler) {
+    await options.siteRequestHandler(request, response)
+    return
+  }
+
   await serveSiteEntry(requestUrl.pathname, response, method, options)
 }
 
 async function loadTreePayload(options: NormalizedOptions): Promise<TreeResponse> {
-  const markdownFiles = await listMarkdownFiles(options)
+  const documentFiles = await listDocumentationFiles(options)
   const slidesProjects = await listSlidesProjects(options.workspaceDirResolved)
-  const files = [...markdownFiles, ...slidesProjects.map((project) => project.id)].sort((left, right) =>
+  const files = [...documentFiles, ...slidesProjects.map((project) => project.id)].sort((left, right) =>
     left.localeCompare(right),
   )
   return {
-    file_meta: await collectWorkspaceFileMeta(options.workspaceDirResolved, markdownFiles, slidesProjects),
+    file_meta: await collectWorkspaceFileMeta(options.workspaceDirResolved, documentFiles, slidesProjects),
     files,
     tree: buildTree(files),
   }
@@ -549,7 +581,7 @@ async function loadDocumentPayload(
     if (slidesProject) {
       return buildSlidesPayload(slidesProject)
     }
-    return loadLocalMarkdown(pathValue, options)
+    return loadLocalDocument(pathValue, options)
   }
 
   return {
@@ -608,10 +640,20 @@ async function loadRemoteMarkdown(urlValue: string, fetchImpl: FetchLike): Promi
   })
 }
 
-async function loadLocalMarkdown(pathValue: string, options: NormalizedOptions): Promise<DocumentResponse> {
-  const resolvedPath = await resolveLocalMarkdown(pathValue, options)
+async function loadLocalDocument(pathValue: string, options: NormalizedOptions): Promise<DocumentResponse> {
+  const resolvedPath = await resolveLocalDocument(pathValue, options)
   const relativePath = toPosixPath(path.relative(options.workspaceDirResolved, resolvedPath))
   const text = await fs.readFile(resolvedPath, 'utf8')
+  const extension = path.extname(resolvedPath).toLowerCase()
+
+  if (extension === '.json' || extension === '.jsonl') {
+    const codeFenceLanguage = extension === '.json' ? 'json' : 'jsonl'
+    return buildMarkdownPayload(`\`\`\`${codeFenceLanguage}\n${text}\n\`\`\`\n`, {
+      activeSource: `path:${relativePath}`,
+      sourceLabel: relativePath,
+      title: path.basename(resolvedPath),
+    })
+  }
 
   return buildMarkdownPayload(text, {
     activeSource: `path:${relativePath}`,
@@ -620,7 +662,7 @@ async function loadLocalMarkdown(pathValue: string, options: NormalizedOptions):
   })
 }
 
-async function resolveLocalMarkdown(pathValue: string, options: NormalizedOptions): Promise<string> {
+async function resolveLocalDocument(pathValue: string, options: NormalizedOptions): Promise<string> {
   const candidate = path.resolve(options.workspaceDirResolved, pathValue)
 
   if (!isWithinRoot(options.workspaceDirResolved, candidate)) {
@@ -636,7 +678,7 @@ async function resolveLocalMarkdown(pathValue: string, options: NormalizedOption
       if (!directoryReadmeStat.isFile()) {
         throw new HttpError(404, 'Markdown file not found')
       }
-      return finalizeMarkdownCandidate(candidateReadme, options)
+      return finalizeDocumentationCandidate(candidateReadme, options)
     }
     if (!statResult.isFile()) {
       throw new HttpError(404, 'Markdown file not found')
@@ -651,17 +693,17 @@ async function resolveLocalMarkdown(pathValue: string, options: NormalizedOption
     throw error
   }
 
-  return finalizeMarkdownCandidate(candidate, options)
+  return finalizeDocumentationCandidate(candidate, options)
 }
 
-function finalizeMarkdownCandidate(candidate: string, options: NormalizedOptions): string {
-  if (path.extname(candidate).toLowerCase() !== '.md') {
-    throw new HttpError(400, 'Only .md files are supported')
+function finalizeDocumentationCandidate(candidate: string, options: NormalizedOptions): string {
+  const relativePath = toPosixPath(path.relative(options.workspaceDirResolved, candidate))
+  if (!isDocumentationPath(relativePath)) {
+    throw new HttpError(400, 'Only .md, .json, and .jsonl files are supported')
   }
 
-  const relativePath = toPosixPath(path.relative(options.workspaceDirResolved, candidate))
-  if (!options.showHiddenInTree && isHiddenMarkdown(relativePath)) {
-    throw new HttpError(404, 'Markdown file not found')
+  if (!options.showHiddenInTree && isHiddenDocumentationPath(relativePath)) {
+    throw new HttpError(404, 'Documentation file not found')
   }
 
   return candidate
@@ -1186,7 +1228,7 @@ function decodePathname(pathname: string): string {
   }
 }
 
-function isHiddenMarkdown(relativePath: string): boolean {
+function isHiddenDocumentationPath(relativePath: string): boolean {
   return relativePath.split('/').some((segment) => segment.startsWith('.'))
 }
 

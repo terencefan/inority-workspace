@@ -133,6 +133,54 @@ function resolveUserRulesPath(payload) {
   return "";
 }
 
+function resolveAgentProfile(payload) {
+  if (payload && typeof payload === "object" && typeof payload.profile === "string") {
+    const profile = payload.profile.trim();
+    if (profile) {
+      return profile;
+    }
+  }
+
+  if (typeof process.env.CODEX_PROFILE === "string" && process.env.CODEX_PROFILE.trim()) {
+    return process.env.CODEX_PROFILE.trim();
+  }
+
+  return "";
+}
+
+function resolveProfileConfigPath(profile) {
+  const codexHome = process.env.CODEX_HOME || join(process.env.HOME || "", ".codex");
+  if (!profile) {
+    return "";
+  }
+
+  const profileConfigPath = join(codexHome, `${profile}.config.toml`);
+  if (readTextFile(profileConfigPath)) {
+    return profileConfigPath;
+  }
+
+  return "";
+}
+
+function buildAgentIdentityContext(payload) {
+  const profile = resolveAgentProfile(payload);
+  if (profile !== "codey") {
+    return "";
+  }
+
+  const configPath = resolveProfileConfigPath(profile);
+  const sections = [
+    "Identity override: you are codey for this session.",
+    "Do not describe yourself as codex when answering from this session.",
+  ];
+
+  if (configPath) {
+    sections.push(`Active profile config path: ${configPath}.`);
+  }
+
+  return sections.join("\n");
+}
+
 function detectHookEventName(payload, existingOutput) {
   if (
     existingOutput &&
@@ -215,17 +263,20 @@ function buildSessionStartContext(hostInterface, payload) {
   const templatePath = resolveTemplatePath(hostInterface);
   const templateContent = readTextFile(templatePath);
   const userRulesPath = resolveUserRulesPath(payload);
+  const agentIdentityContext = buildAgentIdentityContext(payload);
   const rulesLine = userRulesPath
     ? `Reply-format rules are centrally defined in ${userRulesPath}; keep that file as the single source of truth.`
     : "Reply-format rules are not available from a discovered USER.md file; use the selected template directly for this session.";
+  const sections = [buildHostContextLine(hostInterface, templatePath)];
   const executionLine = userRulesPath
     ? "Apply USER.md together with the selected template, and start every main-agent reply with Goal, Ambiguity, and Risk."
     : "Start every main-agent reply with Goal, Ambiguity, and Risk, and follow the selected template below.";
-  const sections = [
-    buildHostContextLine(hostInterface, templatePath),
-    rulesLine,
-    executionLine,
-  ];
+
+  if (agentIdentityContext) {
+    sections.push(agentIdentityContext);
+  }
+
+  sections.push(rulesLine, executionLine);
 
   if (templateContent) {
     sections.push(`Selected reply template:\n\n${templateContent}`);
@@ -235,7 +286,14 @@ function buildSessionStartContext(hostInterface, payload) {
 }
 
 function buildPromptSubmitContext(hostInterface, payload) {
+  const agentIdentityContext = buildAgentIdentityContext(payload);
   const userRulesPath = resolveUserRulesPath(payload);
+  if (agentIdentityContext && userRulesPath) {
+    return `${agentIdentityContext}\nReply format remains governed by ${userRulesPath}.`;
+  }
+  if (agentIdentityContext) {
+    return `${agentIdentityContext}\nReply format remains governed by the selected template for this session.`;
+  }
   if (userRulesPath) {
     return `Reply format remains governed by ${userRulesPath}.`;
   }
@@ -246,15 +304,17 @@ function buildAdditionalContext(hostInterface, hookEventName, payload) {
   if (hookEventName === "SessionStart") {
     return buildSessionStartContext(hostInterface, payload);
   }
-
   if (hookEventName === "UserPromptSubmit") {
     return buildPromptSubmitContext(hostInterface, payload);
   }
-
-  return buildHostContextLine(hostInterface, resolveTemplatePath(hostInterface));
+  return "";
 }
 
 function mergeHookOutput(existingOutput, additionalContext, hookEventName) {
+  if (!additionalContext) {
+    return existingOutput && typeof existingOutput === "object" ? { ...existingOutput } : {};
+  }
+
   const nextOutput = existingOutput && typeof existingOutput === "object" ? { ...existingOutput } : {};
   const currentHookSpecificOutput =
     nextOutput.hookSpecificOutput && typeof nextOutput.hookSpecificOutput === "object"

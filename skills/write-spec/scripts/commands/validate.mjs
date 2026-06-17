@@ -9,8 +9,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ERROR_CODE_CATALOG_PATH = path.resolve(__dirname, "..", "..", "references", "validator-error-codes.yaml");
 const SPEC_FILENAME_SUFFIX = "-spec.md";
+const README_BASENAME = "README.md";
 const SPEC_TITLE_SUFFIX = "设计文档";
-const ALLOWED_SPEC_TYPES = ["产品向 spec", "技术向 spec", "llm 节点 spec"];
+const ALLOWED_SPEC_TYPES = ["产品向 spec", "技术向 spec", "llm 节点 spec", "目录总纲 spec"];
 const REQUIRED_H2_BY_TYPE = {
   "产品向 spec": [
     "背景与现状",
@@ -46,6 +47,16 @@ const REQUIRED_H2_BY_TYPE = {
     "Context 设计",
     "边界与契约",
     "验收标准",
+    "访谈记录",
+    "参考资料",
+  ],
+  "目录总纲 spec": [
+    "背景与现状",
+    "目标与非目标",
+    "根 spec",
+    "专题 spec",
+    "推荐阅读顺序",
+    "相关文档",
     "访谈记录",
     "参考资料",
   ],
@@ -177,6 +188,10 @@ function parseSpecType(lines) {
   return match ? match[1].trim() : null;
 }
 
+function isReadmeSpecPath(pathValue) {
+  return pathValue != null && path.basename(pathValue) === README_BASENAME;
+}
+
 function validateHeadingStructure(lines, pathValue) {
   const errors = [];
   const firstLine = lines[0] ?? "";
@@ -190,7 +205,7 @@ function validateHeadingStructure(lines, pathValue) {
     errors.push(err("E002", lines, 0));
   }
 
-  if (pathValue != null && !path.basename(pathValue).endsWith(SPEC_FILENAME_SUFFIX)) {
+  if (pathValue != null && !isReadmeSpecPath(pathValue) && !path.basename(pathValue).endsWith(SPEC_FILENAME_SUFFIX)) {
     errors.push(err("E003", lines, null, path.basename(pathValue)));
   }
 
@@ -211,6 +226,12 @@ function validateHeadingStructure(lines, pathValue) {
   const h2Sections = parseSections(lines, 2);
   const h2Titles = h2Sections.map(([, sectionTitle]) => sectionTitle);
   const specType = parseSpecType(lines);
+  if (specType === "目录总纲 spec" && !isReadmeSpecPath(pathValue)) {
+    errors.push(err("E050", lines, 0, path.basename(pathValue ?? "")));
+  }
+  if (isReadmeSpecPath(pathValue) && specType != null && specType !== "目录总纲 spec") {
+    errors.push(err("E051", lines, 0, specType));
+  }
   const expectedH2 = specType == null ? null : REQUIRED_H2_BY_TYPE[specType];
   if (expectedH2 != null && JSON.stringify(h2Titles) !== JSON.stringify(expectedH2)) {
     const lineIdx = h2Sections.length > 0 ? h2Sections[0][0] : 0;
@@ -298,6 +319,7 @@ function validateRedLineCautions(lines, h2Sections) {
 
 function validateRequiredDiagrams(lines, h2Sections) {
   const errors = [];
+  const specType = parseSpecType(lines);
 
   const background = sectionSlice(h2Sections, "背景与现状", lines.length);
   if (background != null) {
@@ -319,11 +341,21 @@ function validateRequiredDiagrams(lines, h2Sections) {
     }
   }
 
-  const overview = sectionSlice(h2Sections, "架构总览", lines.length);
-  if (overview != null) {
-    const [start, end] = overview;
-    if (!hasDotFence(lines, start, end)) {
-      errors.push(err("E022", lines, start));
+  if (specType === "目录总纲 spec") {
+    const reading = sectionSlice(h2Sections, "推荐阅读顺序", lines.length);
+    if (reading != null) {
+      const [start, end] = reading;
+      if (!hasDotFence(lines, start, end)) {
+        errors.push(err("E023", lines, start));
+      }
+    }
+  } else {
+    const overview = sectionSlice(h2Sections, "架构总览", lines.length);
+    if (overview != null) {
+      const [start, end] = overview;
+      if (!hasDotFence(lines, start, end)) {
+        errors.push(err("E022", lines, start));
+      }
     }
   }
 
@@ -455,7 +487,7 @@ function validateLlmUserPromptDiagram(lines, h2Sections) {
 
 function validateComparisonSection(lines, h2Sections) {
   const errors = [];
-  if (parseSpecType(lines) === "llm 节点 spec") {
+  if (["llm 节点 spec", "目录总纲 spec"].includes(parseSpecType(lines))) {
     return errors;
   }
   const section = sectionSlice(h2Sections, "方案对比", lines.length);

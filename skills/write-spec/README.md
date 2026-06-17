@@ -25,7 +25,7 @@
 - 用真实问答收敛边界
 - 生成可评审的结构化 spec
 - 明确稳定契约、风险、红线行为和验收标准
-- 为多 spec 仓库维护 `docs/spec/README.md` 索引入口
+- 为多 spec 仓库维护 `docs/specs/README.md` 索引入口
 
 不负责：
 
@@ -43,6 +43,7 @@
 - product spec 模板：`references/product-spec-template.md`
 - technical spec 模板：`references/technical-spec-template.md`
 - llm 节点 spec 模板：`references/llm-node-spec-template.md`
+- 目录总纲 spec 模板：`references/readme-spec-template.md`
 - interview record 模板：`references/interview-record-template.md`
 - validator 错误码：`references/validator-error-codes.yaml`
 - CLI：`scripts/specctl validate <path>`
@@ -58,11 +59,14 @@
 | `references/product-spec-template.md` | product spec 模板 |
 | `references/technical-spec-template.md` | technical spec 模板 |
 | `references/llm-node-spec-template.md` | llm 节点 spec 模板 |
+| `references/readme-spec-template.md` | 目录总纲 spec 模板 |
 | `references/interview-record-template.md` | 访谈记录模板 |
 | `references/validator-error-codes.yaml` | spec validator 错误码目录 |
 | `scripts/specctl` | `specctl` CLI 入口 |
 
-仓库级 spec 索引默认落在目标仓库的 `docs/spec/README.md`；详见 `SKILL.md` 的 `仓库 spec 入口` 章节。
+仓库级 spec 索引默认落在目标仓库的 `docs/specs/README.md`；它不是普通目录说明页，而是该目录下 spec 集合的总纲文档，默认也要符合 `specctl` 标准。详见 `SKILL.md` 的 `仓库 spec 入口` 章节。
+
+- 当某份 spec 已降级为历史资料、兼容入口或废弃 authority 时，默认把它移到与主 spec 同级的 `deprecated/` 子目录，并同步更新索引与相对路径引用。
 
 - `llm 节点 spec` 必须显式包含 `system prompt` 与 `user prompt` 章节，不能省略或合并命名。
 - `llm 节点 spec` 的 `user prompt` 章节下必须带一张图，说明 `user prompt` 的生产过程。

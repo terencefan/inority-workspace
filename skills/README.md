@@ -41,6 +41,7 @@
 | `runbook-team/` | runbook team 执行编排 |
 | `wow-addon-development/` | WoW addon 开发与调试 |
 | `write-readme/` | README 编写与重构 |
+| `write-feishu-doc/` | 飞书文档编写、持续维护与本地 lark-cli 发布 |
 | `write-spec/` | spec / 设计文档编写与收敛 |
 
 ## 拓扑关系
@@ -155,6 +156,7 @@ digraph skills_topology {
 按主题查找时，可以直接这样分：
 
 - 文档类：`write-readme/`、`write-spec/`
+- 飞书文档类：`write-feishu-doc/`
 - 工作区收尾类：`checkout/`
 - Git 同步类：`checkin/`
 - 通用基座类：`inority/`

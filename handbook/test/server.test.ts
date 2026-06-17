@@ -38,6 +38,8 @@ async function createFixtureRoot(): Promise<{
 
   await writeFile(path.join(workspaceDir, 'project', 'README.md'), '# Visible\n')
   await writeFile(path.join(workspaceDir, 'project', 'docs', 'README.md'), '# Docs\n')
+  await writeFile(path.join(workspaceDir, 'project', 'docs', 'payload.json'), '{\n  "ok": true\n}\n')
+  await writeFile(path.join(workspaceDir, 'project', 'docs', 'trace.jsonl'), '{"id":1}\n{"id":2}\n')
   await writeFile(path.join(workspaceDir, '.hidden', 'README.md'), '# Hidden\n')
   await writeFile(path.join(workspaceDir, '.git', 'docs', 'ignored.md'), '# Git ignored\n')
   await writeFile(path.join(workspaceDir, 'node_modules', 'pkg', 'ignored.md'), '# Module ignored\n')
@@ -131,7 +133,7 @@ async function startServer(
   }
 }
 
-test('tree payload excludes hidden markdown by default and includes file metadata', async (t) => {
+test('tree payload excludes hidden docs by default and includes file metadata', async (t) => {
   const server = await startServer(t)
   if (!server) {
     return
@@ -141,10 +143,12 @@ test('tree payload excludes hidden markdown by default and includes file metadat
   assert.equal(response.status, 200)
   const payload = await response.json()
 
-  assert.deepEqual(payload.files, ['project/docs/README.md', 'project/README.md', 'slides/brand-fancy', 'slides/demo-basic'])
+  assert.deepEqual(payload.files, ['project/docs/payload.json', 'project/docs/README.md', 'project/docs/trace.jsonl', 'project/README.md', 'slides/brand-fancy', 'slides/demo-basic'])
   assert.equal(payload.file_meta['project/README.md'].bytes, Buffer.byteLength('# Visible\n'))
   assert.equal(payload.file_meta['project/README.md'].title, 'Visible')
   assert.equal(payload.file_meta['project/docs/README.md'].title, 'Docs')
+  assert.equal(payload.file_meta['project/docs/payload.json'].kind, 'json')
+  assert.equal(payload.file_meta['project/docs/trace.jsonl'].kind, 'jsonl')
   assert.equal(payload.file_meta['slides/brand-fancy'].kind, 'slides')
   assert.equal(payload.file_meta['slides/brand-fancy'].title, 'brand-fancy')
   assert.equal(payload.file_meta['slides/demo-basic'].kind, 'slides')
@@ -155,8 +159,18 @@ test('tree payload excludes hidden markdown by default and includes file metadat
         {
           children: [
             {
+              name: 'payload.json',
+              path: 'project/docs/payload.json',
+              type: 'file',
+            },
+            {
               name: 'README.md',
               path: 'project/docs/README.md',
+              type: 'file',
+            },
+            {
+              name: 'trace.jsonl',
+              path: 'project/docs/trace.jsonl',
               type: 'file',
             },
           ],
@@ -194,7 +208,7 @@ test('tree payload excludes hidden markdown by default and includes file metadat
   ])
 })
 
-test('tree payload can include hidden markdown while still excluding internal cache directories', async (t) => {
+test('tree payload can include hidden docs while still excluding internal cache directories', async (t) => {
   const server = await startServer(t, { showHiddenInTree: true })
   if (!server) {
     return
@@ -204,7 +218,7 @@ test('tree payload can include hidden markdown while still excluding internal ca
   assert.equal(response.status, 200)
   const payload = await response.json()
 
-  assert.deepEqual(payload.files, ['.hidden/README.md', 'project/docs/README.md', 'project/README.md', 'slides/brand-fancy', 'slides/demo-basic'])
+  assert.deepEqual(payload.files, ['.hidden/README.md', 'project/docs/payload.json', 'project/docs/README.md', 'project/docs/trace.jsonl', 'project/README.md', 'slides/brand-fancy', 'slides/demo-basic'])
   assert.equal(payload.file_meta['.hidden/README.md'].title, 'Hidden')
   assert.deepEqual(payload.tree, [
     {
@@ -224,8 +238,18 @@ test('tree payload can include hidden markdown while still excluding internal ca
         {
           children: [
             {
+              name: 'payload.json',
+              path: 'project/docs/payload.json',
+              type: 'file',
+            },
+            {
               name: 'README.md',
               path: 'project/docs/README.md',
+              type: 'file',
+            },
+            {
+              name: 'trace.jsonl',
+              path: 'project/docs/trace.jsonl',
               type: 'file',
             },
           ],
@@ -361,6 +385,33 @@ test('document endpoint serves local and remote markdown payloads', async (t) =>
   })
 })
 
+test('document endpoint serves local json and jsonl payloads as fenced code blocks', async (t) => {
+  const server = await startServer(t)
+  if (!server) {
+    return
+  }
+
+  const jsonResponse = await fetch(`${server.baseUrl}/api/document?path=project%2Fdocs%2Fpayload.json`)
+  assert.equal(jsonResponse.status, 200)
+  assert.deepEqual(await jsonResponse.json(), {
+    active_source: 'path:project/docs/payload.json',
+    content_markdown: '```json\n{\n  "ok": true\n}\n\n```\n',
+    content_type: 'markdown',
+    source_label: 'project/docs/payload.json',
+    title: 'payload.json',
+  })
+
+  const jsonlResponse = await fetch(`${server.baseUrl}/api/document?path=project%2Fdocs%2Ftrace.jsonl`)
+  assert.equal(jsonlResponse.status, 200)
+  assert.deepEqual(await jsonlResponse.json(), {
+    active_source: 'path:project/docs/trace.jsonl',
+    content_markdown: '```jsonl\n{"id":1}\n{"id":2}\n\n```\n',
+    content_type: 'markdown',
+    source_label: 'project/docs/trace.jsonl',
+    title: 'trace.jsonl',
+  })
+})
+
 test('document endpoint serves slides payloads', async (t) => {
   const server = await startServer(t)
   if (!server) {
@@ -403,6 +454,10 @@ test('document endpoint reports invalid local and remote inputs cleanly', async 
   const invalidUrlResponse = await fetch(`${server.baseUrl}/api/document?url=file%3A%2F%2Ftmp%2Fdoc.md`)
   assert.equal(invalidUrlResponse.status, 400)
   assert.deepEqual(await invalidUrlResponse.json(), { detail: 'Only http/https URLs are supported' })
+
+  const invalidTypeResponse = await fetch(`${server.baseUrl}/api/document?path=notes.txt`)
+  assert.equal(invalidTypeResponse.status, 400)
+  assert.deepEqual(await invalidTypeResponse.json(), { detail: 'Only .md, .json, and .jsonl files are supported' })
 })
 
 test('site assets are served directly and app routes fall back to index.html', async (t) => {

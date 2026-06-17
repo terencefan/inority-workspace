@@ -28,6 +28,8 @@ E021:
   message: "“目标”三级小节必须包含 fenced `dot` 或 `graphviz` 图"
 E022:
   message: "“架构总览”二级小节必须包含 fenced `dot` 或 `graphviz` 图"
+E023:
+  message: "“推荐阅读顺序”二级小节必须包含 fenced `dot` 或 `graphviz` 图"
 E030:
   message: "“访谈记录”必须至少保留 5 轮真实用户问答"
 E031:
@@ -46,3 +48,7 @@ E041:
   message: "“方案对比”下每组对比都必须包含 GitHub Note 风格的 `> 对比结论：...`"
 E049:
   message: "Q：... 只允许写题干，不允许内联候选选项或 1/2/3 这类编号列表"
+E050:
+  message: "“目录总纲 spec”文件名必须为 `README.md`"
+E051:
+  message: "`README.md` 作为目录总纲 spec 时，spec 类型必须是“目录总纲 spec”"

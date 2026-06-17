@@ -6,6 +6,7 @@ import { collectErrors, errorMessage, loadErrorCatalog, main } from "../scripts/
 
 const REFERENCE_SPEC = path.join(ASSETS_DIR, "reference-spec.md");
 const REFERENCE_LLM_SPEC = path.join(ASSETS_DIR, "reference-llm-spec.md");
+const REFERENCE_README_SPEC = path.join(ASSETS_DIR, "reference-readme-spec.md");
 
 test("reference spec passes validation", () => {
   assert.deepEqual(collectErrors(loadText(REFERENCE_SPEC), { pathValue: REFERENCE_SPEC }), []);
@@ -13,6 +14,10 @@ test("reference spec passes validation", () => {
 
 test("reference llm spec passes validation", () => {
   assert.deepEqual(collectErrors(loadText(REFERENCE_LLM_SPEC), { pathValue: REFERENCE_LLM_SPEC }), []);
+});
+
+test("reference readme spec passes validation", () => {
+  assert.deepEqual(collectErrors(loadText(REFERENCE_README_SPEC), { pathValue: path.join("/tmp", "README.md") }), []);
 });
 
 test("llm spec requires explicit system and user prompt sections", () => {
@@ -29,6 +34,17 @@ test("llm spec requires explicit system and user prompt sections", () => {
 `, "");
   const codes = new Set(collectErrors(mutated, { pathValue: REFERENCE_LLM_SPEC }).map((item) => item.code));
   assert.ok(codes.has("E006"));
+});
+
+test("directory readme spec must use README.md filename", () => {
+  const codes = new Set(collectErrors(loadText(REFERENCE_README_SPEC), { pathValue: "/tmp/not-readme-spec.md" }).map((item) => item.code));
+  assert.ok(codes.has("E050"));
+});
+
+test("README.md must use directory readme spec type", () => {
+  const mutated = loadText(REFERENCE_README_SPEC).replace("目录总纲 spec", "技术向 spec");
+  const codes = new Set(collectErrors(mutated, { pathValue: "/tmp/README.md" }).map((item) => item.code));
+  assert.ok(codes.has("E051"));
 });
 
 test("error code catalog covers runtime codes", () => {

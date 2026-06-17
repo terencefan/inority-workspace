@@ -33,6 +33,7 @@
 - 产品向 spec：使用 [product-spec-template.md](./product-spec-template.md)
 - 技术向 spec：使用 [technical-spec-template.md](./technical-spec-template.md)
 - llm 节点 spec：使用 [llm-node-spec-template.md](./llm-node-spec-template.md)
+- 目录总纲 spec：使用 [readme-spec-template.md](./readme-spec-template.md)
 - 通用访谈记录：使用 [interview-record-template.md](./interview-record-template.md)
 
 ## 选择建议
@@ -41,16 +42,20 @@
 - 当主要目标是设计架构、接口、迁移、运行方式或可观测性时，优先使用 `technical-spec-template.md`
 - 当需求同时包含产品和技术内容时，先判断“主要评审重心”属于哪一类，再选择对应模板；不要再使用单独的 mixed 模板
 - 当主要目标是冻结单个 LLM 节点的 system prompt、user prompt、工具边界、输入输出 schema 或本地 reconcile 规则时，优先使用 `llm-node-spec-template.md`
+- 当目标文件是 `README.md` 且它承担目录下 spec 集合总纲时，优先使用 `readme-spec-template.md`
 - 所有类型的 spec 都必须带 `访谈记录` 二级标题，并复用 `interview-record-template.md`
 
 ## 仓库 spec 入口
 
-- 当仓库存在两份及以上 authority spec 时，默认维护 `docs/spec/README.md` 作为 spec 索引入口。
-- 根 `README.md` 应链接到该索引，而不是只指向某一份专题 spec。
+- 当仓库存在两份及以上 authority spec 时，默认维护 `docs/specs/README.md` 作为 spec 索引入口。
+- `docs/specs/README.md` 默认视为该目录的总纲 spec，不是普通说明页。
+- 根 `README.md` 应链接到 `docs/specs/README.md`，而不是只指向某一份专题 spec。
 - 根 spec 指系统或产品级目标态 authority，不是拆仓、迁移、重构或单组件优化 spec。
 - 索引页列出根 spec（或待建缺口）、分组后的专题 spec、推荐阅读顺序，以及必要的依赖关系图。
 - 拆仓、迁移、上线切换类 spec 默认归入“组织演进”等专题分组，不顶替根 spec。
-- 索引页不是 authority spec，不要求 `-spec.md` 后缀，也不走 `specctl validate`。
+- 当某份 spec 已降级为历史资料、兼容入口或废弃 authority 时，默认把它移到与主 spec 同级的 `deprecated/` 子目录。
+- 一旦引入 `deprecated/`，索引页必须显式区分“当前 authority / deprecated spec”，并同步修正相对路径引用。
+- `docs/specs/README.md` 不要求 `-spec.md` 后缀，但默认也要符合仓库 `specctl` 标准。
 - 新建或废弃 authority spec 后，同步更新索引页与根 `README.md`。
 
 ## 统一约束

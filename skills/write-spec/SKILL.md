@@ -17,7 +17,7 @@ spec 主要定义目标状态：规则、边界、目标、契约、接口、验
 
 - `$write-spec`
 - `$inority-question`
-- `references/product-spec-template.md`、`references/technical-spec-template.md` 或 `references/llm-node-spec-template.md`
+- `references/product-spec-template.md`、`references/technical-spec-template.md`、`references/llm-node-spec-template.md` 或 `references/readme-spec-template.md`
 - `references/interview-record-template.md`
 
 只有确实需要结构图、关系图、架构图或 Graphviz 片段时，额外使用 `$draw-dot`。DOT 的布局、节点配色、cluster 样式和 dark-mode 适配由 `$draw-dot` 统一负责，`$write-spec` 只定义图里必须表达什么。如果 `$inority-question` 在当前环境不可用，必须在主回复中说明，并按同样纪律直接提问。
@@ -28,12 +28,15 @@ spec 主要定义目标状态：规则、边界、目标、契约、接口、验
    - 产品向 spec：用户问题、目标、范围、体验、规则、成功信号。
    - 技术向 spec：架构、数据流、接口、迁移、运行、风险。
    - llm 节点 spec：单个 LLM 节点或 agent 节点的 prompt、输入输出契约、本地 reconcile、状态写回与评审边界。
+   - 目录总纲 spec：目录下 spec 集合的根说明、分组、阅读顺序与历史兼容边界。
    - `ui` 类需求默认偏产品向；`data` 类需求默认偏技术向；聚焦单个 prompt / tool / state contract 的 LLM 节点默认偏 `llm 节点 spec`。
+   - 当目标文件是 `README.md` 且它承担该目录下 spec 集合总纲时，默认偏 `目录总纲 spec`。
    - 产品和技术混合时，先判断本次评审主重心，再选择对应模板；不要另造 mixed 模板。
 2. 读取匹配模板。
    - 产品向：`references/product-spec-template.md`
    - 技术向：`references/technical-spec-template.md`
    - llm 节点：`references/llm-node-spec-template.md`
+   - 目录总纲：`references/readme-spec-template.md`
    - 访谈记录：`references/interview-record-template.md`
 3. 如果用户指定了现有草稿或目标文件，先读取它；如果要新建或修订落盘文件，先收敛命名。
 4. 读取必要本地上下文，优先使用仓库事实而不是泛化措辞。
@@ -48,7 +51,8 @@ spec 主要定义目标状态：规则、边界、目标、契约、接口、验
 7. 写成可评审结构：明确结论、边界、假设、取舍和验收标准，不保留头脑风暴痕迹。
 8. 定稿前优先运行 `scripts/specctl validate <path>`。如果 validator 报错，先修正文档或模板漂移，再宣称收敛。
 9. 如果仓库已有或即将拥有多份 authority spec，检查并维护仓库级 spec 入口；新建第二份及以上 authority spec 时，默认补齐或更新该入口。
-10. 如果用户在本轮给出可复用的 spec 写作偏好，结束前更新本 skill 或对应 reference。
+10. 如果用户明确把某份 spec 或兼容页面降级为历史资料、兼容入口或废弃 authority，默认把它们收敛到与主 spec 同级的 `deprecated/` 子目录，并同步更新索引与相对路径引用。
+11. 如果用户在本轮给出可复用的 spec 写作偏好，结束前更新本 skill 或对应 reference。
 
 ## Validator 优先级
 
@@ -280,7 +284,7 @@ digraph Example {
 
 ## 仓库 spec 入口
 
-当目标仓库存在两份及以上 authority spec 时，默认维护 `docs/spec/README.md` 作为人类可读入口；它本身不是 authority spec，不走 `specctl validate`。
+当目标仓库存在两份及以上 authority spec 时，默认维护 `docs/specs/README.md` 作为该目录下 spec 集合的总纲文档；它不是普通索引页，而是目录级总纲 spec，默认也要符合 `specctl` 标准。
 
 ### 根 spec 定义
 
@@ -290,6 +294,7 @@ digraph Example {
 
 ### 必备内容
 
+- `docs/specs/README.md` 默认视为该目录的总纲 spec，而不是普通索引页。
 - 首段用一句话说明该仓库 spec 集合覆盖什么，以及根 spec 是哪一份或为何待建。
 - 显式列出根 spec，并说明它冻结的系统边界或 contract；已存在则链到文件，待建则写清计划文件名与覆盖范围。
 - 按评审主题分组列出专题 spec；每条附一行职责说明，不要只堆文件名。组织演进、迁移、拆仓类 spec 默认单独成组。
@@ -298,24 +303,35 @@ digraph Example {
 
 ### 维护规则
 
-- 仓库根 `README.md` 默认链接到 `docs/spec/README.md`，不要只链某一份专题 spec。
-- 新建、重命名、废弃或拆分 authority spec 后，同步更新 `docs/spec/README.md` 与根 `README.md` 中的 spec 入口说明。
+- 仓库根 `README.md` 默认链接到 `docs/specs/README.md`，不要只链某一份专题 spec。
+- 新建、重命名、废弃或拆分 authority spec 后，同步更新 `docs/specs/README.md` 与根 `README.md` 中的 spec 入口说明。
 - 专题 spec 的 `参考资料` 可以继续互链；索引页负责总览，不替代单份 spec 内的局部引用。
-- 只有用户明确要求或仓库已有稳定分层时，才在 `docs/spec/` 下再开子目录索引；默认优先扁平 `docs/spec/README.md`。
+- 只有用户明确要求或仓库已有稳定分层时，才在 `docs/specs/` 下再开子目录索引；默认优先扁平 `docs/specs/README.md`。
+- `docs/specs/README.md` 变更后，默认也要按仓库 `specctl` 规则自检；不要把它当成可以绕过 validator 的说明页。
+
+### deprecated 目录约定
+
+- 当某份文档已不再是当前 authority，只保留历史回溯、兼容跳转或旧路径存续语义时，默认把它移到与主 spec 同级的 `deprecated/` 子目录。
+- `deprecated/` 里的文档可以继续是合法 `-spec.md` 文件，也可以是轻量兼容壳；是否保留完整 authority 结构，以仓库 validator 和现有文档习惯为准。
+- 主目录下只保留当前 authority、当前 companion spec 和当前索引；不要让历史兼容页继续和主 spec 混放。
+- 一旦引入 `deprecated/`，索引页必须显式区分“当前 authority / deprecated spec”，并把主 spec 到历史文档的相对路径一并修正。
+- 迁移到 `deprecated/` 后，优先保留旧文件名，避免无谓改变外部识别语义；真正变化的是目录层级与文档角色。
 
 ### 索引页写法
 
-- 文件名固定为 `docs/spec/README.md`。
-- H1 标题默认写成 `Spec 设计索引`。
+- 文件名固定为 `docs/specs/README.md`。
+- H1 标题默认写成 `<目录主题>设计文档`；当目录主题不明显时，再退回 `Spec 设计索引` 这类总纲标题。
 - H1 下用 Markdown quote 给出仓库级结论，不写“本文将介绍”这类元叙事。
-- 二级标题默认使用：`根 spec`、`专题 spec`、`推荐阅读顺序`、`相关文档`。
+- 作为目录总纲 spec，默认也应尽量贴合 `specctl` 的结构要求；若仓库 validator 对 `README.md` 有专门变体规则，以仓库规则为准。
+- 二级标题默认优先使用：`背景与现状`、`目标与非目标`、`风险与红线`、`边界与契约`、`架构总览`、`架构分层`、`模块划分`、`方案对比`、`验收标准`、`访谈记录`、`参考资料`；只有仓库已有明确 README 总纲变体时才偏离。
 - `专题 spec` 下按自然主题再分三级标题，例如 `路由与访问`、`scan-worker 运行`、`扫描写回数据模型`。
-- 索引页不要求 `访谈记录`、`验收标准` 等 authority spec 章节，也不要伪装成 `-spec.md` 文件。
+- `README.md` 不要求改名成 `-spec.md`，但文档结构和评审质量默认按总纲 spec 处理。
 
 ## 读取入口
 
 - 模板索引：`references/template.md`
 - 产品向模板：`references/product-spec-template.md`
 - 技术向模板：`references/technical-spec-template.md`
+- 目录总纲模板：`references/readme-spec-template.md`
 - 访谈记录模板：`references/interview-record-template.md`
 - validator 错误码：`references/validator-error-codes.yaml`

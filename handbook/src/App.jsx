@@ -115,6 +115,12 @@ function formatDocumentKindLabel(meta) {
   if (meta?.kind === 'slides') {
     return 'Slides'
   }
+  if (meta?.kind === 'json') {
+    return 'JSON'
+  }
+  if (meta?.kind === 'jsonl') {
+    return 'JSONL'
+  }
   return formatDocumentLength(meta?.bytes)
 }
 
@@ -141,12 +147,12 @@ function TreeLabel({ node, fileMeta }) {
   const metaEntry = fileMeta[node.path]
   const meta =
     node.type === 'directory'
-      ? `${countFiles(node.children)} docs`
+      ? `${countFiles(node.children)} files`
       : node.type === 'slides'
         ? 'Slides project'
       : node.path.split('/').slice(0, -1).join('/') || 'Project root'
   const documentLength =
-    node.type === 'directory' ? `${countFiles(node.children)} docs` : formatDocumentKindLabel(metaEntry)
+    node.type === 'directory' ? `${countFiles(node.children)} files` : formatDocumentKindLabel(metaEntry)
 
   return (
     <Box className={`doc-tree-label-row ${node.type === 'directory' ? 'is-directory' : 'is-file'}`}>
@@ -1505,7 +1511,7 @@ function App({ themeMode, onToggleTheme }) {
             sx={{ fontWeight: 700, cursor: 'pointer' }}
             onClick={handleGoHome}
           >
-            Markdown Directory Tree
+            Documentation Directory Tree
           </Typography>
         }
         subheader={
@@ -1547,13 +1553,13 @@ function App({ themeMode, onToggleTheme }) {
             </Box>
           ) : (
             <Typography className="mui-empty">
-              Open Markdown files to populate Quick Access with your latest 5 documents.
+              Open documentation files to populate Quick Access with your latest 5 documents.
             </Typography>
           )}
         </Box>
 
         {filesLoading ? (
-          <Typography className="mui-empty">Loading Markdown index...</Typography>
+          <Typography className="mui-empty">Loading documentation index...</Typography>
         ) : (
           <SimpleTreeView
             className="doc-tree-view"
