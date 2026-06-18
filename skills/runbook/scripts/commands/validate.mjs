@@ -9,7 +9,7 @@ import { collectMarkdownDotErrors } from "../../../draw-dot/scripts/dotctl.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const ERROR_CODE_CATALOG_PATH = path.resolve(__dirname, "..", "..", "references", "validator-error-codes.yaml");
+const ERROR_CODE_CATALOG_PATH = path.resolve(__dirname, "..", "..", "references", "assets", "validator-error-codes.yaml");
 
 const REQUIRED_H2 = [
   "背景与现状",

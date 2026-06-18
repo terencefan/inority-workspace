@@ -33,14 +33,10 @@
 | `inority-question/` | 统一提问、澄清、路线确认与访谈问答协议 |
 | `inority-reply/` | 回复格式与运行时 hook 安装 |
 | `inority-slides/` | slides / deck / H5 演示稿规划与交付 |
-| `runbook/` | authority runbook 规划主 skill |
-| `runbook-recon/` | runbook 只读侦察 |
-| `runbook-executor/` | runbook 执行 phase |
-| `runbook-acceptor/` | runbook 验收 phase |
-| `runbook-solo/` | runbook solo 执行编排 |
-| `runbook-team/` | runbook team 执行编排 |
+| `runbook/` | authority runbook 主 skill；主入口轻薄，规划与执行规则按子文档加载 |
 | `wow-addon-development/` | WoW addon 开发与调试 |
 | `write-readme/` | README 编写与重构 |
+| `write-feishu-doc/` | 飞书文档编写、持续维护与本地 lark-cli 发布；涉及 bitable/多维表格时依赖 `lark-mcp` |
 | `write-spec/` | spec / 设计文档编写与收敛 |
 
 ## 拓扑关系
@@ -90,14 +86,9 @@ digraph skills_topology {
   }
 
   subgraph cluster_runbook {
-    label="runbook 执行系";
+    label="runbook 主 skill + 按需子文档";
     color="#cbd5e1";
     runbook [label="runbook"];
-    runbook_recon [label="runbook-recon"];
-    runbook_solo [label="runbook-solo"];
-    runbook_team [label="runbook-team"];
-    runbook_executor [label="runbook-executor"];
-    runbook_acceptor [label="runbook-acceptor"];
   }
 
   subgraph cluster_runtime {
@@ -122,17 +113,7 @@ digraph skills_topology {
   inority_slides -> runbook [label="任务分流", color="#2563eb", fontcolor="#1d4ed8"];
 
   runbook -> inority_question [label="提问/确认路线"];
-  runbook -> runbook_recon [label="只读补证"];
-  runbook -> runbook_solo [label="solo 执行"];
-  runbook -> runbook_team [label="team 执行"];
   runbook -> draw_dot [style=dashed, label="需要 DOT 时"];
-
-  runbook_team -> runbook_recon [label="调度"];
-  runbook_team -> runbook_executor [label="调度"];
-  runbook_team -> runbook_acceptor [label="调度"];
-
-  runbook_solo -> runbook_executor [label="串行推进"];
-  runbook_solo -> runbook_acceptor [label="串行验收"];
 
   inority_memory -> inority_memory_distill [style=dotted, label="同域协作"];
   inority_memory -> inority_memory_reflect [style=dotted, label="同域协作"];
@@ -155,10 +136,11 @@ digraph skills_topology {
 按主题查找时，可以直接这样分：
 
 - 文档类：`write-readme/`、`write-spec/`
+- 飞书文档类：`write-feishu-doc/`
 - 工作区收尾类：`checkout/`
 - Git 同步类：`checkin/`
 - 通用基座类：`inority/`
-- 运维类：`runbook/`、`runbook-*`
+- 运维类：`runbook/`
 - 演示类：`inority-slides/`、`draw-dot/`
 - 运行时治理类：`inority-memory/`、`inority-reply/`、`inority-question/`
 

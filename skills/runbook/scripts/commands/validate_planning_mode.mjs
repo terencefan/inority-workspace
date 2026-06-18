@@ -2,7 +2,7 @@ import path from "node:path";
 import { promises as fs } from "node:fs";
 import { lineNumber, parseSimpleYamlMap, splitLinesKeepEnds, toError } from "./shared.mjs";
 
-const ERROR_CODE_CATALOG_PATH = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../../references/validator-error-codes.yaml");
+const ERROR_CODE_CATALOG_PATH = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../../references/assets/validator-error-codes.yaml");
 let errorCatalogCache = null;
 
 const REQUIRED_H2_BY_MODE = {

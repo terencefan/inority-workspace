@@ -1,0 +1,79 @@
+digraph deployment_rolling_update {
+  graph [
+    rankdir=TB,
+    bgcolor="white",
+    fontname="Noto Sans CJK SC",
+    pad="0.25",
+    nodesep="0.45",
+    ranksep="0.7",
+    splines=polyline
+  ];
+
+  node [
+    fontname="Noto Sans CJK SC",
+    shape=box,
+    style="rounded,filled",
+    penwidth=1.4
+  ];
+
+  edge [
+    fontname="Noto Sans CJK SC",
+    color="#475569",
+    fontcolor="#334155",
+    penwidth=1.8,
+    arrowsize=0.9
+  ];
+
+  service [label="Service\n稳定入口", fillcolor="#ccfbf1", color="#0f766e", fontcolor="#134e4a"];
+  deployment [label="Deployment\n目标版本 v2", fillcolor="#dbeafe", color="#2563eb", fontcolor="#1e3a8a"];
+
+  subgraph cluster_old {
+    label="旧版本（Old）";
+    color="#f87171";
+    fontcolor="#7f1d1d";
+    bgcolor="#fff7f7";
+    style="rounded";
+
+    old_rs [label="ReplicaSet v1\nold version", fillcolor="#fee2e2", color="#dc2626", fontcolor="#7f1d1d"];
+    old_pod_1 [label="Old Pod 1\nAvailable", fillcolor="#fef2f2", color="#ef4444", fontcolor="#7f1d1d"];
+    old_pod_2 [label="Old Pod 2\nAvailable", fillcolor="#fef2f2", color="#ef4444", fontcolor="#7f1d1d"];
+    old_pod_3 [label="Old Pod 3\nDraining", fillcolor="#fee2e2", color="#dc2626", fontcolor="#7f1d1d"];
+
+    old_rs -> old_pod_1;
+    old_rs -> old_pod_2;
+    old_rs -> old_pod_3;
+  }
+
+  subgraph cluster_new {
+    label="新版本（New）";
+    color="#4ade80";
+    fontcolor="#166534";
+    bgcolor="#f7fff8";
+    style="rounded";
+
+    new_rs [label="ReplicaSet v2\nnew version", fillcolor="#dcfce7", color="#16a34a", fontcolor="#166534"];
+    new_pod_1 [label="New Pod 1\nAvailable", fillcolor="#f0fdf4", color="#22c55e", fontcolor="#166534"];
+    new_pod_2 [label="New Pod 2\nAvailable", fillcolor="#f0fdf4", color="#22c55e", fontcolor="#166534"];
+    new_pod_3 [label="New Pod 3\nStarting", fillcolor="#dcfce7", color="#16a34a", fontcolor="#166534"];
+
+    new_rs -> new_pod_1;
+    new_rs -> new_pod_2;
+    new_rs -> new_pod_3;
+  }
+
+  { rank=same; old_rs; new_rs; }
+  { rank=same; old_pod_1; old_pod_2; old_pod_3; new_pod_1; new_pod_2; new_pod_3; }
+
+  service -> old_pod_1;
+  service -> old_pod_2;
+  service -> new_pod_1;
+  service -> new_pod_2;
+
+  deployment -> old_rs [label="RollingUpdate / 缩旧"];
+  deployment -> new_rs [label="RollingUpdate / 扩新"];
+
+  old_pod_1 -> new_pod_1 [style=dashed, color="#64748b", fontcolor="#475569", label="迁移流量", constraint=false];
+  old_pod_2 -> new_pod_2 [style=dashed, color="#64748b", fontcolor="#475569", label="迁移流量", constraint=false];
+  old_pod_3 -> new_pod_3 [style=dashed, color="#64748b", fontcolor="#475569", label="下线后由新 Pod 接管", constraint=false];
+  old_rs -> new_rs [style=dashed, color="#2563eb", fontcolor="#1d4ed8", label="Old → New\n从左到右滚动", constraint=false];
+}

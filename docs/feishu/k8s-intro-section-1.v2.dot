@@ -1,0 +1,128 @@
+digraph k8s_intro_overview_v2 {
+  graph [
+    fontname="Noto Sans CJK SC",
+    bgcolor="transparent",
+    rankdir=LR,
+    nodesep=0.4,
+    ranksep=0.9,
+    pad=0.25
+  ];
+  node [
+    fontname="Noto Sans CJK SC",
+    shape=box,
+    style="rounded,filled",
+    color="#64748b",
+    fontcolor="#0f172a",
+    fillcolor="#f8fafc",
+    margin="0.18,0.12"
+  ];
+  edge [
+    fontname="Noto Sans CJK SC",
+    color="#94a3b8",
+    fontcolor="#64748b",
+    penwidth=1.5,
+    arrowsize=0.8
+  ];
+
+  user_ci [
+    label="用户 / CI\n提交应用配置",
+    fillcolor="#dbeafe",
+    color="#60a5fa",
+    fontcolor="#1e3a8a"
+  ];
+
+  subgraph cluster_control_plane {
+    label="控制面";
+    color="#2563eb";
+    fontcolor="#1e40af";
+    penwidth=1.4;
+    style="rounded";
+
+    api_server [
+      label="API Server",
+      fillcolor="#bfdbfe",
+      color="#60a5fa",
+      fontcolor="#1e3a8a"
+    ];
+    scheduler [
+      label="Scheduler",
+      fillcolor="#bfdbfe",
+      color="#60a5fa",
+      fontcolor="#1e3a8a"
+    ];
+    controller [
+      label="Controller",
+      fillcolor="#bfdbfe",
+      color="#60a5fa",
+      fontcolor="#1e3a8a"
+    ];
+    etcd [
+      label="etcd",
+      fillcolor="#dbeafe",
+      color="#60a5fa",
+      fontcolor="#1e3a8a"
+    ];
+  }
+
+  separator [
+    label="",
+    shape=box,
+    width=0.04,
+    height=2.4,
+    style="dashed",
+    color="#94a3b8",
+    fillcolor="transparent"
+  ];
+
+  subgraph cluster_data_plane {
+    label="数据面";
+    color="#0891b2";
+    fontcolor="#0f766e";
+    penwidth=1.4;
+    style="rounded";
+
+    kubelet [
+      label="kubelet",
+      fillcolor="#ccfbf1",
+      color="#14b8a6",
+      fontcolor="#115e59"
+    ];
+    node_a [
+      label="Node A\nPod 1 | Pod 2",
+      fillcolor="#dcfce7",
+      color="#22c55e",
+      fontcolor="#166534"
+    ];
+    node_b [
+      label="Node B\nPod 3 | Pod 4",
+      fillcolor="#dcfce7",
+      color="#22c55e",
+      fontcolor="#166534"
+    ];
+    service [
+      label="Service\n稳定访问入口",
+      fillcolor="#ccfbf1",
+      color="#14b8a6",
+      fontcolor="#115e59"
+    ];
+  }
+
+  { rank=same; api_server; separator; kubelet }
+  { rank=same; scheduler; service }
+  { rank=same; controller; node_a; node_b }
+
+  user_ci -> api_server [label="提交期望状态"];
+  api_server -> etcd [label="保存资源对象"];
+  api_server -> scheduler [label="暴露调度信息"];
+  api_server -> controller [label="驱动控制循环"];
+  scheduler -> kubelet [label="下发调度结果"];
+  controller -> kubelet [label="持续收敛"];
+  kubelet -> node_a [label="拉起 Pod"];
+  kubelet -> node_b [label="拉起 Pod"];
+  node_a -> service [label="加入后端"];
+  node_b -> service [label="加入后端"];
+  kubelet -> api_server [label="状态回报"];
+  etcd -> controller [style=dashed, arrowhead=none, label="提供期望状态"];
+  api_server -> separator [style=invis];
+  separator -> kubelet [style=invis];
+}

@@ -1,701 +1,96 @@
 ---
 name: runbook
 description: >-
-  严格分阶段 runbook 的规划主 skill。适用于用户给出了草稿 runbook、零散步骤、
+  严格分阶段 runbook 的主入口 skill。适用于用户给出了草稿 runbook、零散步骤、
   运维需求或目标状态，需要主 agent 消除二义性、降低执行风险，并最终产出一份可供
-  生产环境执行的 authority runbook（操作手册）的场景。这个 skill 只负责规划、
-  澄清、结构化和定稿，不负责执行态落地。
+  生产环境执行的 authority runbook（操作手册）的场景。主 skill 保持轻薄，规划态与
+  执行态规则通过子文档按需加载。
 ---
 
-# 运行手册规划主 skill
+# 运行手册主 skill
 
 当用户给了 runbook 草稿、现场目标、迁移/变更需求，或者要求你整理出一份生产可执行操作手册时，使用这个 skill。
 
 runbook 的职责不是重新定义规范、边界或目标，而是把已经明确的目标态落成一条“从现状走到目标”的可执行转化路径。
 
-本 skill 的唯一目标是：
+## 主入口职责
 
-1. 消除用户给出的 runbook / 需求里的二义性
-2. 降低执行风险
-3. 产出一份可供生产环境执行的 authority runbook，用来把当前现状安全地转化到目标态
+主 `runbook` skill 只保留这些职责：
 
-它不是执行态 skill。不要在这个 skill 里直接执行 runbook 编号项，也不要把自己漂移成 execution / acceptance lane。
+- 判定当前任务是否属于 runbook workflow
+- 判定主类型：`coding` / `operation` / `migration`
+- 显式回报本轮已加载信息
+- 在规划态装配 `plan` 子文档
+- 在执行确认后装配 `solo` / `team` 子文档
+- 在执行遇阻时把流程拉回规划态
 
-## Scope
+不要把规划细则、phase 细则和执行编排细节全部堆回主 skill。
 
-本 skill 只负责：
+## 规划态默认加载
 
-- 读懂用户给出的 runbook、草稿、目标或约束
-- 读懂“当前现状”和“目标态”之间还差什么
-- 识别 ambiguity / risk / 缺失前提
-- 通过提问或只读侦察补足关键事实
-- 冻结唯一执行路径
-- 明确非目标、停止条件、回滚边界和验收路径
-- 产出或修订 authority runbook
+只要当前处于 `$runbook` 规划态，就默认加载：
 
-本 skill 不负责：
-
-- 重新定义本应由 spec 固化的规范、边界或目标
-- 直接执行 `#### 执行`
-- 直接执行 `#### 验收`
-- 在现场变更系统状态
-- 把规划问题伪装成执行项
-- 在 authority 未收敛时抢跑实施
-
-如果用户已经在问“按这份 runbook 开始执行”，本 skill 也仍然先完成规划态收敛；只有 authority runbook 达到可执行标准后，才允许切入执行态 surface。
-
-canary 相关的入口、`dev3` 边界和 `canary-env` 继承规则统一放在工作区级 `.codex/USER.md`，这里不再重复维护一套 canary 特例说明。
-
-## 工作区级 runbook 偏好
-
-这些偏好属于 runbook workflow 本身，应直接按本 skill 执行，不要再依赖工作区记忆里的零散提示：
-
-- `spec` 与 `runbook` 默认是两份独立 artifact：
-  - `spec` 定义目标态、边界和验收口径
-  - `runbook` 定义从当前现状走到该目标态的执行路径
-- 新建或迁移 authority runbook 时，默认放到目标项目自己的 `docs/runbook/YYYY-MM-DD/` 目录下；除非用户明确指定别的位置，不要把 authority 放回工作区根目录或 `docs/specs/`
-- 对应的 spec 默认放到目标项目自己的 `docs/specs/`；不要把 runbook 内容反向塞进 spec
-- 如果 authority 定义了“最终独立只读复核”或等价的最终 read-only recon，它属于完成条件本身，不是可选润色；在该复核完成或被明确阻塞前，不要宣称 runbook 已完成
-- runbook workflow 里需要确认是否继续、是否授权、是否采用某条路径时，可以让用户直接回复 `Y/N`
-- 如果本轮 runbook 规划、返工或续跑暴露出可复用教训，主 rollout 在收口时应把该教训记入当天 `.codex/memory/dairy/YYYY-MM-DD.md`
-
-## 类型分流
-
-`runbook` 只允许按下面三种类型分流：
-
-1. `coding`
-2. `operation`
-3. `migration`
-
-进入正文规划前，主 rollout 必须先判定当前 runbook 属于哪一种主类型，再按需加载对应子文档。
-
-规划态还额外有一个强制加载约束：
-
-- 只要当前处于 `$runbook` 规划态，就默认同时加载 `$inority-question`
-- 不要等到“感觉需要提问时”才临时想起来加载；规划态从一开始就带着它进入
-- 原因不是每一轮都必须立刻提问，而是规划态天然承担：
-  - ambiguity 收敛
-  - 路径拍板
-  - 访谈记录留档
-  - 10% gate 前的用户确认
-- 唯一允许不加载 `$inority-question` 的情况，是当前运行环境里这个 skill 客观不可用；这时主 rollout 也必须在主回复里显式说明“原本应加载 `$inority-question`，但当前不可用，因此退回到同纪律的直接提问”
-
-因此，规划态的默认加载集合是：
-
-- `$runbook`
+- `references/planning/plan-mode.md`
 - `references/<type>-runbook.md`
 - `$inority-question`
 
 只有在确实需要图时，才额外补 `$draw-dot`。
 
-- `coding` -> `references/coding-runbook.md`
-- `operation` -> `references/operation-runbook.md`
-- `migration` -> `references/migration-runbook.md`
-- 如果 authority 需要真正输出 `### 现状`、`### 目标` 或 `## 思维脑图` 的 Graphviz DOT 图，也可以按需加载 `$draw-dot`
+类型映射：
 
-加载规则：
+- `coding` -> `references/planning/coding-runbook.md`
+- `operation` -> `references/planning/operation-runbook.md`
+- `migration` -> `references/planning/migration-runbook.md`
 
-- 默认只加载一个主类型子文档，不要无差别把三个子文档都读进来。
-- 如果任务跨类型，先选一个主类型承载主路径，其余类型只在确实影响执行路径、回滚或验收时再补充加载。
-- 每次进入规划态或发生加载集合变化时，主 rollout 都必须在主回复里显式回报“已加载信息”：
-  - 当前判定的 runbook 类型
-  - 本次已加载的 skill / 子文档列表
-  - 每一项为什么要加载
-- 这里的“已加载信息”不是可选礼貌说明，而是规划态 authority surface 的一部分；如果没有这段回报，就视为本轮规划态说明不完整
-- 在规划态里，`$inority-question` 必须默认出现在这份已加载列表里；如果没有出现，只能说明本轮漏加载或漏汇报
-- 如果额外加载了 `$draw-dot`，也必须显式说明本次要产出的图类型，以及为什么这张图会影响 authority 收敛
-- 通过 `$draw-dot` 生成 Graphviz DOT 图时，默认优先沿用 `references/authority-runbook-template.md` 里的结构骨架；DOT 的布局、节点配色、cluster 样式和 dark-mode 适配统一以 `$draw-dot/references/style-guide.md` 为准。至少要满足当前 validator 的硬约束：
-  - 显式使用 `Noto Sans CJK SC`
-  - 不要继续使用 `Arial`
-  - `### 现状`、`### 目标` 和 `## 思维脑图` 都必须各自包含 dot 代码块
-- 如果后续因为新证据切换主类型，也必须在主回复里重新说明切换原因，而不是静默换型。
-- authority runbook 的 H1 标题下面必须紧跟一个 `> [!NOTE]`，显式写出当前模式，例如：
-  - `> [!NOTE]`
-  - `> 当前模式：\`coding\``
-  - `> 当前模式：\`operation\``
-  - `> 当前模式：\`migration\``
-- 如果主类型发生切换，除了在主回复里说明原因，还必须同步更新这个标题下的模式 Note。
+## 已加载信息回报
+
+每次进入规划态或发生加载集合变化时，主 rollout 都必须在主回复里显式回报：
+
+- 当前判定的 runbook 类型
+- 本次已加载的 skill / 子文档列表
+- 每一项为什么要加载
+
+如果额外加载了 `$draw-dot`，也必须说明本次图的类型，以及为什么它影响 authority 收敛。
+
+## 执行态子文档
+
+`runbook` 是 runbook 家族的唯一权威主 skill。
+
+执行态与 phase 规则作为主 skill 下的按需加载子文档存在：
+
+- `references/execution/solo.md`
+- `references/execution/team.md`
+- `references/recon/recon.md`
+- `references/execution/execution.md`
+- `references/execution/acceptance.md`
+
+旧 `runbook-*` 目录保留为兼容壳；权威规则以本目录下这些子文档为准。
 
 ## 执行态切换
 
-当 authority runbook 已经达到可执行标准后：
+当 authority runbook 已达到可执行标准后：
 
-- 主 rollout 的默认动作不是直接结束，也不是替用户静默选择执行编排，而是先向用户确认：
-  - 这次进入 `solo` 执行
-  - 还是进入 `team` 执行
-- 身份约束固定为：
-  - `solo`：主 rollout 统一使用 `吕布` 身份
-  - `team`：主 rollout 与全部子代理统一使用三国阵营命名，主 rollout 必须是该阵营势力领袖
-- 这一步确认必须在主回复里显式提出，不能隐式假设。
-- 用户一旦给出 `solo` / `team` 选择，主 rollout 就立即切入对应执行态，不要停留在规划态反复总结。
-- 如果用户明确确认开始 `solo` 执行，就同时加载：
-  - `$runbook-solo`
-  - 再由 `$runbook-solo` 在同一主 rollout 内显式装配：
-    - `$runbook-executor`
-    - `$runbook-acceptor`
-  - `$runbook-solo` 只负责执行 / 验收推进；如果执行途中需要 recon，必须先退出回 `$runbook` 规划态，再按需发起 `$runbook-recon`
-- 如果用户明确确认进入 team 执行，就加载 `$runbook-team`
-- 如果用户没有回复 `solo` / `team`，主 rollout 保持在规划态，不得擅自进入执行态。
-- 一旦执行态中的任一编号项出现下面任一情况：
-  - `#### 执行` 实际结果不符合预期
-  - `#### 验收` 未通过
-  - 命中停止条件
-  - 出现 authority 之外的新 blocker / 新事实
-  主 rollout 必须立刻退出当前 execution / acceptance lane，回到规划态。
-- 回到规划态后的默认顺序固定为：
-  1. 向用户提出最小但必要的规划问题
-  2. 按需启动 `$runbook-recon` 做只读补证
-  3. 用新问答和新证据修订 authority runbook
-  4. 重新把 `ambiguity` / `risk` 压回可执行阈值
-  5. 再次向用户确认进入 `solo` 还是 `team`
-  6. 收到新的执行确认后，才允许重新进入执行态
-- 不要在 execution / acceptance lane 内直接临场修法、偷偷换路径、或带着未收敛的新事实继续推进。
+- 主 rollout 先向用户确认进入 `solo` 还是 `team`
+- 用户确认 `solo` 后，加载 `references/execution/solo.md`
+- 用户确认 `team` 后，加载 `references/execution/team.md`
+- 如果执行途中出现失败、未通过、停止条件、新 blocker 或新事实，立即退出回规划态，并重新加载 `references/planning/plan-mode.md`
 
-主 `runbook` skill 自己不承载执行态细节。
-`solo` 执行态细节由 `$runbook-solo` 承载，`team` 执行态细节由 `$runbook-team` 承载。
+## 模板与回复格式
 
-## 对用户回复的格式要求
+- authority runbook 的结构模板以 `references/assets/authority-runbook-template.md` 为准
+- 主 rollout 的回复格式由工作区级 `.codex/USER.md` 统一管理
+- 不要在本 skill 内重复定义另一套主回复格式
 
-主 rollout 的回复格式由工作区级 `.codex/USER.md` 统一管理。
+## 使用说明
 
-- 不要在 runbook skill 内重复定义主回复字段或其渲染形状。
-- 当前界面该用 CLI 纯文本对齐还是 VS Code Markdown 表格，以 `.codex/USER.md` 和对应 reply-format 模板为准。
-- runbook skill 只要求你把当前目标、未决 ambiguity、和最高风险讲清楚；不要再在这里维护一套并行的格式规范。
+真正的规划态规则请继续读取：
 
-## 规划原则
+- `references/planning/plan-mode.md`
 
-- 先判断用户给的是：
-  - 已接近 authority 的 runbook 草稿
-  - 只有目标和约束的需求描述
-  - 已有 authority，但其中存在过期、冲突或多路径并列
-- 再判断它属于哪一类主 runbook：
-  - `coding`：主问题是代码、配置、构建、测试、发布产物或代码仓内变更如何把现状推进到目标
-  - `operation`：主问题是服务、主机、集群、网络、权限、运行参数或现场操作如何把现状推进到目标
-  - `migration`：主问题是数据、状态、流量、版本、平台、控制面或运行面从旧状态切到新状态
-- 判定完主类型后，按需加载对应子文档，并在主回复里显式说明本次加载了什么、为什么加载。
-- 首个执行项必须随主类型变化：
-  - `coding`：第一步是 `保证工作区干净`
-  - `operation`：第一步是 `冻结现状`
-  - `migration`：第一步是 `冻结现状`
-- 如果输入主体是一份 spec，先把它当成目标态约束，而不是可直接执行的步骤清单：
-  - spec 负责定义规范、边界和目标；runbook 负责把现状转化到这个目标
-  - 对这类 runbook，真正的 authority source 是该 spec；runbook 只是从 authority 派生出来的执行手册
-  - 先抽取 spec 里的 `### 目标` / 目标状态 / 验收口径
-  - 再用本轮真实侦察或用户最新证据冻结当前 `### 现状`
-  - 必须显式比较“现状 vs spec 目标”的差异，再决定 runbook 的执行路径
-  - `## 执行计划` 只能来源于这些已确认差异，不要把 spec 章节顺序直接改写成编号步骤
-- 如果输入或当前执行上下文指向一份已经存在的 authority runbook，先检查它是否位于当前本地日期目录下，并且 title / 文件名是否只反映当前 authority 目标：
-  - 目录日期不是今天时，先把该 runbook 迁移到今天的日期目录，再继续规划、修订、执行状态判定或请求 `solo` / `team`
-  - title 和文件名都不要包含日期；日期只放父目录
-  - 文件名必须以 `-runbook.md` 结尾；如果不符合，先改成 `<topic>-runbook.md`
-  - 标题必须写成 `xxxx 执行手册`；如果不符合，先同步改成该形态
-  - 标题下的模式 Note 必须存在，且内容必须与当前判定的 `coding` / `operation` / `migration` 主类型一致；如果不一致，先同步修正
-  - 文件名仍包含日期、旧目标、或不能表达当前 authority 目标时，先同步重命名文件
-  - title 仍包含日期、旧目标、或不能表达当前 authority 目标时，先同步改标题
-  - 迁移 / 重命名后，后续所有 `runctl validate`、执行确认、solo/team dispatch、证据回写和用户回复都必须引用新路径
-  - 如果旧路径已经被日志或历史回复引用，不要修改历史证据；只在新的 authority 路径上继续推进
-- 如果用户直接给出一份 runbook 文件，第一步必须先判定它的执行状态，而不是默认从第 1 步或下一个未勾选项开始：
-  - `未开始`：`## 执行记录` 还没有真实签名证据，先按 authority 收敛标准检查是否可执行
-  - `执行中`：存在部分 `#### 执行记录 @...` / `#### 验收记录 @...`、部分 checkbox 已勾选、或正文记录了 stop / blocker
-  - `已完成`：所有编号项执行和验收都已签名，并且 `## 最终验收` 已留证
-  - `状态冲突`：计划、记录、checkbox、签名、现场事实彼此不一致
-- 交付态 runbook 默认必须保持 `未开始`：
-  - 即使规划阶段已经做过只读 reconnaissance，也只能把证据写进 `### 现状`、风险判断或 `## 访谈记录`
-  - 不要因为规划态侦察已经做过，就提前在 `#### 执行`、`#### 验收`、`## 执行记录` 或 `## 最终验收` 里预签名
-  - 只有真正进入执行态、并且由当次执行上下文实际完成了对应编号项后，才允许回填并签名记录区
-- 如果 runbook 处于 `执行中` 或 `状态冲突`，不要只按文档里的下一个编号项续跑；必须先做只读侦察，确认现场具体卡在哪里、最后一个可信完成边界是什么、下一次应从哪个编号项和哪个 phase 重新进入。
-- 半执行 runbook 的续跑起点必须由两类证据共同决定：
-  - 文档证据：`## 执行记录`、签名 heading、checkbox、停止条件命中记录、最终验收是否存在
-  - 现场证据：当前主机 / 服务 / 文件 / 资源状态是否与文档记录一致
-- 如果文档证据和现场证据冲突，按 `状态冲突` 处理，先回规划态修订 authority；不要在旧执行态里硬续跑。
-- 规划顺序是硬约束：
-  1. 先完整读懂当前 runbook / 需求 / 现场证据
-  2. 如果输入主体是 spec，先冻结当前现状，并对照 spec 目标做差异分析
-  3. 再补真实用户问答；规划态默认已经加载 `$inority-question`，只要需要向用户提问、确认路径、澄清事实，或主动提出需要用户拍板的建议/推荐方案，就直接通过它发起；必要时再补只读侦察
-  4. 问答、侦察和差异分析把关键边界收敛后，才允许重构或大改 runbook 正文
-  5. `## 思维脑图` 必须最后基于真实访谈记录与侦察证据落图，不能先画占位版
-- 规划的首要任务不是“补字数”，而是去掉会影响后续执行形状的未决项。
-- 只要还存在 materially different 的候选路线，就不要把 runbook 写成已拍板。
-- 编号步骤必须保持单一主动作；不要写成 `A 与 B` 这种把两件 materially different 的事绑在一个步骤里的形态。
-- 如果确实需要先后完成两件不同动作，例如“创建 secret 再 apply workload”或“改配置再重启服务”，就拆成两个编号步骤，而不是继续塞进同一个步骤标题或 scope。
-- 如果 authority 已经进入内部结构重排阶段，例如重编号、拆步骤、补锚点、迁日期目录、拆分跨主机 scope、把隐含前提改成显式编号项，这些都属于规划主 skill 的默认职责；除非会改变用户已拍板的目标、边界或风险承受，不要为了“是否要重排结构”再停下来问用户。
-- 不要再写 `## 当前已决策` 这种作者口吻的小结节；规划态收敛必须改写为 `## 访谈记录`，把 planning 阶段向用户提出的问题、用户回答以及影响面显式留档。
-- 对会改变实现、验收、回滚或影响面的具体选择，必须显式收敛：
-  - 版本 / 发行版
-  - 镜像 / 模板来源
-  - 网络 / bridge / underlay 机制
-  - CNI / LB / storage 路线
-  - 路径、接口名、模板来源
-  - 执行入口主机、跳板、控制节点
-- 不要把未决选择伪装成编号项，例如：
-  - “确认 X”
-  - “核定 X”
-  - “统一 X”
-- 正确做法是：通过已加载的 `$inority-question`，按它的共享提问纪律写出当前不确定性、给出 `2-4` 个具体选项，并在拍板前把 downstream item 标成 blocked / gate。
-- 如果执行态带回了新的 blocker / 新事实，先把它们当成新的规划输入，再重新通过 `$inority-question` 发起下一轮澄清；不要把执行遇阻伪装成“继续执行的一部分”。
+真正的执行态规则按需读取：
 
-## 10% Gate
-
-在真正定稿 authority runbook 之前，主 rollout 必须把这两项都降到 **10% 或以下**：
-
-- `ambiguity`
-- `risk`
-
-只要任一项高于 10%，或者存在任何二义性、风险、或不确定内容，就不要宣称 runbook 已可执行。
-
-此时主 rollout 只能先做下面两件事之一：
-
-1. 问用户一个简洁规划问题
-2. 启动 `$runbook-recon` 做只读补证
-
-先完成这两件事之一，再根据得到的新信息继续修订 authority 草稿。
-
-在这个 gate 没解除前：
-
-- 不要先重构 runbook 主体结构
-- 不要先补写 `## 访谈记录`
-- 不要先补画 `## 思维脑图`
-- 不要先把多路径正文改写成看似已经拍板的唯一路径
-
-## 何时必须提问
-
-出现下面任一情况时，必须先问用户，而不是替用户静默拍板：
-
-- 有多个 viable 方案，且会改变后续执行或回滚形状
-- 非目标边界不清楚
-- 成功定义或验收路径不清楚
-- 回滚边界会影响生产风险
-- 用户给的 runbook 与最新现场事实冲突
-- 用户给的 runbook 同时保留多个 materially different 路线
-
-命中这些情况时，使用规划态默认已加载的 `$inority-question`。
-
-- `$inority-question` 负责共享提问纪律：
-  - 每轮只问一个问题
-  - 每轮只围绕一个维度
-  - 问题里带上当前目标、当前 ambiguity、当前最高风险
-  - 如有必要，给出 `2-4` 个具体选项与取舍
-- authority 定稿前，必须累计至少 `5` 条真实的用户访谈记录；如果当前 runbook 没有 `## 访谈记录`，或记录数少于 `5`，主 rollout 必须继续补问，不能跳过。
-- 如果发现真实用户问答不足，默认动作不是先改文档，而是继续通过 `$inority-question` 提问；只有当这轮补问已经把关键边界收敛下来，才允许开始重构正文。
-- 把访谈记录回写到 runbook 时，必须遵守 `$inority-question` 的 durable Q/A 规则：`Q` 只写问题本体，不带编号选项或推荐语；`A` 必须展开成完整答案，不允许只写 `1`、`2`、`A`、`B` 这类编号。
-
-## 何时必须侦察
-
-只要规划依赖这些信息，就必须用 `$runbook-recon`，不要把主 skill 漂移成上机侦察：
-
-- SSH / 上机只读检查
-- 网络或网页检索
-- 来自远端系统的只读证据
-- 带主机边界的事实收集
-- 会显著膨胀主上下文的环境状态检查
-
-侦察阶段如果发现后续执行命令有工具原生 `--dry-run` / `--check` / `plan` / `diff` 等 no-op 预演模式，并且可以确认它不会写入真实状态，就应通过 `$runbook-recon` 实际执行一次，收集命令、退出码和关键输出，用来判断 authority 的执行路径是否可行。dry-run 失败或 dry-run 不安全，都必须作为规划输入回写；不要在侦察 lane 内现场修命令或把 dry-run 通过当成执行态授权。
-
-当事实按主机或环境边界天然拆分时，应优先按边界拆 reconnaissance，而不是把所有探查都塞进主线程。
-
-如果 `## 思维脑图`、`### 现状`、风险判断或路径选择需要依赖现场事实，先补 reconnaissance，再落这些章节；不要凭旧印象、旧 runbook 或推测先写图、再补证据。
-
-一旦这些章节需要真正落成 Graphviz DOT 图，默认通过 `$draw-dot` 收敛图结构、布局、节点配色和 dark-mode 样式，而不是在 `$runbook` 正文里临时手写一版随意 DOT。
-
-## Authority Runbook 模板
-
-authority runbook 的标准大纲放在独立文件里：
-
-- [references/authority-runbook-template.md](./references/authority-runbook-template.md)
-
-需要新建 authority runbook、检查结构是否齐全、或对照模板补章节时，再读取这个文件。
-
-类型子文档按需加载：
-
-- [references/coding-runbook.md](./references/coding-runbook.md)
-- [references/operation-runbook.md](./references/operation-runbook.md)
-- [references/migration-runbook.md](./references/migration-runbook.md)
-
-authority 定稿前还必须通过统一控制入口：
-
-- [scripts/runctl](./scripts/runctl)
-- [scripts/runctl.mjs](./scripts/runctl.mjs)
-- [references/validator-error-codes.yaml](./references/validator-error-codes.yaml)
-
-`runctl` 串行约束：
-
-- 在当前工作区里，`runctl` 允许直接执行，不需要额外把“是否可运行 `runctl`”当成一个待澄清问题
-- `runctl` 视为 authority runbook 单文件写入口；同一份 `<topic>-runbook.md` 上的多个 `runctl` 调用一律串行执行。
-- 可以先批量整理、排队或审阅多条待执行的 `runctl` 命令，但真正落地执行时一次只允许跑一条。
-- 不要把两个 `runctl` 命令放到并发子代理、后台任务、或同一轮多路 shell 里同时跑，即使它们看起来是在改不同 section。
-- 每次 `runctl` 调用都必须等待前一条命令完整结束，并先读取退出码与写回结果，再决定下一条 `runctl`。
-- 在 `team` / `solo` 执行态里，这条串行约束同样成立；并行只允许发生在只读分析或纯证据采集上，不允许发生在同一 authority 文件的 `runctl` 写入上。
-- `scripts/runctl` 是 shell wrapper，不要写成 `python3 scripts/runctl ...`。
-- 如果当前沙箱或 wrapper 入口异常，改用等价底层入口 `node scripts/runctl.mjs ...`；不要退回到 Python 调用。
-- 新建 authority 时优先用 `init`、`add-step`、`add-qa`、`sync-records` 生成和同步骨架，避免手写漏掉 validator 要求的 alert、anchor、jump-link、执行记录字段和记录区对齐。
-
-常规工作流：
-
-1. 新建空白 authority：
-   `scripts/runctl init <topic>-runbook.md`
-2. 增量编辑结构：
-   `add-step` / `add-qa` / `move-step` / `remove-step`
-3. 收口结构细节：
-   `normalize`
-4. 做最终结构校验：
-   `validate`
-5. 需要时同步记录区或签名：
-   `sync-records` / `sign-step`
-
-只有当执行出问题、忘了参数、或需要确认完整 CLI 形状时，再看帮助：
-
-```bash
-scripts/runctl --help
-```
-
-初始化：
-
-```bash
-scripts/runctl init <topic>-runbook.md
-```
-
-如果需要顺手替掉标题占位：
-
-```bash
-scripts/runctl init <topic>-runbook.md --title "<主题>执行手册"
-```
-
-`init` 会从 authority 模板生成一份空白 runbook，后续 LLM 只需要按章节逐段填写，不需要自己从零搭正文骨架。
-
-计划区与访谈记录编辑：
-
-```bash
-scripts/runctl add-step <topic>-runbook.md --title "<步骤标题>" --after <n>
-```
-
-如果不传 `--after`，默认追加到当前最后一个编号项后面。
-
-`add-step` 会同时在 `## 执行计划` 和 `## 执行记录` 插入同标题的新编号项，并自动补齐最小可编辑骨架，后续 LLM 只需要专注填该步骤的正文内容。
-
-```bash
-scripts/runctl add-qa <topic>-runbook.md --question "<Q>" --answer "<A>" --time "<访谈时间>" --impact "<影响面>"
-```
-
-`add-qa` 会在 `## 访谈记录` 末尾追加一条标准形态的问答记录，写成 `### Q：...`、`> A：...`，必填语义的 `访谈时间：...`，空一行后写正文影响面行；如果没有传 `--time`，脚本默认填当前本地时间。传参时也必须遵守 `$inority-question` 的 durable Q/A 规则：`--question` 只写问题本体，不带编号选项或推荐语；`--answer` 必须写完整答案，不允许只传 `1`、`2`、`A`、`B` 这类编号。
-
-```bash
-scripts/runctl move-step <topic>-runbook.md --item <n> --after <m>
-```
-
-如果 `--after 0`，表示把该步骤移到最前。
-
-`move-step` 会同时重排 `## 执行计划` 和 `## 执行记录` 的对应编号项，后续只需要继续编辑移动后的正文。
-
-```bash
-scripts/runctl remove-step <topic>-runbook.md --item <n>
-```
-
-`remove-step` 会同时删除 `## 执行计划` 和 `## 执行记录` 里的对应步骤，并在写回前过一轮 normalize + validate。
-
-结构整理与校验：
-
-```bash
-scripts/runctl normalize <topic>-runbook.md
-```
-
-`normalize` 会把编号、item anchor、执行/验收跳转链接整理到标准形态。
-
-```bash
-scripts/runctl validate <topic>-runbook.md
-```
-
-`validate` 在真正校验前，会先自动执行一轮与 `normalize` 相同的整理，再做结构检查。LLM 在起草这些带编号的小节时，不需要先手工抠编号细节；只要：
-
-- 编号项顺序本身是对的
-- `### N. 标题` 里编号后面的标题语义能对齐
-
-即可把整理工作交给 validator。
-
-如果脚本返回非 `0`，说明 authority 还没达到可执行阈值；先修文档，再继续规划或再申请进入执行态。
-
-编号与记录同步：
-
-```bash
-scripts/runctl shift-items <topic>-runbook.md --start <x> --shift <n> --in-place
-```
-
-这个辅助脚本会把现有 `x..末尾` 的 item 统一改成 `x+n..末尾+n`，同时更新：
-
-- `### N. 标题`
-- `<a id="item-N">`
-- `<a id="item-N-execution-record">`
-- `<a id="item-N-acceptance-record">`
-- `[跳转到执行记录](#item-N-execution-record)`
-- `[跳转到验收记录](#item-N-acceptance-record)`
-
-改完后，runbook 中会空出 `x..x+n-1` 这些编号槽位，后续 agent 可以直接把新的编号项插进中间。
-
-```bash
-scripts/runctl sync-records <topic>-runbook.md
-```
-
-`sync-records` 会按 `## 执行计划` 的编号与标题重建/补齐 `## 执行记录` 的步骤骨架，适合 LLM 先专注写计划区、再统一补记录区。
-
-执行记录签名：
-
-如果某个编号项的执行或验收证据已经回填完成，LLM 不需要手工拼签名 heading，直接调用签名脚本即可；脚本会同时更新：
-
-- `## 执行计划` 对应 item 下的 `#### 执行` 或 `#### 验收`
-- `## 执行记录` 对应 item 下的 `#### 执行记录` 或 `#### 验收记录`
-
-并在写回前强制跑整份 validator；只有通过才会真正落盘。
-
-```bash
-scripts/runctl sign-step <topic>-runbook.md --item <n> --phase execution
-```
-
-```bash
-scripts/runctl sign-step <topic>-runbook.md --item <n> --phase acceptance
-```
-
-如果需要显式 signer 或固定时间戳：
-
-```bash
-scripts/runctl sign-step <topic>-runbook.md --item <n> --phase execution --signer codex --timestamp '2026-04-23 10:30 +0800'
-```
-
-凡是模板和 validator 已能稳定检测的禁写项与格式细节，例如禁用章节名、问答简写、脑图字体、占位签名、anchor / jump-link 形状，以及 `## 执行计划` / `## 执行记录` 的对齐关系，统一以脚本报错为准；不要在 skill 正文里再维护一套并行禁写清单。
-如果手工重写了大段正文，必须立即跑 `scripts/runctl validate <topic>-runbook.md`，并按错误码修到通过后再向用户声明 authority 可执行。
-
-## 规划输出要求
-
-最终 authority runbook 必须做到：
-
-- 全文只有一条已拍板的执行路径。
-
-按 template 标题逐段对照时，至少满足下面这些要求：
-
-- `## 背景与现状`
-  - 必须同时包含 `### 背景` 与 `### 现状`
-  - `### 现状` 必须反映本轮现场冻结证据，而不是旧 runbook 摘抄
-  - `### 现状` 必须包含一张图
-  - `### 现状` 必须基于本轮真实问答与真实侦察，不要用旧文档、旧印象或占位内容冒充当前现场
-  - 如果输入主体是 spec，`### 现状` 必须能与 spec 目标逐项对照，支撑后文差异分析
-
-- `## 目标与非目标`
-  - 必须同时包含 `### 目标` 与 `### 非目标`
-  - `### 目标` 必须包含一张图
-  - 如果输入主体是 spec，`### 目标` 默认继承该 spec 已拍板的目标态与验收口径；除非本轮问答明确改动，否则不要擅自改写 spec 目标
-  - 如果输入主体是 spec，`### 目标` 里必须显式放入该 spec 的 Markdown 链接，让执行者能直接回到 authority source
-
-- `## 风险与收益`
-  - 风险与收益都要和后文执行路径、回滚边界、验收口径一致
-  - `### 风险` 里只保留当前仍客观存在的风险
-  - 如果某个风险已经被重新计划、现场侦察或用户问答消除，就从 `### 风险` 移除，不要把已消除风险继续当作当前风险留档
-
-- `## 思维脑图`
-  - 必须独立存在
-  - 根节点直接引用用户原始需求
-  - 至少发散出 `3` 个边界/选型问题
-  - 每个问题再拆 `2-3` 个叶子结论
-  - 必须基于真实 `## 访谈记录` 与已确认侦察结果生成
-  - 脑图必须服务于同一条唯一执行路径，不能图是 A 路径、正文却执行 B 路径
-
-- `## 红线行为`
-  - 必须独立存在
-  - 必须能直接约束后文唯一执行路径
-
-- `## 清理现场`
-  - 必须独立存在
-  - 由规划态维护，用来定义“中断后、恢复执行前”必须先做的现场清理步骤
-  - 必须至少写清：
-    - `清理触发条件：`
-    - `清理命令：`
-    - `清理完成条件：`
-    - `恢复执行入口：`
-  - `## 清理现场` 不属于成功执行路径本身；它是恢复执行前的规划态恢复面
-
-- `## 执行计划`
-  - 每个编号项都包含 `#### 执行` 与 `#### 验收`
-  - 首个编号项必须和当前模式一致：`coding` 先 `保证工作区干净`，`operation` / `migration` 先 `冻结现状`
-  - 如果输入主体是 spec，每个编号项都必须能回答“它在消除哪一条现状与 spec 目标的差异”；不要出现无法映射回差异面的步骤
-  - `#### 执行`、`#### 验收` 里的命令必须读取或改变真实状态，并能用真实输出证明结果
-  - 每个 `#### 执行` 必须先标注 `操作性质：只读`、`操作性质：幂等` 或 `操作性质：破坏性`
-  - 每个编号项标题必须在编号前用灯号区分操作性质，例如 `### 🟢 1. 冻结现状`、`### 🟡 2. 幂等步骤`、`### 🔴 3. 破坏性步骤`
-  - 每个编号项必须在 `#### 执行` 之前写 GitHub alert：只读用 `> [!TIP]`，幂等用 `> [!WARNING]`，破坏性 / Danger 用 `> [!CAUTION]`
-  - alert 正文只写一句话，用来概括这个编号项实际要做的事情，不要把操作类型通用解释写成 alert 正文
-  - 破坏性步骤必须额外增加一个独立的 `[!CAUTION]`，并显式写 `严重后果：...`，说明最坏情况下会造成什么实际损害
-  - 任何直接修改宿主机网络、磁盘、cgroup 等底层配置的步骤，都必须标为 `操作性质：破坏性`；即使命令可重复执行，也不能归类为幂等
-  - 只读、幂等、破坏性三类操作任意两类都不能放在同一个编号项里；即使它们服务同一目标，也要按操作性质拆成独立编号项、独立验收
-  - 幂等步骤执行时，如果执行器用现场证据确认目标状态已经存在，可以跳过实际变更命令；但必须在 `## 执行记录` 写明“现场已完成、跳过执行”的证据和理由，并继续进入同一编号项的 `#### 验收`
-  - 幂等步骤的跳过只等同于完成 `#### 执行` phase，不等同于完成整个编号项；后续验收必须通过后才允许推进到下一项
-  - 任何 `操作性质：破坏性` 的编号项，回滚方案都只写在 `## 回滚方案`，并用同一个编号项序号对齐；不要写在 `#### 执行` 正文里
-  - 每个可执行步骤都包含：
-    - fenced code block
-    - `预期结果`
-    - `停止条件`
-  - 编号项的 `#### 验收` 不写 Markdown checkbox；所有验收 checkbox 统一写在 `## 最终验收`
-  - 如果某个 `#### 执行` 或 `#### 验收` 天然很长，就拆成多个较小分组；每个分组都要保留自己的 code block、`预期结果` 和 `停止条件`
-  - 如果命令包含内嵌脚本，默认把外层命令和脚本正文拆成相邻 code block，而不是把脚本埋进一大段 shell
-  - 规划态写 authority 时，默认不要把跨机器 scope 混在同一个编号项里；尤其不要把“上传/下载”和“远端执行”塞进同一个 `#### 执行`
-  - 遇到跨机器链路时，按 scope / 主机边界拆成多个步骤，例如把“本机生成或打包”“传到跳板 / 目标机”“在目标机执行”“回传或拉取结果”拆开，而不是写成一段跨机器长脚本
-
-- `## 执行记录`
-  - 必须独立存在
-  - 每个记录 item 必须和执行计划 item 一一对齐
-  - `## 执行记录` 只保留恢复后的成功路径
-  - 执行中断后，为恢复执行而新增的现场清理动作，由规划态写回 `## 清理现场`；不要把失败清理分支继续累积进成功路径记录
-  - 交付 authority runbook 时，记录区必须保持未签名占位态；不要把规划态 reconnaissance 结果提前挪进这里伪装成已执行项
-  - 每个记录 item 里都要再拆成独立的：
-    - `#### 执行记录 @名字 YYYY-MM-DD HH:MM TZ`
-    - `#### 验收记录 @名字 YYYY-MM-DD HH:MM TZ`
-  - 如果当前 item 只完成了执行、还没完成验收，就只允许先写并先签 `#### 执行记录 ...`
-  - 如果当前 item 还没执行或还没验收，对应记录区只保留未签名 heading
-  - `#### 执行` / `#### 验收` 的签名 heading 下方正文首行都必须带一个页内导航链接，能直接跳到对应的 `#### 执行记录 ...` / `#### 验收记录 ...`
-  - 记录区必须为这些跳转提供稳定 anchor
-  - 记录区必须保留真实执行 / 验收证据
-
-- `## 最终验收`
-  - 必须独立存在
-  - 必须能证明整份 authority 的最终完成态
-  - 所有验收 checkbox 都集中写在这里，不要分散到各编号项的 `#### 验收`
-  - `## 最终验收` 里的命令必须读取或改变真实状态，并能用真实输出证明结果
-  - 最终验收必须新开一个独立上下文的 `$runbook-recon` 子代理做只读终态侦察
-  - 最终验收只能使用该 recon 子代理本轮重新采集的证据，不得复用编号项 `#### 执行记录` / `#### 验收记录` 里的既有证据来证明最终通过
-  - 主 rollout 只能把 authority 路径、最终验收侦察问题、只读边界和需要重新确认的终态事实交给该 recon 子代理；不要把已有证据作为已成立事实塞进 dispatch
-  - 最终验收 recon 子代理返回证据后，由主 rollout 对照 `## 最终验收` 勾选 checkbox、写回最终验收结果和最终验收结论
-
-- `## 回滚方案`
-  - 如果 authority 涉及回滚，就必须明确写出回滚边界与回滚动作
-  - 回滚必须和后文唯一执行路径一致，不能正文按 A 路径执行、回滚却写成 B 路径
-  - 每个破坏性编号项都必须在 `## 回滚方案` 中有同序号条目，例如 `### 🔴 2. ...` 对应 `2. ...`
-
-- `## 访谈记录`
-  - 必须独立存在
-  - 只记录规划阶段真正向用户提的问题，不记录作者自问自答
-  - 至少 `5` 条
-  - 每条都要写成：
-    - `### Q：...`
-      - 问题正文和 `Q：` 写在同一行
-      - 不要编号
-    - `> A：...`
-      - 回答正文和 `A：` 写在同一行
-    - `> A：...` 下方正文
-      - 必须先写一行 `访谈时间：...`
-      - 如果使用 `runctl add-qa` 且没有显式传 `--time`，脚本默认填当前本地时间
-      - `访谈时间：...` 后必须空一行，再写影响面正文
-      - 除了必填时间行外，每个非空行只写一个影响面
-      - 不要再写旧标签行
-  - 如果当轮是多选项提问，`Q：...` 只保留题干本身，不要把候选选项抄进 `Q`，也不要只留下 `1` / `2` / `3` 这类编号占位
-  - 如果当轮是多选项提问，`A：...` 必须回填用户实际选中的完整选项内容
-  - 必须基于本轮真实问答，不要用占位问答冒充规划收敛
-
-- `## 参考资料`
-  - 必须独立存在
-  - 使用四列表格：`name` / `type` / `link` / `desc`
-  - 只放与当前 authority 直接相关的上游 / 下游 / 旁路文档
-  - 如果输入主体是 spec，必须把该 spec 放在最靠前的位置，并把它视为 authority source，而不是普通参考文档
-- 章节禁写项、问答形状、脑图字体、签名 / anchor / jump-link 细节、占位签名与对齐关系统一由 validator 强制校验；正文不要再和脚本维护两套并行约束。
-- 如果 execution / acceptance 因为预期外结果或 blocker 停下，先回规划态，补问答 / 补 reconnaissance / 重写 authority，再决定是否重新进入执行态。
-
-## 主 rollout 的职责
-
-主 rollout 必须自己负责：
-
-- 判断当前输入离 authority 还有多远
-- 决定何时提问
-- 决定何时需要 reconnaissance
-- 审阅 reconnaissance 结果
-- 撰写或修订 authority runbook
-- 把 runbook 从“草稿/需求”收敛成“生产可执行操作手册”
-- 在执行态遇阻时，把执行结果重新吸收到规划态，而不是停留在半执行状态
-- 在重新规划完成后，重新请求用户确认进入执行态
-
-不要把最终 authority 成稿职责外包给子代理。
-
-## 完成判定
-
-只有满足下面这些条件，才可以把 runbook 规划任务报告为完成：
-
-- `ambiguity <= 10%`
-- `risk <= 10%`
-- authority runbook 已存在或已被更新
-- authority 含有至少 `5` 条真实用户访谈记录
-- authority 中不存在 materially different 的多路径并列
-- 目标、非目标、红线、回滚、验收路径都清楚
-- 需要执行的人不用再替你补关键决策
-- 文档已经达到“可供生产环境执行”的质量，而不是“讨论草稿”
-
-如果主 rollout 已经判断 authority runbook 可以进入执行态，那么默认收口动作不是直接宣告结束，而是：
-
-1. 向用户确认这次走 `solo` 还是 `team`
-2. 收到选择后立刻切入对应执行态
-
-此外还必须满足：
-
-- `scripts/runctl validate <topic>-runbook.md` 返回 `0`
-
-## 停止条件
-
-出现下面任一情况时，不要继续假装可以定稿，必须停下来继续澄清：
-
-- 最新证据和现有 authority 冲突
-- 关键前提缺失
-- 目标或非目标仍不清楚
-- 回滚路径不清楚
-- 验收路径不清楚
-- `## 访谈记录` 缺失，或真实用户访谈记录少于 `5` 条
-- authority 仍保留多个 materially different 路线
-- 文档中的命令还只是占位示意，无法真实执行
-- 执行态带回了新的 blocker、失败现场、或与 authority 冲突的新事实，但主 rollout 还没重新提问 / 重新侦察 / 重新规划
-
-## 质量标准
-
-一个使用本 skill 产出的 runbook，只有在满足这些条件时才算达标：
-
-- `## 背景与现状`
-  - `### 现状` 真正反映本轮现场
-  - `### 现状` 图存在且能支撑后续执行面
-
-- `## 目标与非目标`
-  - 目标与非目标边界清楚
-  - `### 目标` 图存在且和正文一致
-
-- `## 风险与收益`
-  - 风险被显式识别并压低到可接受范围
-  - `### 风险` 只保留 authority 定稿时仍然存在的客观风险，不保留已被收敛掉的历史风险
-  - 收益与执行路径、回滚边界、验收口径一致
-
-- `## 思维脑图`
-  - authority 含有一个合格的 `## 思维脑图`
-
-- `## 红线行为`
-  - 生产执行手册有独立的 `## 红线行为` 章节
-
-- `## 清理现场`
-  - authority 有独立的 `## 清理现场` 章节
-  - 中断恢复前需要的清理动作由规划态给出
-  - `## 执行记录` 不会把失败清理分支混进成功路径
-
-- `## 执行计划`
-  - authority runbook 只有一条唯一执行路径
-  - `coding` 模式的第一个执行项先保证工作区干净
-  - `operation` / `migration` 模式的第一个执行项先冻结现状
-  - 每个编号项都有明确的执行和验收内容
-  - 过长的执行 / 验收命令块已拆成更小分组，并在 `## 最终验收` 中用集中 checkbox 跟踪最终完成态
-
-- `## 执行记录`
-  - authority 明确要求在 `## 执行记录` 中保留真实证据
-
-- `## 最终验收`
-  - authority 含有一个反映真实终态的 `## 最终验收`
-  - authority 的验收 checkbox 全部集中在 `## 最终验收`
-  - 最终验收明确要求新开独立上下文 `$runbook-recon` 子代理，并只使用该子代理本轮重新采集的证据
-
-- `## 访谈记录`
-  - authority 含有一个合格的 `## 访谈记录`
-  - 至少有 `5` 条真实用户访谈
-
-- `## 参考资料`
-  - 生产执行手册有独立的 `## 参考资料` 章节
-
-- 流程级标准
-  - 主 skill 的 scope 保持在规划，不漂移到执行
-  - 用户给出的二义性被显式识别并收敛
-  - 执行者拿到这份文档后，可以在不替规划者补关键决策的前提下进入生产执行
-  - 当执行态命中 stop 或失败时，主 rollout 会先回规划态扫清盲点，再重新进入执行态，而不是在旧 execution lane 里硬续跑
+- `references/execution/solo.md`
+- `references/execution/team.md`
+- `references/recon/recon.md`
+- `references/execution/execution.md`
+- `references/execution/acceptance.md`

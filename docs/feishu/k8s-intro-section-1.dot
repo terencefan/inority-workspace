@@ -1,0 +1,101 @@
+digraph k8s_intro_overview {
+  graph [
+    fontname="Noto Sans CJK SC",
+    bgcolor="transparent",
+    rankdir=LR,
+    nodesep=0.45,
+    ranksep=0.75,
+    pad=0.2
+  ];
+  node [
+    fontname="Noto Sans CJK SC",
+    shape=box,
+    style="rounded,filled",
+    color="#64748b",
+    fontcolor="#0f172a",
+    fillcolor="#f8fafc",
+    margin="0.18,0.12"
+  ];
+  edge [
+    fontname="Noto Sans CJK SC",
+    color="#94a3b8",
+    fontcolor="#64748b",
+    penwidth=1.5,
+    arrowsize=0.8
+  ];
+
+  user_ci [
+    label="用户 / CI\n提交应用配置",
+    fillcolor="#dbeafe",
+    color="#60a5fa",
+    fontcolor="#1e3a8a"
+  ];
+
+  subgraph cluster_control_plane {
+    label="Kubernetes 控制平面";
+    color="#2563eb";
+    fontcolor="#1e40af";
+    penwidth=1.4;
+    style="rounded";
+
+    api_server [
+      label="API Server",
+      fillcolor="#bfdbfe",
+      color="#60a5fa",
+      fontcolor="#1e3a8a"
+    ];
+    scheduler [
+      label="Scheduler",
+      fillcolor="#bfdbfe",
+      color="#60a5fa",
+      fontcolor="#1e3a8a"
+    ];
+    controller [
+      label="Controller",
+      fillcolor="#bfdbfe",
+      color="#60a5fa",
+      fontcolor="#1e3a8a"
+    ];
+  }
+
+  subgraph cluster_nodes {
+    label="工作节点";
+    color="#0891b2";
+    fontcolor="#0f766e";
+    penwidth=1.4;
+    style="rounded";
+
+    node_a [
+      label="Node A\nPod 1 | Pod 2",
+      fillcolor="#ccfbf1",
+      color="#14b8a6",
+      fontcolor="#115e59"
+    ];
+    node_b [
+      label="Node B\nPod 3 | Pod 4",
+      fillcolor="#ccfbf1",
+      color="#14b8a6",
+      fontcolor="#115e59"
+    ];
+  }
+
+  summary [
+    label="控制平面持续检测期望状态与实际状态，\n并在节点上重新调度 Pod。",
+    fillcolor="#f8fafc",
+    color="#cbd5e1",
+    fontcolor="#334155"
+  ];
+
+  { rank=same; api_server; scheduler; controller }
+  { rank=same; node_a; node_b }
+
+  user_ci -> api_server [label="声明期望状态"];
+  api_server -> scheduler [label="写入资源对象"];
+  scheduler -> node_a [label="调度到节点"];
+  scheduler -> node_b [label="调度到节点"];
+  controller -> api_server [label="持续对比与修正"];
+  node_a -> api_server [label="状态回报"];
+  node_b -> api_server [label="状态回报"];
+  controller -> summary [style=dashed, arrowhead=none];
+  scheduler -> summary [style=dashed, arrowhead=none];
+}

@@ -1,0 +1,32 @@
+<h2>工作原理</h2>
+<callout emoji="💡" background-color="light-blue" border-color="blue">
+  <p>K8s 的核心不是“手工执行一串命令”，而是把用户定义的<b>期望状态</b>写入集群，再通过持续对比和自动收敛，让系统不断逼近目标状态。</p>
+</callout>
+<p>从工作机制上看，可以从 <b>kubelet</b>、<b>api-server</b> 和 <b>controller</b> 三个角度理解 K8s 如何运转：</p>
+<table>
+  <thead>
+    <tr>
+      <th background-color="light-gray">角度</th>
+      <th background-color="light-gray">它负责什么</th>
+      <th background-color="light-gray">它在闭环中的位置</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>api-server</b></td>
+      <td>集群的统一入口，负责接收用户或控制器提交的资源定义，并把这些对象保存为集群中的期望状态。</td>
+      <td>它像一个权威状态中心，所有组件都围绕这里保存的数据来协作。</td>
+    </tr>
+    <tr>
+      <td><b>controller</b></td>
+      <td>controller 负责把资源对象转成持续运行的控制逻辑。它会监听期望状态和实际状态之间的差异，并通过内部的 reconcile 过程不断触发修正动作。</td>
+      <td>它是 K8s 自动化控制的执行者，负责把“声明”转成持续运行的控制逻辑。</td>
+    </tr>
+    <tr>
+      <td><b>kubelet</b></td>
+      <td>运行在每个节点上的核心代理，负责根据调度结果真正拉起 Pod、调用容器运行时，并持续向控制面回报节点与 Pod 状态。</td>
+      <td>它是控制平面落实到单机执行层的关键组件，负责把计划变成实际运行结果。</td>
+    </tr>
+  </tbody>
+</table>
+<p>把三者串起来看，就是用户先把需求提交给 api-server，再由 controller 根据资源对象持续驱动控制循环，并在内部通过 reconcile 机制判断哪里与目标不一致，最后由 kubelet 在具体节点上执行容器启动、重建和状态回报，最终形成一个持续收敛的自动化控制闭环。</p>

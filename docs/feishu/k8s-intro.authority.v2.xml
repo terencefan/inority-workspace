@@ -1,0 +1,147 @@
+<title>k8s 简介</title>
+<callout emoji="📌" background-color="light-blue" border-color="blue">
+  <p>这是一份面向入门读者的 K8s 简介，按<b>概念定义</b>、<b>基础组件链路</b>和<b>工作原理</b>三个层次展开，适合作为后续继续补场景、网络和存储主题的主稿。</p>
+</callout>
+
+<h2>什么是 K8s</h2>
+<h3><b>核心定义</b></h3>
+<p>Kubernetes，通常简称 K8s，是一个用于自动化部署、扩缩容和管理容器化应用的开源平台。它把一组机器抽象成统一的资源池，让开发和运维团队可以通过声明式配置来描述应用需要运行多少副本、如何联网、如何暴露服务以及在故障发生时如何自愈，从而把分散的容器调度工作变成可持续、可重复的集群管理能力。</p>
+<whiteboard type="svg">
+<svg width="783pt" height="306pt"
+ viewBox="0.00 0.00 782.80 305.62" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(14.4 291.22)">
+<title>k8s_intro_overview</title>
+<!-- user_ci -->
+<g id="node1" class="node">
+<title>user_ci</title>
+<path fill="#dbeafe" stroke="#60a5fa" d="M100,-182.82C100,-182.82 12,-182.82 12,-182.82 6,-182.82 0,-176.82 0,-170.82 0,-170.82 0,-146.82 0,-146.82 0,-140.82 6,-134.82 12,-134.82 12,-134.82 100,-134.82 100,-134.82 106,-134.82 112,-140.82 112,-146.82 112,-146.82 112,-170.82 112,-170.82 112,-176.82 106,-182.82 100,-182.82"/>
+<text text-anchor="middle" x="56" y="-162.62" font-family="Noto Sans CJK SC" font-size="14.00" fill="#1e3a8a">用户 / CI</text>
+<text text-anchor="middle" x="56" y="-147.62" font-family="Noto Sans CJK SC" font-size="14.00" fill="#1e3a8a">提交应用配置</text>
+</g>
+<!-- api_server -->
+<g id="node2" class="node">
+<title>api_server</title>
+<path fill="#bfdbfe" stroke="#60a5fa" d="M333,-176.82C333,-176.82 264,-176.82 264,-176.82 258,-176.82 252,-170.82 252,-164.82 252,-164.82 252,-152.82 252,-152.82 252,-146.82 258,-140.82 264,-140.82 264,-140.82 333,-140.82 333,-140.82 339,-140.82 345,-146.82 345,-152.82 345,-152.82 345,-164.82 345,-164.82 345,-170.82 339,-176.82 333,-176.82"/>
+<text text-anchor="middle" x="298.5" y="-155.12" font-family="Noto Sans CJK SC" font-size="14.00" fill="#1e3a8a">API Server</text>
+</g>
+<!-- user_ci&#45;&gt;api_server -->
+<g id="edge1" class="edge">
+<title>user_ci&#45;&gt;api_server</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.5" d="M112.18,-158.82C151.66,-158.82 204.55,-158.82 243.72,-158.82"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.5" points="243.86,-161.62 251.86,-158.82 243.86,-156.02 243.86,-161.62"/>
+<text text-anchor="middle" x="182" y="-162.62" font-family="Noto Sans CJK SC" font-size="14.00" fill="#64748b">声明期望状态</text>
+</g>
+<!-- scheduler -->
+<g id="node3" class="node">
+<title>scheduler</title>
+<path fill="#bfdbfe" stroke="#60a5fa" d="M332.5,-76.82C332.5,-76.82 264.5,-76.82 264.5,-76.82 258.5,-76.82 252.5,-70.82 252.5,-64.82 252.5,-64.82 252.5,-52.82 252.5,-52.82 252.5,-46.82 258.5,-40.82 264.5,-40.82 264.5,-40.82 332.5,-40.82 332.5,-40.82 338.5,-40.82 344.5,-46.82 344.5,-52.82 344.5,-52.82 344.5,-64.82 344.5,-64.82 344.5,-70.82 338.5,-76.82 332.5,-76.82"/>
+<text text-anchor="middle" x="298.5" y="-55.12" font-family="Noto Sans CJK SC" font-size="14.00" fill="#1e3a8a">Scheduler</text>
+</g>
+<!-- api_server&#45;&gt;scheduler -->
+<g id="edge2" class="edge">
+<title>api_server&#45;&gt;scheduler</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.5" d="M298.5,-140.59C298.5,-125.12 298.5,-102.72 298.5,-85.27"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.5" points="301.3,-85.16 298.5,-77.16 295.7,-85.16 301.3,-85.16"/>
+<text text-anchor="middle" x="288" y="-105.12" font-family="Noto Sans CJK SC" font-size="14.00" fill="#64748b">写入资源对象</text>
+</g>
+<!-- node_a -->
+<g id="node5" class="node">
+<title>node_a</title>
+<path fill="#ccfbf1" stroke="#14b8a6" d="M654.5,-174.82C654.5,-174.82 570.5,-174.82 570.5,-174.82 564.5,-174.82 558.5,-168.82 558.5,-162.82 558.5,-162.82 558.5,-138.82 558.5,-138.82 558.5,-132.82 564.5,-126.82 570.5,-126.82 570.5,-126.82 654.5,-126.82 654.5,-126.82 660.5,-126.82 666.5,-132.82 666.5,-138.82 666.5,-138.82 666.5,-162.82 666.5,-162.82 666.5,-168.82 660.5,-174.82 654.5,-174.82"/>
+<text text-anchor="middle" x="612.5" y="-154.62" font-family="Noto Sans CJK SC" font-size="14.00" fill="#115e59">Node A</text>
+<text text-anchor="middle" x="612.5" y="-139.62" font-family="Noto Sans CJK SC" font-size="14.00" fill="#115e59">Pod 1 | Pod 2</text>
+</g>
+<!-- scheduler&#45;&gt;node_a -->
+<g id="edge3" class="edge">
+<title>scheduler&#45;&gt;node_a</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.5" d="M344.59,-50.94C374.04,-47.8 412.68,-47.59 444,-60.82 459.63,-67.42 457.03,-78.19 471,-87.82 495.44,-104.66 525.11,-118.75 550.88,-129.3"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.5" points="549.92,-131.93 558.39,-132.32 552.01,-126.73 549.92,-131.93"/>
+<text text-anchor="middle" x="408" y="-64.62" font-family="Noto Sans CJK SC" font-size="14.00" fill="#64748b">调度到节点</text>
+</g>
+<!-- node_b -->
+<g id="node6" class="node">
+<title>node_b</title>
+<path fill="#ccfbf1" stroke="#14b8a6" d="M654.5,-71.82C654.5,-71.82 570.5,-71.82 570.5,-71.82 564.5,-71.82 558.5,-65.82 558.5,-59.82 558.5,-59.82 558.5,-35.82 558.5,-35.82 558.5,-29.82 564.5,-23.82 570.5,-23.82 570.5,-23.82 654.5,-23.82 654.5,-23.82 660.5,-23.82 666.5,-29.82 666.5,-35.82 666.5,-35.82 666.5,-59.82 666.5,-59.82 666.5,-65.82 660.5,-71.82 654.5,-71.82"/>
+<text text-anchor="middle" x="612.5" y="-51.62" font-family="Noto Sans CJK SC" font-size="14.00" fill="#115e59">Node B</text>
+<text text-anchor="middle" x="612.5" y="-36.62" font-family="Noto Sans CJK SC" font-size="14.00" fill="#115e59">Pod 3 | Pod 4</text>
+</g>
+<!-- scheduler&#45;&gt;node_b -->
+<g id="edge4" class="edge">
+<title>scheduler&#45;&gt;node_b</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.5" d="M318.67,-40.74C332.36,-29.13 351.85,-15.09 372,-8.82 431.18,9.61 501.44,-6.02 550.5,-22.66"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.5" points="549.71,-25.35 558.19,-25.33 551.55,-20.06 549.71,-25.35"/>
+<text text-anchor="middle" x="408" y="-12.62" font-family="Noto Sans CJK SC" font-size="14.00" fill="#64748b">调度到节点</text>
+</g>
+<!-- summary -->
+<g id="node7" class="node">
+<title>summary</title>
+<path fill="#f8fafc" stroke="#cbd5e1" d="M742,-265.82C742,-265.82 483,-265.82 483,-265.82 477,-265.82 471,-259.82 471,-253.82 471,-253.82 471,-229.82 471,-229.82 471,-223.82 477,-217.82 483,-217.82 483,-217.82 742,-217.82 742,-217.82 748,-217.82 754,-223.82 754,-229.82 754,-229.82 754,-253.82 754,-253.82 754,-259.82 748,-265.82 742,-265.82"/>
+<text text-anchor="middle" x="612.5" y="-245.62" font-family="Noto Sans CJK SC" font-size="14.00" fill="#334155">控制平面持续检测期望状态与实际状态，</text>
+<text text-anchor="middle" x="612.5" y="-230.62" font-family="Noto Sans CJK SC" font-size="14.00" fill="#334155">并在节点上重新调度 Pod。</text>
+</g>
+<!-- scheduler&#45;&gt;summary -->
+<g id="edge9" class="edge">
+<title>scheduler&#45;&gt;summary</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5,2" d="M315.04,-76.95C328.99,-92.58 350.53,-115.2 372,-131.82 401.3,-154.48 412.32,-154.61 444,-173.82 456.13,-181.17 458.26,-184.58 471,-190.82 491.51,-200.85 514.52,-210.02 535.89,-217.72"/>
+</g>
+<!-- controller -->
+<g id="node4" class="node">
+<title>controller</title>
+<path fill="#bfdbfe" stroke="#60a5fa" d="M332,-276.82C332,-276.82 265,-276.82 265,-276.82 259,-276.82 253,-270.82 253,-264.82 253,-264.82 253,-252.82 253,-252.82 253,-246.82 259,-240.82 265,-240.82 265,-240.82 332,-240.82 332,-240.82 338,-240.82 344,-246.82 344,-252.82 344,-252.82 344,-264.82 344,-264.82 344,-270.82 338,-276.82 332,-276.82"/>
+<text text-anchor="middle" x="298.5" y="-255.12" font-family="Noto Sans CJK SC" font-size="14.00" fill="#1e3a8a">Controller</text>
+</g>
+<!-- controller&#45;&gt;api_server -->
+<g id="edge5" class="edge">
+<title>controller&#45;&gt;api_server</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.5" d="M298.5,-240.59C298.5,-225.12 298.5,-202.72 298.5,-185.27"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.5" points="301.3,-185.16 298.5,-177.16 295.7,-185.16 301.3,-185.16"/>
+<text text-anchor="middle" x="288" y="-205.12" font-family="Noto Sans CJK SC" font-size="14.00" fill="#64748b">持续对比与修正</text>
+</g>
+<!-- controller&#45;&gt;summary -->
+<g id="edge8" class="edge">
+<title>controller&#45;&gt;summary</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5,2" d="M344.2,-256.38C377.56,-254.56 425.1,-251.97 470.85,-249.48"/>
+</g>
+<!-- node_a&#45;&gt;api_server -->
+<g id="edge6" class="edge">
+<title>node_a&#45;&gt;api_server</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.5" d="M558.36,-152.18C501.22,-153.64 410.87,-155.96 353.43,-157.43"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.5" points="353.13,-154.64 345.2,-157.64 353.27,-160.24 353.13,-154.64"/>
+<text text-anchor="middle" x="408" y="-161.62" font-family="Noto Sans CJK SC" font-size="14.00" fill="#64748b">状态回报</text>
+</g>
+<!-- node_b&#45;&gt;api_server -->
+<g id="edge7" class="edge">
+<title>node_b&#45;&gt;api_server</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.5" d="M558.21,-66.67C509.67,-83.86 436,-109.99 372,-132.82 365.75,-135.04 359.21,-137.39 352.71,-139.71"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.5" points="351.72,-137.09 345.13,-142.43 353.6,-142.37 351.72,-137.09"/>
+<text text-anchor="middle" x="408" y="-136.62" font-family="Noto Sans CJK SC" font-size="14.00" fill="#64748b">状态回报</text>
+</g>
+</g>
+</svg>
+</whiteboard>
+
+<h2>基础组件链路</h2>
+<p>K8s 的基础组件可以按 Container -&gt; Pod -&gt; ReplicaSet -&gt; Deployment -&gt; Service 这条链路来理解：底层先有运行应用进程的容器，再逐步叠加调度、副本控制、发布管理和稳定访问能力。</p>
+<h3><b>Container</b></h3>
+<p>Container 是最小的运行单元，负责真正执行应用进程。它通常包含应用本身以及运行所需的依赖环境，是整个链路里最贴近业务代码的一层。</p>
+<h3><b>Pod</b></h3>
+<p>Pod 是 K8s 调度的最小单位，通常封装一个或多个紧密协作的 Container，并共享网络和存储上下文。也就是说，K8s 并不是直接管理单个 Container，而是以 Pod 为基本编排对象。</p>
+<h3><b>ReplicaSet</b></h3>
+<p>ReplicaSet 负责保证指定数量的 Pod 副本始终存在。只要某个 Pod 异常退出、节点故障或副本数不足，它就会继续创建新的 Pod，把实际运行状态拉回目标数量。</p>
+<h3><b>Deployment</b></h3>
+<p>Deployment 在 ReplicaSet 之上提供声明式发布能力，用来管理版本升级、回滚和副本调整。日常最常见的应用发布、扩容和滚动更新，大多都是通过 Deployment 来完成的。</p>
+<h3><b>Service</b></h3>
+<p>Service 为一组 Pod 提供稳定的访问入口，让应用即使在 Pod 重建或 IP 变化时也能被持续访问。它把后端不断变化的 Pod 集合，抽象成一个稳定的服务地址。</p>
+
+<h2>工作原理</h2>
+<callout emoji="💡" background-color="light-blue" border-color="blue">
+  <p>K8s 的核心不是“手工执行一串命令”，而是把用户定义的<b>期望状态</b>写入集群，再通过持续对比和自动收敛，让系统不断逼近目标状态。</p>
+</callout>
+<p>从工作机制上看，可以从 <b>kubelet</b>、<b>api-server</b> 和 <b>reconcile</b> 三个角度理解 K8s 如何运转：</p>
+<h3><b>api-server</b></h3>
+<p>api-server 是集群的统一入口，负责接收用户或控制器提交的资源定义，并把这些对象保存为集群中的期望状态。你提交的 Deployment、Service 这些配置，都会先进入这里，成为整个集群协作的依据。</p>
+<h3><b>reconcile</b></h3>
+<p>reconcile 是控制器不断比较“期望状态”和“实际状态”的过程。只要发现副本数、版本或运行结果不一致，控制器就会持续触发修正动作，让集群逐步收敛回目标状态。</p>
+<h3><b>kubelet</b></h3>
+<p>kubelet 运行在每个节点上，负责根据调度结果真正拉起 Pod、调用容器运行时，并持续向控制面回报节点与 Pod 状态。它是控制平面落实到单机执行层的关键组件，负责把计划变成实际运行结果。</p>
+<p>把三者串起来看，就是用户先把需求提交给 api-server，控制器通过 reconcile 机制判断哪里与目标不一致，再由 kubelet 在具体节点上执行容器启动、重建和状态回报，最终形成一个持续收敛的自动化控制闭环。</p>

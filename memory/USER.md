@@ -64,5 +64,9 @@
 - 绘制目录或 TOC 类图时，也要默认考虑 dark mode，避免只在浅色背景下可读的文字、边线和填充色。
 - 默认把 `spec` 和 `runbook` 视为不同制品：`spec` 定义目标状态，`runbook` 描述从当前状态走到目标状态的执行路径。
 - 当 `runbook` 或 `spec` 已落盘并需要在回复中给出链接时，默认优先给 `https://handbook.data.pjlab.tefa/...` 形态的 handbook URL，而不是本地文件路径。
+- 在报告文档中新增图片或架构图时，默认直接嵌入主文档，而不是只单独落图文件。
+- 当完成 `runbook` 或 `spec` 编写后，除 handbook 线上链接外，还应额外告诉 Terence 当前可用的本地 handbook URL。
+- 处理飞书文档时，默认持续更新同一份既有文档，不要每次需求一变就新建一份；只有 Terence 明确要求拆新文档时，才创建新文档。
 - 部署引用私有 registry 镜像的 Kubernetes 资源时，必须配置对应的 image pull secret；否则集群无法拉取镜像。
 - 只读 Kubernetes 操作优先使用 K8s MCP；只有需要写操作、执行态调试或 MCP 无法覆盖时，才退回命令行方式。
+- 在 tmux 或终端里提供长链接时，优先使用 `OSC 8` 超链接或短文本包装，避免 URL 因折行被截断；若终端不支持，再同时提供完整可复制 URL 或落盘到 `tmp/`。
