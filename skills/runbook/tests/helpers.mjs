@@ -9,9 +9,9 @@ export const SKILL_DIR = path.dirname(TESTS_DIR);
 export const SCRIPTS_DIR = path.join(SKILL_DIR, "scripts");
 export const RUNCTL = path.join(SCRIPTS_DIR, "runctl.mjs");
 export const ASSETS_DIR = path.join(TESTS_DIR, "assets");
-export const REFERENCE_TEMPLATE = path.join(SKILL_DIR, "references", "runbook-template.md");
-export const RUNBOOK_OPERATION_REFERENCE = path.join(SKILL_DIR, "references", "runbook-operation.md");
-export const ERROR_CODE_CATALOG = path.join(SKILL_DIR, "references", "validator-error-codes.yaml");
+export const REFERENCE_TEMPLATE = path.join(SKILL_DIR, "references", "assets", "runbook-template.md");
+export const RUNBOOK_OPERATION_REFERENCE = path.join(SKILL_DIR, "references", "planning", "operation-runbook.md");
+export const ERROR_CODE_CATALOG = path.join(SKILL_DIR, "references", "assets", "validator-error-codes.yaml");
 let runQueue = Promise.resolve();
 
 export function loadText(targetPath) {

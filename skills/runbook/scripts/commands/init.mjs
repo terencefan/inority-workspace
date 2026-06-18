@@ -5,7 +5,7 @@ export const TITLE_PLACEHOLDER = "# <主题>执行手册";
 const MODE_PLACEHOLDER = "> 当前模式：`<coding|operation|migration>`";
 const AUTHORITY_SOURCE_PLACEHOLDER = "- authority source： [<spec 设计文档>.md](./<spec-设计文档>.md)";
 const VALID_MODES = new Set(["coding", "operation", "migration"]);
-const AUTHORITY_TEMPLATE_PATH = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../../references/authority-runbook-template.md");
+const AUTHORITY_TEMPLATE_PATH = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../../references/assets/authority-runbook-template.md");
 export const SKELETON_TEMPLATE = `# <主题>执行手册
 
 > [!NOTE]

@@ -1,74 +1,52 @@
 # Runbook
 
-> 严格分阶段的 authority runbook 规划主 skill，负责收敛问题、降低风险，并产出可执行的运行手册。  
-> The authority runbook planning skill that converges ambiguity, reduces risk, and produces an executable runbook.
+> 严格分阶段的 authority runbook 主入口 skill，负责分流、装配与 authority 收口。  
+> The main entry skill for strict staged authority runbooks. It owns routing, document loading, and authority convergence.
 
 ## 模块简介 | Overview
 
-`runbook` 是运行手册规划主 skill。它处理草稿 runbook、零散步骤、目标状态和运维约束，把这些输入收敛成一份可执行的 authority runbook。
+`runbook` 现在采用“轻主 skill + 按需子文档”结构：
 
-它只负责规划，不负责直接执行编号项，也不负责执行态验收。执行相关职责由 `runbook-solo`、`runbook-team` 以及各 phase 子 skill 承担。
-
-按规划类型，`runbook` 只分为三种主类型：
-
-- `coding`
-- `operation`
-- `migration`
-
-## 职责边界 | Responsibilities
-
-负责：
-
-- 识别 ambiguity / risk / 缺失前提
-- 通过问答或只读侦察收敛规划边界
-- 冻结执行路径、回滚边界和验收标准
-- 维护 authority runbook 结构
-- 通过 `runctl` 完成初始化、增量编辑、规范化和校验
-
-不负责：
-
-- 直接执行 `#### 执行`
-- 直接执行 `#### 验收`
-- 在现场修改系统状态
-- 在 authority 未收敛前擅自进入执行态
+- 主 `SKILL.md` 只保留入口、分流、装配和切换
+- `references/planning/plan-mode.md` 承接规划态主体规则
+- `references/execution/solo.md`、`references/execution/team.md` 与各 phase 子文档承接执行态规则
 
 ## 入口与公共接口 | Entrypoints
 
 主入口：
 
 - skill 文档：`SKILL.md`
-- agent 元数据：`agents/openai.yaml`
+- 规划态子文档：`references/planning/plan-mode.md`
+- 类型子文档：
+  - `references/planning/coding-runbook.md`
+  - `references/planning/operation-runbook.md`
+  - `references/planning/migration-runbook.md`
+- 执行态子文档：
+  - `references/execution/solo.md`
+  - `references/execution/team.md`
+  - `references/recon/recon.md`
+  - `references/execution/execution.md`
+  - `references/execution/acceptance.md`
 - runbook 控制入口：`scripts/runctl`
-- 模板索引：`references/authority-runbook-template.md`
-- 校验码表：`references/validator-error-codes.yaml`
-
-常用命令：
-
-```bash
-scripts/runctl init <topic>-runbook.md --title "<主题>执行手册"
-scripts/runctl init <topic>-runbook.md --title "<主题>执行手册" --mode migration --source ./<authority-spec>.md
-scripts/runctl validate <topic>-runbook.md
-scripts/runctl normalize <topic>-runbook.md
-```
-
-`runctl init` 兼容两种初始化方式：
-
-- 不带 `--mode`：生成最小兼容骨架，适合旧工作流或纯空白起稿。
-- 带 `--mode coding|operation|migration`：直接渲染 authority 富模板，预置模式 note、dot 骨架、执行计划骨架、最终验收、回滚方案和参考资料表格。
-- 带 `--source`：把 authority source 直接注入 `### 目标`，避免后续手工替换占位链接。
+- 模板索引：`references/assets/authority-runbook-template.md`
+- 校验码表：`references/assets/validator-error-codes.yaml`
 
 ## 相关文件 | Related Files
 
 | 路径 | 说明 |
 | --- | --- |
-| `SKILL.md` | `runbook` 的权威规划规则 |
-| `README.md` | 当前目录的人类可读入口 |
-| `agents/openai.yaml` | skill 展示名与调用元数据 |
-| `references/authority-runbook-template.md` | 模板索引与兼容入口 |
-| `references/runbook-template.md` | `coding` / `operation` / `migration` 通用模板 |
-| `references/runbook-coding.md` | coding 类型 runbook 的子文档 |
-| `references/runbook-operation.md` | operation 类型 runbook 的子文档 |
-| `references/runbook-migration.md` | migration 类型 runbook 的子文档 |
-| `references/validator-error-codes.yaml` | `runctl validate` 的错误码与解释 |
+| `SKILL.md` | 主入口骨架，负责分流与装配 |
+| `references/planning/plan-mode.md` | 规划态主体规则 |
+| `references/planning/coding-runbook.md` | coding 类型 runbook 子文档 |
+| `references/planning/operation-runbook.md` | operation 类型 runbook 子文档 |
+| `references/planning/migration-runbook.md` | migration 类型 runbook 子文档 |
+| `references/execution/solo.md` | `solo` 执行控制面子文档 |
+| `references/execution/team.md` | `team` 执行控制面子文档 |
+| `references/recon/recon.md` | 只读侦察 phase 子文档 |
+| `references/execution/execution.md` | 单 item 执行 phase 子文档 |
+| `references/execution/acceptance.md` | 单 item 验收 phase 子文档 |
+| `references/assets/authority-runbook-template.md` | authority 模板索引 |
+| `references/assets/validator-error-codes.yaml` | `runctl validate` 的错误码与解释 |
 | `scripts/runctl` | runbook 初始化、编辑、规范化、校验的统一入口 |
 | `tests/` | `runctl` 子命令与规则的回归测试 |
+
