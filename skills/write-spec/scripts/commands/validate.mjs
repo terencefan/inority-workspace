@@ -9,8 +9,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ERROR_CODE_CATALOG_PATH = path.resolve(__dirname, "..", "..", "references", "validator-error-codes.yaml");
 const SPEC_FILENAME_SUFFIX = "-spec.md";
+const DIRECTORY_OVERVIEW_BASENAME = "README.md";
 const SPEC_TITLE_SUFFIX = "设计文档";
-const ALLOWED_SPEC_TYPES = ["产品向 spec", "技术向 spec", "llm 节点 spec"];
+const DIRECTORY_OVERVIEW_SPEC_TYPE = "目录总纲 spec";
+const ALLOWED_SPEC_TYPES = ["产品向 spec", "技术向 spec", "llm 节点 spec", DIRECTORY_OVERVIEW_SPEC_TYPE];
 const REQUIRED_H2_BY_TYPE = {
   "产品向 spec": [
     "背景与现状",
@@ -47,6 +49,13 @@ const REQUIRED_H2_BY_TYPE = {
     "边界与契约",
     "验收标准",
     "访谈记录",
+    "参考资料",
+  ],
+  "目录总纲 spec": [
+    "根 spec",
+    "专题 spec",
+    "推荐阅读顺序",
+    "相关文档",
     "参考资料",
   ],
 };
@@ -186,11 +195,14 @@ function validateHeadingStructure(lines, pathValue) {
   }
 
   const title = firstLine.slice(2).trim();
-  if (!title.endsWith(SPEC_TITLE_SUFFIX)) {
+  const specType = parseSpecType(lines);
+  const basename = pathValue == null ? null : path.basename(pathValue);
+  const isDirectoryOverviewReadme = basename === DIRECTORY_OVERVIEW_BASENAME && specType === DIRECTORY_OVERVIEW_SPEC_TYPE;
+  if (!isDirectoryOverviewReadme && !title.endsWith(SPEC_TITLE_SUFFIX)) {
     errors.push(err("E002", lines, 0));
   }
 
-  if (pathValue != null && !path.basename(pathValue).endsWith(SPEC_FILENAME_SUFFIX)) {
+  if (pathValue != null && !path.basename(pathValue).endsWith(SPEC_FILENAME_SUFFIX) && !isDirectoryOverviewReadme) {
     errors.push(err("E003", lines, null, path.basename(pathValue)));
   }
 
@@ -210,7 +222,6 @@ function validateHeadingStructure(lines, pathValue) {
 
   const h2Sections = parseSections(lines, 2);
   const h2Titles = h2Sections.map(([, sectionTitle]) => sectionTitle);
-  const specType = parseSpecType(lines);
   const expectedH2 = specType == null ? null : REQUIRED_H2_BY_TYPE[specType];
   if (expectedH2 != null && JSON.stringify(h2Titles) !== JSON.stringify(expectedH2)) {
     const lineIdx = h2Sections.length > 0 ? h2Sections[0][0] : 0;

@@ -5,9 +5,9 @@ description: 用于编写或整理产品 spec、技术 spec、llm 节点 spec、
 
 # Write Spec
 
-把粗糙意图、本地仓库事实和用户访谈收敛成一份可评审、可批准、可验收的 spec。
+把粗糙意图、本地仓库事实和用户访谈收敛成可评审的 spec 与 contract 文档集合。
 
-spec 主要定义目标状态：规则、边界、目标、契约、接口、验收含义和关键取舍。它不是把当前系统一步步改到目标状态的执行手册；如果用户真正需要执行步骤，默认切到 `$runbook`。
+spec 主要定义目标状态：规则、边界、目标、架构取舍、模块职责、验收含义和关键决策。contract 主要冻结稳定接口、数据结构、字段语义、状态机、数据库表约束、事件载荷或跨模块 I/O。spec 不是把当前系统一步步改到目标状态的执行手册；如果用户真正需要执行步骤，默认切到 `$runbook`。
 
 默认使用 `.codex/memory/USER.md` 里的用户语言偏好；如果目标仓库已经有更强的文档惯例，优先贴合仓库。代码符号、API path、配置键、SQL 字段、资源名、协议名等精确标识保持原文。
 
@@ -17,7 +17,7 @@ spec 主要定义目标状态：规则、边界、目标、契约、接口、验
 
 - `$write-spec`
 - `$inority-question`
-- `references/product-spec-template.md`、`references/technical-spec-template.md` 或 `references/llm-node-spec-template.md`
+- `references/product-spec-template.md`、`references/technical-spec-template.md`、`references/llm-node-spec-template.md` 或 `references/contract-template.md`
 - `references/interview-record-template.md`
 
 只有确实需要结构图、关系图、架构图或 Graphviz 片段时，额外使用 `$draw-dot`。DOT 的布局、节点配色、cluster 样式和 dark-mode 适配由 `$draw-dot` 统一负责，`$write-spec` 只定义图里必须表达什么。如果 `$inority-question` 在当前环境不可用，必须在主回复中说明，并按同样纪律直接提问。
@@ -34,8 +34,9 @@ spec 主要定义目标状态：规则、边界、目标、契约、接口、验
    - 产品向：`references/product-spec-template.md`
    - 技术向：`references/technical-spec-template.md`
    - llm 节点：`references/llm-node-spec-template.md`
+   - contract：`references/contract-template.md`
    - 访谈记录：`references/interview-record-template.md`
-3. 如果用户指定了现有草稿或目标文件，先读取它；如果要新建或修订落盘文件，先收敛命名。
+3. 如果用户指定了现有草稿或目标文件，先读取它；如果要新建或修订落盘文件，先收敛命名，并先判断本次应该产出 spec、contract，还是 spec + contract 配套文档。
 4. 读取必要本地上下文，优先使用仓库事实而不是泛化措辞。
    - 相关代码、文档、配置、接口、schema、ticket 或运行约束。
    - 邻近模块的命名、边界、依赖和已有文档风格。
@@ -45,10 +46,69 @@ spec 主要定义目标状态：规则、边界、目标、契约、接口、验
    - 访谈 `A` 必须是用户对该问题的真实回答。
    - 不要把用户初始需求倒填成访谈问答。
 6. authority spec 定稿前，至少累计 `5` 轮真实用户问答；不足时继续通过 `$inority-question` 补问，不要自问自答。
-7. 写成可评审结构：明确结论、边界、假设、取舍和验收标准，不保留头脑风暴痕迹。
-8. 定稿前优先运行 `scripts/specctl validate <path>`。如果 validator 报错，先修正文档或模板漂移，再宣称收敛。
-9. 如果仓库已有或即将拥有多份 authority spec，检查并维护仓库级 spec 入口；新建第二份及以上 authority spec 时，默认补齐或更新该入口。
-10. 如果用户在本轮给出可复用的 spec 写作偏好，结束前更新本 skill 或对应 reference。
+7. 若涉及稳定接口、数据库表契约、状态 schema、事件 payload 或跨模块 I/O，优先把这些内容独立成 `-contract.md` 文件，再在 spec 正文中引用；不要把 authority contract 长期埋在 spec 某个小节里。
+8. 写成可评审结构：明确结论、边界、假设、取舍和验收标准，不保留头脑风暴痕迹。
+9. 定稿前优先运行 `scripts/specctl validate <path>`。如果 validator 报错，先修正文档或模板漂移，再宣称收敛。
+10. 如果仓库已有或即将拥有多份 authority spec，检查并维护仓库级 spec 入口；只要新建、重命名、拆分、合并或废弃任何 authority spec，就必须同步更新该入口，不限于第二份及以上。
+11. 如果用户在本轮给出可复用的 spec / contract 写作偏好，结束前更新本 skill 或对应 reference。
+
+## Spec 与 Contract 分工
+
+当“目标状态设计”和“稳定契约冻结”同时存在时，默认拆成两层文档：
+
+- `*-spec.md`：回答为什么做、范围是什么、模块如何协作、为什么选这条路径、如何验收。
+- `*-contract.md`：回答字段、状态、表结构、事件、接口、输入输出、约束语义到底是什么。
+
+### 命名规则
+
+- spec 文件名使用 `<topic>-spec.md`。
+- contract 默认放在与 `spec/` 平级的 `contract/` 目录下，例如 `docs/contract/<topic>-contract.md`；多个 spec 共用的 contract 不要散落回各自 spec 文件旁边。
+- 当仓库里存在两份及以上 authority contract 时，默认维护 `docs/contract/README.md` 作为 contract 目录总纲入口。
+- contract 文件名使用 `<topic>-contract.md`。
+- PostgreSQL database contract 推荐显式命名为 `<domain>-pg-database-contract.md`、`<domain>-postgres-contract.md` 或同等级可检索名字，不要再藏在泛化 spec 标题里。
+- 不要再把独立 authority contract 命名成 `*-spec.md`，也不要把 contract 混进 spec 文件名。
+
+### 何时必须拆 contract
+
+出现以下任一情况时，默认拆单独 contract 文件，而不是继续塞在 spec 正文里：
+
+- PostgreSQL / MySQL / SQLite 表契约、列语义、索引、唯一键、状态字段约束
+- HTTP / RPC / queue / event payload 的稳定输入输出
+- JSON Schema、OpenAPI schema、checkpoint schema、timeline event schema
+- 跨语言、跨仓、跨服务共享的数据结构或状态机
+- 需要被多个 spec 共同引用的 authority contract
+
+### spec 如何引用 contract
+
+- spec 正文可以保留 `边界与契约` 二级标题，但这里只写 contract 的角色、ownership、适用边界和引用关系。若 contract 已独立落盘，默认链接到平级 `contract/` 目录，而不是写相对就近的临时路径。
+- 详细字段、表结构、payload、状态迁移、错误码、索引策略等内容，默认下沉到单独 contract 文件。
+- spec 必须显式链接对应 contract 文件，说明“本 spec 依赖哪些 authority contract”。
+- 如果 contract 尚未落盘，spec 里要明确写缺口，不要假装正文里零散段落已经等价于 contract。
+
+### contract 结构要求
+
+contract 不复用 spec 的固定章节结构。默认应放在与 `spec/` 平级的 `contract/` 目录中，并更偏“契约手册”，优先使用：
+
+- `范围`
+- `authority 说明`
+- `稳定契约`
+- `字段 / 表 / 状态 / 事件定义`
+  - 如果是数据库 contract，默认必须包含 `Tables` 小节；每张表用一个独立的小节标题，表内结构用 Markdown table 固定表达 `字段名 / 类型 / 默认值 / 说明`。
+- `约束与不变量`
+- `版本与兼容性`
+- `参考资料`
+
+contract 追求的是可实现、可对照、可复用；不要为了形式统一，强行套用 spec 的 `背景与现状 / 架构总览 / 验收标准 / 访谈记录`。
+
+- 对 PostgreSQL / MySQL / SQLite database contract：
+  - 默认在 `字段 / 表 / 状态 / 事件定义` 下先写 `### Tables`。
+  - `Tables` 下每张表使用一个独立的小节标题，标题直接使用表名，例如 `#### classifier_s3_path_scan_tasks`。
+  - 每张表标题下默认先放一个 GitHub `> [!NOTE]`，用一句话说明“这张表在做什么 / 为什么存在 / 谁依赖它”。
+- 每张表内必须至少有一张 Markdown table，列固定优先使用：`字段名 | 类型 | 默认值 | 说明`。
+- 若某张表包含 `JSONB` 字段，默认必须为每个 `JSONB` 字段各自补一个带注释的 JSON example，直接展示该字段的目标态结构；不要只写文字说明。
+  - 默认使用 `jsonc` fenced code block，通过行内注释说明字段语义、来源、可选性或状态含义，不要放无注释的裸 JSON。
+  - 多个 `JSONB` 字段不能共用一个合并示例；每个字段都要有自己单独的 code block，并在标题里点名字段名。
+  - 主键、唯一键、索引、owner、producer / consumer 可在该表标题下补充短段落或额外表格，但不能替代字段结构表。
 
 ## Validator 优先级
 
@@ -64,7 +124,7 @@ spec 主要定义目标状态：规则、边界、目标、契约、接口、验
 
 ### 文件与标题
 
-- 文件名必须以 `-spec.md` 结尾。
+- authority spec 文件名必须以 `-spec.md` 结尾；独立 contract 文件名必须以 `-contract.md` 结尾。
 - H1 标题必须写成 `<主题>设计文档`。
 - H1 下必须紧跟 GitHub `> [!NOTE]` callout，显式标明：
   - `当前 spec 类型：产品向 spec`
@@ -140,7 +200,7 @@ spec 主要定义目标状态：规则、边界、目标、契约、接口、验
 
 ### 边界与契约
 
-写清稳定 contract、模块边界、调用边界、状态语义、输入输出和 ownership。
+写清 contract 的角色、模块边界、调用边界、状态语义、输入输出和 ownership。若存在可复用或跨模块稳定契约，优先链接独立 `-contract.md`，而不是在本节内重复展开完整契约正文。
 
 - 对 `llm 节点 spec`，必须显式包含 `Prompt 设计` 二级标题，并在其下显式包含 `system prompt` 和 `user prompt` 两个三级标题；不能只写“prompt contract”之类的合并块。
 - 对 `llm 节点 spec`，`system prompt` 章节默认必须内嵌目标态 system prompt 原文，优先用 fenced code block 完整展示，不要只写摘要、转述或 bullet 解释。
@@ -278,9 +338,30 @@ digraph Example {
 
 如果任一答案薄弱，先收紧 draft 再结束。
 
+## 仓库 contract 入口
+
+当目标仓库存在两份及以上 authority contract 时，默认维护 `docs/contract/README.md` 作为 contract 目录总纲入口。
+
+### contract 总纲职责
+
+- 列出当前仓库的 authority contract 清单，而不是把它们埋在若干 spec 的 `参考资料` 里。
+- 按 contract 类型分组，例如 `数据库 contract`、`API / schema contract`、`event / payload contract`。
+- 标明每份 contract 的 owner、主要 consumer，以及被哪些 spec / 模块引用。
+- 当某份 contract 已废弃或仅保留兼容价值时，明确标注 `deprecated`，不要继续和当前 authority contract 混排。
+
+### contract 总纲写法
+
+- 文件名固定为 `docs/contract/README.md`。
+- H1 标题默认写成 `<目录或项目>Contract 总纲`。
+- 首段用一句话说明该目录冻结哪些稳定契约、谁依赖它们，以及读者从哪里开始读。
+- 二级标题默认优先使用：`当前 contract`、`推荐阅读顺序`、`相关文档`、`参考资料`。
+- `当前 contract` 下按自然主题再分三级标题，例如 `数据库 contract`、`Schema contract`、`事件 contract`。
+- 推荐阅读顺序默认同时包含一张 fenced `dot` 拓扑图和一组编号步骤；图表达 contract 依赖与引用关系，步骤表达“为什么此时读这份”。
+- 如果仓库根 README 需要给稳定契约入口，优先链到 `docs/contract/README.md`，不要随机链某一份局部 contract。
+
 ## 仓库 spec 入口
 
-当目标仓库存在两份及以上 authority spec 时，默认维护 `docs/spec/README.md` 作为人类可读入口；它本身不是 authority spec，不走 `specctl validate`。
+当目标仓库存在两份及以上 authority spec 时，默认维护 `docs/spec/README.md` 作为目录总纲入口；它本身是 `目录总纲 spec`，走 README 专用 `specctl validate` 规则。
 
 ### 根 spec 定义
 
@@ -292,9 +373,9 @@ digraph Example {
 
 - 首段用一句话说明该仓库 spec 集合覆盖什么，以及根 spec 是哪一份或为何待建。
 - 显式列出根 spec，并说明它冻结的系统边界或 contract；已存在则链到文件，待建则写清计划文件名与覆盖范围。
-- 按评审主题分组列出专题 spec；每条附一行职责说明，不要只堆文件名。组织演进、迁移、拆仓类 spec 默认单独成组。
-- 给出推荐阅读顺序；存在明显依赖时，用 fenced `dot` 图画出根 spec 与专题 spec 的依赖关系。
-- 链到相关 runbook、项目 README 或其他非 spec 文档入口。
+- 按评审主题分组列出专题 spec；每条附稳定职责说明，不要只堆文件名。组织演进、迁移、拆仓类 spec 默认单独成组。
+- 给出推荐阅读顺序，并默认配一张 fenced `dot` 拓扑图，表达根 spec 与专题 spec 的进入路径、依赖方向或下钻关系。图负责表达结构拓扑，编号列表负责表达进入条件或适用场景，不要两边重复同一句话。
+- 链到相关 runbook、项目 README 或其他非 spec 文档入口；本目录内已经在前文系统列出的 spec，不要在“相关文档”里重复堆一遍。
 
 ### 维护规则
 
@@ -306,16 +387,26 @@ digraph Example {
 ### 索引页写法
 
 - 文件名固定为 `docs/spec/README.md`。
-- H1 标题默认写成 `Spec 设计索引`。
+- spec 类型固定为 `目录总纲 spec`。
+- H1 标题默认写成 `<目录或项目>总纲`。
 - H1 下用 Markdown quote 给出仓库级结论，不写“本文将介绍”这类元叙事。
-- 二级标题默认使用：`根 spec`、`专题 spec`、`推荐阅读顺序`、`相关文档`。
+- 二级标题默认严格使用：`根 spec`、`专题 spec`、`推荐阅读顺序`、`相关文档`、`参考资料`。
 - `专题 spec` 下按自然主题再分三级标题，例如 `路由与访问`、`scan-worker 运行`、`扫描写回数据模型`。
-- 索引页不要求 `访谈记录`、`验收标准` 等 authority spec 章节，也不要伪装成 `-spec.md` 文件。
+- `专题 spec` 下每个条目默认拆成两段：第一行只放链接；下一行用 GitHub `> [!NOTE]` 或普通 quote 写固定短标签说明。
+  - `定位：...`
+  - `何时读：...`
+  两者默认放在同一个 note 里，用 note 内部列表稳定分行展示，不要并到同一行长段落里。固定标签比把说明塞回同一条 list 更利于长期维护；只有在仓库已有更强文风时才偏离。
+- `相关文档` 只放跨仓、跨目录或非 spec 文档，例如仓库 `README`、runbook、外部 contract 文档；默认只保留链接，不再追加 note 描述。
+- `参考资料` 默认只放补充阅读材料，避免机械重复前文已经成组列出的全部本目录 spec；如果没有额外补充材料，可保留最小集合或省略重复引用内容。
+- `推荐阅读顺序` 默认同时包含一张 fenced `dot` 拓扑图和一组编号步骤；拓扑图表达阅读路径与依赖关系，编号步骤表达“为什么此时读这份”。不要只保留列表，也不要只把图重复翻译成列表。
+- 如果该目录已经形成维护约束，例如“新增 authority spec 先更新总纲”，应在总纲前置说明或相关章节里直接写明，不要依赖额外章节兜底。
+- 目录总纲 README 不是普通 `-spec.md` 文件，但它仍然是受 validator 约束的 spec。
 
 ## 读取入口
 
 - 模板索引：`references/template.md`
 - 产品向模板：`references/product-spec-template.md`
 - 技术向模板：`references/technical-spec-template.md`
+- contract 模板：`references/contract-template.md`
 - 访谈记录模板：`references/interview-record-template.md`
 - validator 错误码：`references/validator-error-codes.yaml`

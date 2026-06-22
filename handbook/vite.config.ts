@@ -6,6 +6,18 @@ import react from '@vitejs/plugin-react'
 
 const backendTarget = process.env.HANDBOOK_DEV_BACKEND || 'http://127.0.0.1:18080'
 const APP_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'src')
+const defaultAllowedHosts = ['handbook.data.pjlab.tefa']
+const allowedHosts = Array.from(
+  new Set(
+    [
+      ...defaultAllowedHosts,
+      ...(process.env.HANDBOOK_DEV_ALLOWED_HOSTS || '')
+        .split(',')
+        .map((host) => host.trim())
+        .filter(Boolean),
+    ],
+  ),
+)
 
 function formatBuildVersion(date = new Date()) {
   const formatter = new Intl.DateTimeFormat('zh-CN', {
@@ -39,6 +51,7 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
+    allowedHosts,
     proxy: {
       '/api': backendTarget,
       '/assets': backendTarget,

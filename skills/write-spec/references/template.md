@@ -1,6 +1,6 @@
 # Spec 模板索引
 
-不同类型的 spec 使用不同的模板文件，不再共用一个大模板正文。
+不同类型的 spec 使用不同的模板文件；当稳定契约需要独立冻结时，contract 应拆成单独的 `-contract.md` 文件，不再混在 spec 正文里。
 
 产品向 spec / 技术向 spec 默认正文二级标题仍然使用这一组固定标题：
 
@@ -30,9 +30,13 @@
 
 ## 模板选择
 
+- contract 文档使用 [contract-template.md](./contract-template.md) 作为默认骨架；默认存放在与 `spec/` 平级的 `contract/` 目录，例如 `docs/contract/`。它不复用 spec 的章节结构，重点写稳定契约而不是方案叙事。
+
 - 产品向 spec：使用 [product-spec-template.md](./product-spec-template.md)
 - 技术向 spec：使用 [technical-spec-template.md](./technical-spec-template.md)
 - llm 节点 spec：使用 [llm-node-spec-template.md](./llm-node-spec-template.md)
+- 目录总纲 README：使用 [directory-overview-readme-template.md](./directory-overview-readme-template.md)
+- contract 文档：使用 [contract-template.md](./contract-template.md)
 - 通用访谈记录：使用 [interview-record-template.md](./interview-record-template.md)
 
 ## 选择建议
@@ -41,22 +45,26 @@
 - 当主要目标是设计架构、接口、迁移、运行方式或可观测性时，优先使用 `technical-spec-template.md`
 - 当需求同时包含产品和技术内容时，先判断“主要评审重心”属于哪一类，再选择对应模板；不要再使用单独的 mixed 模板
 - 当主要目标是冻结单个 LLM 节点的 system prompt、user prompt、工具边界、输入输出 schema 或本地 reconcile 规则时，优先使用 `llm-node-spec-template.md`
-- 所有类型的 spec 都必须带 `访谈记录` 二级标题，并复用 `interview-record-template.md`
+- 产品向 spec / 技术向 spec / llm 节点 spec 必须带 `访谈记录` 二级标题，并复用 `interview-record-template.md`；目录总纲 README 不强制保留该章节。
+- 如果一个 spec 依赖稳定接口、数据库表、事件或 schema contract，默认同时产出单独 `-contract.md`，并在 spec 中显式引用。
+- 对 database contract，默认采用 `Tables` 小节；每张表直接用表名作为独立小节，标题下先放一个 note 说明“这张表在做什么”，再用 `字段名 | 类型 | 默认值 | 说明` 的 Markdown table 表达表结构。若表里存在 `JSONB` 字段，必须为每个字段分别补带注释的 JSON example，默认使用 `jsonc` code block，不要给无注释的裸 JSON，也不要把多个字段并进同一个示例。
 
 ## 仓库 spec 入口
 
-- 当仓库存在两份及以上 authority spec 时，默认维护 `docs/spec/README.md` 作为 spec 索引入口。
+- 当仓库存在两份及以上 authority spec 时，默认维护 `docs/spec/README.md` 作为 spec 目录总纲入口。
+- 只要新建、重命名、拆分、合并或废弃任意 authority spec，都必须同步更新 `docs/spec/README.md`。
+- 当仓库存在两份及以上 authority contract 时，默认维护 `docs/contract/README.md` 作为 contract 目录总纲入口。
 - 根 `README.md` 应链接到该索引，而不是只指向某一份专题 spec。
 - 根 spec 指系统或产品级目标态 authority，不是拆仓、迁移、重构或单组件优化 spec。
 - 索引页列出根 spec（或待建缺口）、分组后的专题 spec、推荐阅读顺序，以及必要的依赖关系图。
 - 拆仓、迁移、上线切换类 spec 默认归入“组织演进”等专题分组，不顶替根 spec。
-- 索引页不是 authority spec，不要求 `-spec.md` 后缀，也不走 `specctl validate`。
+- 目录总纲本身是 `目录总纲 spec`，文件名固定为 `README.md`，并走 README 专用 `specctl validate` 规则。
 - 新建或废弃 authority spec 后，同步更新索引页与根 `README.md`。
 
 ## 统一约束
 
-- spec 文件名默认使用 `<topic>-spec.md`
-- spec 标题默认使用 `<主题>设计文档`
+- spec 文件名默认使用 `<topic>-spec.md`；独立 contract 文件名默认使用 `<topic>-contract.md`，并优先存放到平级 `contract/` 目录
+- 普通 spec 标题默认使用 `<主题>设计文档`；目录总纲 README 默认使用 `<目录或项目>总纲`
 - `边界与契约` 二级标题下的下属标题默认按内容块组织，不强制固定名字或数量
 - `边界与契约` 下允许使用四级标题描述具体 API、表、字段、状态语义或调用细节
 - 子标题默认不要再带 `contract` 后缀
@@ -105,7 +113,7 @@
   - 一条太大时拆成多条小检查项，不要塞成一大段
 - 未知项写法：
   - 不要把未确认的判断伪装成既成事实
-  - 关键未知项如果会影响方案成立，优先通过 `访谈记录` 留下真实问答痕迹
+  - 关键未知项如果会影响方案成立，优先通过真实问答留下痕迹；目录总纲 README 不要求单独保留 `访谈记录` 章节
   - 已确认的稳定前提可以直接写进相关契约块，不必单独开 `假设`
 - 方案对比写法：
   - 多个方案、路线、架构形态、数据流或控制流需要对比时，默认使用 Markdown 表格
