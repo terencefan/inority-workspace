@@ -5,7 +5,7 @@
 
 ## 模块简介 | Overview
 
-`write-spec` 是面向规格文档的写作 skill。它覆盖：
+`write-spec` 是面向 spec / contract 文档的写作 skill。它覆盖：
 
 - product spec
 - technical spec
@@ -13,19 +13,22 @@
 - change proposal
 - API / interface spec
 - implementation plan
+- standalone contract document
 
-它强调边界、contracts、红线行为、验收标准和真实访谈记录，并优先使用 diagram-driven 的写法。
+它强调边界、contracts、红线行为、验收标准，并区分“spec 负责方案叙事、contract 负责稳定契约”；contract 默认放在与 `spec/` 平级的 `contract/` 目录，目录总纲 README 走单独格式规则。
 它默认回答“目标状态应该是什么”，而不是把 spec 扩写成执行手册。
 
 ## 职责边界 | Responsibilities
 
 负责：
 
-- 判定 spec 类型并选择对应模板
+- 判定本次应产出 spec、contract，还是两者配套
+- 选择对应模板或 contract 结构
 - 用真实问答收敛边界
 - 生成可评审的结构化 spec
 - 明确稳定契约、风险、红线行为和验收标准
-- 为多 spec 仓库维护 `docs/spec/README.md` 索引入口
+- 为多 spec 仓库维护 `docs/spec/README.md` 目录总纲入口
+- 为多 contract 仓库维护 `docs/contract/README.md` 目录总纲入口
 
 不负责：
 
@@ -44,6 +47,8 @@
 - technical spec 模板：`references/technical-spec-template.md`
 - llm 节点 spec 模板：`references/llm-node-spec-template.md`
 - interview record 模板：`references/interview-record-template.md`
+- directory overview 模板：`references/directory-overview-readme-template.md`
+- contract 模板：`references/contract-template.md`
 - validator 错误码：`references/validator-error-codes.yaml`
 - CLI：`scripts/specctl validate <path>`
 
@@ -59,10 +64,12 @@
 | `references/technical-spec-template.md` | technical spec 模板 |
 | `references/llm-node-spec-template.md` | llm 节点 spec 模板 |
 | `references/interview-record-template.md` | 访谈记录模板 |
+| `references/directory-overview-readme-template.md` | 目录总纲 README 模板 |
+| `references/contract-template.md` | contract 文档模板 |
 | `references/validator-error-codes.yaml` | spec validator 错误码目录 |
 | `scripts/specctl` | `specctl` CLI 入口 |
 
-仓库级 spec 索引默认落在目标仓库的 `docs/spec/README.md`；详见 `SKILL.md` 的 `仓库 spec 入口` 章节。
+仓库级 spec 总纲默认落在目标仓库的 `docs/spec/README.md`；它是 `目录总纲 spec`，使用 README 专用规则走 `specctl validate`。详见 `SKILL.md` 的 `仓库 spec 入口` 章节。
 
 - `llm 节点 spec` 必须显式包含 `system prompt` 与 `user prompt` 章节，不能省略或合并命名。
 - `llm 节点 spec` 的 `user prompt` 章节下必须带一张图，说明 `user prompt` 的生产过程。

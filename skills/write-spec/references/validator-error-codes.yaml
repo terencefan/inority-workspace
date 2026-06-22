@@ -3,13 +3,13 @@ E000:
 E001:
   message: "首行必须是 spec 标题"
 E002:
-  message: "spec 标题必须以“设计文档”结尾"
+  message: "普通 spec 标题必须以“设计文档”结尾；目录总纲 README 例外"
 E003:
   message: "spec 文件名必须以“-spec.md”结尾"
 E004:
   message: "H1 下的第一个非空块必须是 GitHub 风格的 `> [!NOTE]` spec 类型说明"
 E005:
-  message: "spec 类型只能是：产品向 spec / 技术向 spec / llm 节点 spec"
+  message: "spec 类型只能是：产品向 spec / 技术向 spec / llm 节点 spec / 目录总纲 spec"
 E006:
   message: "llm 节点 spec 在“Prompt 设计”下必须显式包含：system prompt / user prompt"
 E007:

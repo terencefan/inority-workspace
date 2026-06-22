@@ -6,6 +6,7 @@ import { collectErrors, errorMessage, loadErrorCatalog, main } from "../scripts/
 
 const REFERENCE_SPEC = path.join(ASSETS_DIR, "reference-spec.md");
 const REFERENCE_LLM_SPEC = path.join(ASSETS_DIR, "reference-llm-spec.md");
+const REFERENCE_DIRECTORY_OVERVIEW = path.join(ASSETS_DIR, "directory-overview", "README.md");
 
 test("reference spec passes validation", () => {
   assert.deepEqual(collectErrors(loadText(REFERENCE_SPEC), { pathValue: REFERENCE_SPEC }), []);
@@ -13,6 +14,11 @@ test("reference spec passes validation", () => {
 
 test("reference llm spec passes validation", () => {
   assert.deepEqual(collectErrors(loadText(REFERENCE_LLM_SPEC), { pathValue: REFERENCE_LLM_SPEC }), []);
+});
+
+
+test("reference directory overview readme passes validation", () => {
+  assert.deepEqual(collectErrors(loadText(REFERENCE_DIRECTORY_OVERVIEW), { pathValue: REFERENCE_DIRECTORY_OVERVIEW }), []);
 });
 
 test("llm spec requires explicit system and user prompt sections", () => {
