@@ -15,8 +15,9 @@
 
 ## Validator
 
-- 规则：`validator/rules.json`
-- 错误码：`validator/error-codes.yaml`
+- contract 模式统一使用 `$write-doc` skill 自带 validator：`inority-workspace/skills/write-doc/scripts/docctl`。
+- contract 规则与错误码统一来自当前目录下的 `validator/rules.json` 与 `validator/error-codes.yaml`。
+- 若该 skill 自带 validator 当前无法运行，不要改为猜测目标仓库路径；退回到本 MODE 的结构规则、相关 template，以及真实 schema / reader / writer / API 代码做交叉校验，并在交付说明中明确标注未运行 validator。
 
 ## 命名与落盘
 

@@ -33,8 +33,9 @@
 - 主 skill：`SKILL.md`
 - agent 元数据：`agents/openai.yaml`
 - 模式目录：`modes/spec/`、`modes/contract/`、`modes/readme/`、`modes/report/`、`modes/rca/`
-- validator CLI：`scripts/docctl validate <path>`
+- validator CLI：`scripts/docctl validate <path>`（`validate` 可省略）
 - validator 实现：`scripts/commands/validate.mjs`
+- DOT 专项校验：`../draw-dot/scripts/dotctl.mjs validate-markdown <path>`
 
 ## 依赖关系 | Dependencies
 
@@ -63,7 +64,7 @@
 | `modes/readme/` | README 模式资料。 |
 | `modes/report/` | 调研报告模式资料。 |
 | `modes/rca/` | RCA 模式资料。 |
-| `scripts/docctl` | validator CLI 入口。 |
+| `scripts/docctl` | 文档总校验 CLI；`dotctl validate-markdown` 仅负责 Markdown 内嵌 DOT 校验。 |
 | `scripts/commands/validate.mjs` | 单入口 validator，运行时动态加载各模式规则。 |
 
 ## 参考资料 | References
