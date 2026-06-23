@@ -1,0 +1,148 @@
+{
+  "mode": "spec",
+  "docTypes": [
+    {
+      "name": "产品 spec",
+      "typeLabel": "spec",
+      "titleSuffix": "设计文档",
+      "filenameSuffix": "-spec.md",
+      "requiredH2": [
+        "背景与现状",
+        "目标与非目标",
+        "风险与红线",
+        "边界与契约",
+        "架构总览",
+        "架构分层",
+        "模块划分",
+        "方案对比",
+        "验收标准",
+        "访谈记录",
+        "参考资料"
+      ],
+      "exactH3": [
+        {
+          "section": "背景与现状",
+          "expected": [
+            "背景",
+            "现状"
+          ],
+          "errorCode": "E011"
+        },
+        {
+          "section": "风险与红线",
+          "expected": [
+            "风险",
+            "红线行为"
+          ],
+          "errorCode": "E013"
+        }
+      ],
+      "flags": [
+        "redLineCautions",
+        "requiredDiagrams",
+        "interviewRecords",
+        "comparisonSection"
+      ]
+    },
+    {
+      "name": "技术 spec",
+      "typeLabel": "spec",
+      "titleSuffix": "设计文档",
+      "filenameSuffix": "-spec.md",
+      "requiredH2": [
+        "背景与现状",
+        "目标与非目标",
+        "风险与红线",
+        "边界与契约",
+        "架构总览",
+        "架构分层",
+        "模块划分",
+        "方案对比",
+        "验收标准",
+        "访谈记录",
+        "参考资料"
+      ],
+      "exactH3": [
+        {
+          "section": "背景与现状",
+          "expected": [
+            "背景",
+            "现状"
+          ],
+          "errorCode": "E011"
+        },
+        {
+          "section": "风险与红线",
+          "expected": [
+            "风险",
+            "红线行为"
+          ],
+          "errorCode": "E013"
+        }
+      ],
+      "flags": [
+        "redLineCautions",
+        "requiredDiagrams",
+        "interviewRecords",
+        "comparisonSection"
+      ]
+    },
+    {
+      "name": "LLM 节点 spec",
+      "typeLabel": "spec",
+      "titleSuffix": "设计文档",
+      "filenameSuffix": "-spec.md",
+      "requiredH2": [
+        "背景与现状",
+        "目标与非目标",
+        "风险与红线",
+        "Prompt 设计",
+        "Context 设计",
+        "边界与契约",
+        "验收标准",
+        "访谈记录",
+        "参考资料"
+      ],
+      "exactH3": [
+        {
+          "section": "背景与现状",
+          "expected": [
+            "背景",
+            "现状"
+          ],
+          "errorCode": "E011"
+        },
+        {
+          "section": "风险与红线",
+          "expected": [
+            "风险",
+            "红线行为"
+          ],
+          "errorCode": "E013"
+        }
+      ],
+      "flags": [
+        "redLineCautions",
+        "requiredDiagrams",
+        "interviewRecords",
+        "llmPromptSections",
+        "llmUserPromptDiagram"
+      ]
+    },
+    {
+      "name": "spec 总纲",
+      "typeLabel": "spec",
+      "requiredBasename": "README.md",
+      "requiredH2": [
+        "根 spec",
+        "专题 spec",
+        "推荐阅读顺序",
+        "相关文档",
+        "参考资料"
+      ],
+      "flags": [
+        "overviewReadOrderDiagram"
+      ]
+    }
+  ]
+}

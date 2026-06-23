@@ -1,0 +1,21 @@
+{
+  "mode": "readme",
+  "docTypes": [
+    {
+      "name": "Project README",
+      "typeLabel": "document",
+      "requiredBasename": "README.md",
+      "requiredH2": [
+        "项目简介",
+        "开发与启动",
+        "架构设计",
+        "代码结构",
+        "部署拓扑",
+        "文档链接"
+      ],
+      "flags": [
+        "projectReadmeLinks"
+      ]
+    }
+  ]
+}

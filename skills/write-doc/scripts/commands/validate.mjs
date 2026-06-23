@@ -1,0 +1,714 @@
+#!/usr/bin/env node
+
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { collectMarkdownDotErrors } from "../../../draw-dot/scripts/dotctl.mjs";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const MODES_DIR = path.resolve(__dirname, "..", "..", "modes");
+const DIRECTORY_OVERVIEW_BASENAME = "README.md";
+const DOT_FENCE_RE = /^```(?:dot|graphviz)\s*$/;
+const ANSWER_OPTION_SHORTHAND_RE = /^> A：\s*(?:(?:选项|选)\s*`?(?:\d+|[A-Za-z])`?|`?(?:\d+|[A-Za-z])`?)(?:[。；，,\s]|$)/;
+const QUESTION_OPTION_SLASH_RE = /^Q：.*\b\d+\s*[/／]\s*\d+(?:\s*[/／]\s*\d+)+/;
+const QUESTION_OPTION_MARKER_RE = /(?:^|[\s（(])(?:\d+[.、)）:]|[A-Za-z][.、)）:]|[一二三四五六七八九十]+[、)）:])/g;
+
+let modeRegistryCache = null;
+
+function parseSimpleYamlCatalog(text) {
+  const lines = text.split(/\r?\n/);
+  const catalog = {};
+  let currentCode = null;
+  for (const line of lines) {
+    const codeMatch = line.match(/^([A-Z]\d{3}):\s*$/);
+    if (codeMatch) {
+      currentCode = codeMatch[1];
+      catalog[currentCode] = {};
+      continue;
+    }
+    const messageMatch = line.match(/^\s+message:\s*(.+?)\s*$/);
+    if (messageMatch && currentCode !== null) {
+      const raw = messageMatch[1];
+      let message = raw;
+      try {
+        message = JSON.parse(raw);
+      } catch {
+        message = raw.replace(/^["']|["']$/g, "");
+      }
+      catalog[currentCode].message = message;
+    }
+  }
+  return catalog;
+}
+
+function loadModeRegistry() {
+  if (modeRegistryCache !== null) {
+    return modeRegistryCache;
+  }
+  const modeDirs = fs.readdirSync(MODES_DIR, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort();
+  const docTypes = new Map();
+  const errorCatalog = {};
+  const errorCatalogPaths = [];
+
+  for (const mode of modeDirs) {
+    const validatorDir = path.join(MODES_DIR, mode, "validator");
+    const rulePaths = fs.existsSync(validatorDir)
+      ? fs.readdirSync(validatorDir).filter((name) => name.endsWith("rules.json")).sort().map((name) => path.join(validatorDir, name))
+      : [];
+    for (const rulesPath of rulePaths) {
+      const payload = JSON.parse(fs.readFileSync(rulesPath, "utf8"));
+      for (const docType of payload.docTypes ?? []) {
+        docTypes.set(docType.name, { ...docType, mode });
+      }
+    }
+    const errorPath = path.join(validatorDir, "error-codes.yaml");
+    if (fs.existsSync(errorPath)) {
+      errorCatalogPaths.push(errorPath);
+      const partial = parseSimpleYamlCatalog(fs.readFileSync(errorPath, "utf8"));
+      for (const [code, value] of Object.entries(partial)) {
+        errorCatalog[code] = value;
+      }
+    }
+  }
+
+  modeRegistryCache = { docTypes, errorCatalog, errorCatalogPaths };
+  return modeRegistryCache;
+}
+
+export function listErrorCatalogPaths() {
+  return [...loadModeRegistry().errorCatalogPaths];
+}
+
+export function loadErrorCatalog() {
+  return { ...loadModeRegistry().errorCatalog };
+}
+
+export function errorMessage(code, params = {}) {
+  const entry = loadErrorCatalog()[code];
+  if (!entry || typeof entry.message !== "string") {
+    throw new Error(`missing error catalog entry for ${code}`);
+  }
+  return entry.message.replace(/\{(\w+)\}/g, (_, key) => String(params[key] ?? `{${key}}`));
+}
+
+function err(code, lines, lineIdx = null, content = null, params = {}) {
+  let actualContent = content;
+  if (actualContent == null && lineIdx != null && lineIdx >= 0 && lineIdx < lines.length) {
+    actualContent = lines[lineIdx].replace(/\r$/, "");
+  }
+  return {
+    code,
+    message: errorMessage(code, params),
+    line: lineIdx == null ? null : lineIdx + 1,
+    content: actualContent || null,
+  };
+}
+
+function parseSections(lines, level) {
+  const prefix = `${"#".repeat(level)} `;
+  const sections = [];
+  lines.forEach((line, idx) => {
+    if (line.startsWith(prefix)) {
+      sections.push([idx, line.slice(prefix.length).trim()]);
+    }
+  });
+  return sections;
+}
+
+function sectionSlice(sections, title, linesLen) {
+  for (let i = 0; i < sections.length; i += 1) {
+    const [start, name] = sections[i];
+    if (name === title) {
+      const end = i + 1 < sections.length ? sections[i + 1][0] : linesLen;
+      return [start, end];
+    }
+  }
+  return null;
+}
+
+function parseNestedSections(lines, start, end, level) {
+  const local = parseSections(lines.slice(start, end), level);
+  return local.map(([localStart, title], index) => {
+    const absStart = start + localStart;
+    const absEnd = index + 1 < local.length ? start + local[index + 1][0] : end;
+    return [absStart, title, absEnd];
+  });
+}
+
+function firstNonEmptyLineIdx(lines, start, end) {
+  for (let idx = start; idx < end; idx += 1) {
+    if (lines[idx].trim()) {
+      return idx;
+    }
+  }
+  return null;
+}
+
+function hasDotFence(lines, start, end) {
+  for (let idx = start; idx < end; idx += 1) {
+    if (DOT_FENCE_RE.test(lines[idx].trim())) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function questionContainsOptions(questionHeading) {
+  if (QUESTION_OPTION_SLASH_RE.test(questionHeading)) {
+    return true;
+  }
+  const questionBody = questionHeading.replace(/^Q：/, "").trim();
+  const matches = questionBody.match(QUESTION_OPTION_MARKER_RE);
+  return matches != null && matches.length >= 2;
+}
+
+function parseDocumentTypeInfo(lines) {
+  const noteLineIdx = firstNonEmptyLineIdx(lines, 1, lines.length);
+  if (noteLineIdx == null || lines[noteLineIdx].trim() !== "> [!NOTE]") {
+    return { noteLineIdx, label: null, value: null, typeLineIdx: null };
+  }
+  const typeLineIdx = firstNonEmptyLineIdx(lines, noteLineIdx + 1, lines.length);
+  const typeLine = typeLineIdx == null ? "" : lines[typeLineIdx].trim();
+  let match = typeLine.match(/^> 当前 spec 类型：(.+)$/);
+  if (match) {
+    return { noteLineIdx, label: "spec", value: match[1].trim(), typeLineIdx };
+  }
+  match = typeLine.match(/^> 当前文档类型：(.+)$/);
+  if (match) {
+    return { noteLineIdx, label: "document", value: match[1].trim(), typeLineIdx };
+  }
+  return { noteLineIdx, label: null, value: null, typeLineIdx };
+}
+
+function parseDocumentType(lines) {
+  return parseDocumentTypeInfo(lines).value;
+}
+
+function getDocRule(docType) {
+  return loadModeRegistry().docTypes.get(docType) ?? null;
+}
+
+function allowedDocTypes() {
+  return [...loadModeRegistry().docTypes.keys()];
+}
+
+function validateHeadingStructure(lines, pathValue) {
+  const errors = [];
+  const firstLine = lines[0] ?? "";
+  if (!firstLine.startsWith("# ")) {
+    errors.push(err("E001", lines, 0));
+    return errors;
+  }
+
+  const title = firstLine.slice(2).trim();
+  const typeInfo = parseDocumentTypeInfo(lines);
+  const docType = typeInfo.value;
+  const rule = getDocRule(docType);
+  const basename = pathValue == null ? null : path.basename(pathValue);
+
+  if (typeInfo.noteLineIdx == null || lines[typeInfo.noteLineIdx].trim() !== "> [!NOTE]") {
+    errors.push(err("E004", lines, typeInfo.noteLineIdx ?? 0));
+  } else if (rule == null || typeInfo.label !== rule.typeLabel) {
+    errors.push(err("E005", lines, typeInfo.typeLineIdx ?? typeInfo.noteLineIdx, typeInfo.typeLineIdx == null ? null : lines[typeInfo.typeLineIdx].trim()));
+  }
+
+  if (rule == null) {
+    return errors;
+  }
+
+  if (rule.titleSuffix && !title.endsWith(rule.titleSuffix)) {
+    errors.push(err("E002", lines, 0));
+  }
+  if (rule.titlePattern && !(new RegExp(rule.titlePattern).test(title))) {
+    errors.push(err("E057", lines, 0));
+  }
+
+  if (pathValue != null) {
+    if (rule.requiredBasename && basename !== rule.requiredBasename) {
+      const readmeLikeDocTypes = new Set(["Project README", "Module README"]);
+      const code = docType === "contract 总纲" || docType === "spec 总纲" || readmeLikeDocTypes.has(docType) ? "E058" : "E003";
+      if (docType === "contract 总纲") {
+        // contract overview is exempt from contract suffix and only constrained to README.md
+      } else if (docType === "spec 总纲") {
+        // spec overview is also constrained to README.md
+      } else {
+        errors.push(err(code, lines, null, basename));
+      }
+    }
+    if (rule.filenameSuffix && !basename.endsWith(rule.filenameSuffix)) {
+      const codeByType = {
+        "产品 spec": "E003",
+        "技术 spec": "E003",
+        "LLM 节点 spec": "E003",
+        contract: "E051",
+        RCA: "E056",
+      };
+      const errorCode = codeByType[docType] ?? "E003";
+      errors.push(err(errorCode, lines, null, basename));
+    }
+    if (docType === "README" && basename !== DIRECTORY_OVERVIEW_BASENAME) {
+      errors.push(err("E058", lines, null, basename));
+    }
+  }
+
+  const h2Sections = parseSections(lines, 2);
+  const h2Titles = h2Sections.map(([, sectionTitle]) => sectionTitle);
+  const expectedH2 = rule.requiredH2 ?? null;
+  if (expectedH2 != null && JSON.stringify(h2Titles) !== JSON.stringify(expectedH2)) {
+    const lineIdx = h2Sections.length > 0 ? h2Sections[0][0] : 0;
+    errors.push(err("E010", lines, lineIdx, h2Titles.join(" / "), { expected: expectedH2.join(" / ") }));
+  }
+
+  return errors;
+}
+
+function validateExactSubsections(lines, h2Sections, sectionTitle, expected, errorCode) {
+  const section = sectionSlice(h2Sections, sectionTitle, lines.length);
+  if (section == null) {
+    return [];
+  }
+  const [start, end] = section;
+  const found = parseSections(lines.slice(start + 1, end), 3).map(([, title]) => title);
+  if (JSON.stringify(found) === JSON.stringify(expected)) {
+    return [];
+  }
+  const lineIdx = firstNonEmptyLineIdx(lines, start + 1, end) ?? start;
+  return [err(errorCode, lines, lineIdx, found.join(" / ") || "<missing>")];
+}
+
+function validateRedLineCautions(lines, h2Sections) {
+  const errors = [];
+  const section = sectionSlice(h2Sections, "风险与红线", lines.length);
+  if (section == null) {
+    return errors;
+  }
+  const [start, end] = section;
+  const h3 = parseNestedSections(lines, start + 1, end, 3);
+  const redLines = h3.find(([, title]) => title === "红线行为");
+  if (redLines == null) {
+    return errors;
+  }
+
+  const [, , redLinesEnd] = redLines;
+  let idx = redLines[0] + 1;
+  let cautionCount = 0;
+
+  while (idx < redLinesEnd) {
+    const trimmed = lines[idx].trim();
+    if (!trimmed) {
+      idx += 1;
+      continue;
+    }
+
+    if (trimmed !== "> [!CAUTION]") {
+      errors.push(err("E014", lines, idx));
+      idx += 1;
+      continue;
+    }
+
+    cautionCount += 1;
+    idx += 1;
+    let hasCautionBody = false;
+    while (idx < redLinesEnd) {
+      const bodyLine = lines[idx].trim();
+      if (!bodyLine) {
+        break;
+      }
+      if (bodyLine === "> [!CAUTION]") {
+        break;
+      }
+      if (!bodyLine.startsWith(">")) {
+        errors.push(err("E014", lines, idx));
+        break;
+      }
+      if (bodyLine !== ">") {
+        hasCautionBody = true;
+      }
+      idx += 1;
+    }
+    if (!hasCautionBody) {
+      errors.push(err("E014", lines, idx - 1));
+    }
+  }
+
+  if (cautionCount === 0) {
+    errors.push(err("E014", lines, redLines[0]));
+  }
+
+  return errors;
+}
+
+function validateRequiredDiagrams(lines, h2Sections) {
+  const errors = [];
+
+  const background = sectionSlice(h2Sections, "背景与现状", lines.length);
+  if (background != null) {
+    const [start, end] = background;
+    const h3 = parseNestedSections(lines, start + 1, end, 3);
+    const current = h3.find(([, title]) => title === "现状");
+    if (current == null || !hasDotFence(lines, current[0], current[2])) {
+      errors.push(err("E020", lines, current == null ? start : current[0]));
+    }
+  }
+
+  const targetSection = sectionSlice(h2Sections, "目标与非目标", lines.length);
+  if (targetSection != null) {
+    const [start, end] = targetSection;
+    const h3 = parseNestedSections(lines, start + 1, end, 3);
+    const target = h3.find(([, title]) => title === "目标");
+    if (target == null || !hasDotFence(lines, target[0], target[2])) {
+      errors.push(err("E021", lines, target == null ? start : target[0]));
+    }
+  }
+
+  const overview = sectionSlice(h2Sections, "架构总览", lines.length);
+  if (overview != null) {
+    const [start, end] = overview;
+    if (!hasDotFence(lines, start, end)) {
+      errors.push(err("E022", lines, start));
+    }
+  }
+
+  return errors;
+}
+
+function validateOverviewReadOrderDiagram(lines, h2Sections) {
+  const errors = [];
+  const section = sectionSlice(h2Sections, "推荐阅读顺序", lines.length);
+  if (section != null) {
+    const [start, end] = section;
+    if (!hasDotFence(lines, start, end)) {
+      errors.push(err("E054", lines, start));
+    }
+  }
+  const standaloneTopology = sectionSlice(h2Sections, "阅读拓扑", lines.length);
+  if (standaloneTopology != null) {
+    errors.push(err("E055", lines, standaloneTopology[0]));
+  }
+  return errors;
+}
+
+function validateInterviewRecords(lines, h2Sections) {
+  const errors = [];
+  const section = sectionSlice(h2Sections, "访谈记录", lines.length);
+  if (section == null) {
+    return errors;
+  }
+  const [start, end] = section;
+  let rounds = 0;
+  let idx = start + 1;
+
+  while (idx < end) {
+    const trimmed = lines[idx].trim();
+    if (!trimmed) {
+      idx += 1;
+      continue;
+    }
+
+    if (trimmed.startsWith("Q：") || trimmed.startsWith(">Q：")) {
+      errors.push(err("E031", lines, idx));
+      idx += 1;
+      continue;
+    }
+    if (trimmed.startsWith("A：") || trimmed.startsWith(">A：")) {
+      errors.push(err("E033", lines, idx));
+      idx += 1;
+      continue;
+    }
+
+    if (!trimmed.startsWith("> Q：")) {
+      idx += 1;
+      continue;
+    }
+
+    rounds += 1;
+    const questionIdx = idx;
+    if (questionContainsOptions(trimmed.replace(/^>\s*/, ""))) {
+      errors.push(err("E049", lines, questionIdx));
+    }
+    idx += 1;
+
+    let sawBlankQuote = false;
+    while (idx < end && lines[idx].trim() === ">") {
+      sawBlankQuote = true;
+      idx += 1;
+    }
+    if (!sawBlankQuote) {
+      errors.push(err("E032", lines, questionIdx));
+    }
+
+    if (idx >= end) {
+      errors.push(err("E033", lines, questionIdx));
+      break;
+    }
+
+    const answerLine = lines[idx].trim();
+    if (!answerLine.startsWith("> A：")) {
+      errors.push(err("E033", lines, idx));
+    } else {
+      if (ANSWER_OPTION_SHORTHAND_RE.test(answerLine)) {
+        errors.push(err("E039", lines, idx));
+      }
+      idx += 1;
+    }
+
+    while (idx < end && !lines[idx].trim()) {
+      idx += 1;
+    }
+
+    if (idx >= end || !lines[idx].trim().startsWith("收敛影响：")) {
+      errors.push(err("E034", lines, idx >= end ? questionIdx : idx));
+      continue;
+    }
+    idx += 1;
+  }
+
+  if (rounds < 5) {
+    errors.push(err("E030", lines, start));
+  }
+
+  return errors;
+}
+
+function validateLlmPromptSections(lines, h2Sections) {
+  const errors = [];
+  if (parseDocumentType(lines) !== "LLM 节点 spec") {
+    return errors;
+  }
+
+  const section = sectionSlice(h2Sections, "Prompt 设计", lines.length);
+  if (section == null) {
+    return [err("E006", lines, 0)];
+  }
+
+  const [start, end] = section;
+  const found = parseSections(lines.slice(start + 1, end), 3).map(([, title]) => title);
+  const required = ["system prompt", "user prompt"];
+  const missing = required.filter((title) => !found.includes(title));
+  if (missing.length > 0) {
+    const lineIdx = firstNonEmptyLineIdx(lines, start + 1, end) ?? start;
+    errors.push(err("E006", lines, lineIdx, missing.join(" / ")));
+  }
+  return errors;
+}
+
+function validateLlmUserPromptDiagram(lines, h2Sections) {
+  const errors = [];
+  if (parseDocumentType(lines) !== "LLM 节点 spec") {
+    return errors;
+  }
+
+  const section = sectionSlice(h2Sections, "Prompt 设计", lines.length);
+  if (section == null) {
+    return [err("E007", lines, 0)];
+  }
+  const [start, end] = section;
+  const h3 = parseNestedSections(lines, start + 1, end, 3);
+  const userPrompt = h3.find(([, title]) => title === "user prompt");
+  if (userPrompt == null || !hasDotFence(lines, userPrompt[0], userPrompt[2])) {
+    errors.push(err("E007", lines, userPrompt == null ? start : userPrompt[0]));
+  }
+  return errors;
+}
+
+function validateProjectReadmeLinks(lines, h2Sections) {
+  const errors = [];
+  const section = sectionSlice(h2Sections, "文档链接", lines.length);
+  if (section == null) {
+    return errors;
+  }
+
+  const [start, end] = section;
+  const bullets = [];
+  for (let idx = start + 1; idx < end; idx += 1) {
+    const trimmed = lines[idx].trim();
+    if (!trimmed) {
+      continue;
+    }
+    bullets.push([idx, trimmed]);
+  }
+
+  if (bullets.length === 0) {
+    errors.push(err("E040", lines, start));
+    return errors;
+  }
+
+  for (const [idx, line] of bullets) {
+    if (!line.startsWith("- [")) {
+      errors.push(err("E041", lines, idx));
+    }
+  }
+
+  return errors;
+}
+
+function validateReferenceSection(lines, h2Sections) {
+  const errors = [];
+  const section = sectionSlice(h2Sections, "参考资料", lines.length);
+  if (section == null) {
+    return errors;
+  }
+
+  const [start, end] = section;
+  const bullets = [];
+  for (let idx = start + 1; idx < end; idx += 1) {
+    const trimmed = lines[idx].trim();
+    if (!trimmed) {
+      continue;
+    }
+    bullets.push([idx, trimmed]);
+  }
+
+  if (bullets.length === 0) {
+    errors.push(err("E040", lines, start));
+    return errors;
+  }
+
+  for (const [idx, line] of bullets) {
+    if (!line.startsWith("- [")) {
+      errors.push(err("E041", lines, idx));
+    }
+  }
+
+  return errors;
+}
+
+function validateComparisonSection(lines, h2Sections) {
+  const errors = [];
+  const section = sectionSlice(h2Sections, "方案对比", lines.length);
+  if (section == null) {
+    return errors;
+  }
+
+  const [start, end] = section;
+  const groups = parseNestedSections(lines, start + 1, end, 3);
+  if (groups.length === 0) {
+    errors.push(err("E040", lines, start));
+    return errors;
+  }
+
+  for (const [groupStart, title, groupEnd] of groups) {
+    let hasConclusionNote = false;
+    for (let idx = groupStart + 1; idx < groupEnd; idx += 1) {
+      if (lines[idx].trim() !== "> [!NOTE]") {
+        continue;
+      }
+      const next = lines[idx + 1]?.trim() ?? "";
+      if (next.startsWith("> 对比结论：")) {
+        hasConclusionNote = true;
+        break;
+      }
+    }
+    if (!hasConclusionNote) {
+      errors.push(err("E041", lines, groupStart, title));
+    }
+  }
+
+  return errors;
+}
+
+export function collectErrors(text, { pathValue = null } = {}) {
+  const normalized = text.replace(/\r\n/g, "\n");
+  const lines = normalized.split("\n");
+  const errors = [];
+  const docType = parseDocumentType(lines);
+  const rule = getDocRule(docType);
+
+  errors.push(...validateHeadingStructure(lines, pathValue));
+
+  const h2Sections = parseSections(lines, 2);
+  if (h2Sections.length > 0 && rule != null) {
+    for (const item of rule.exactH3 ?? []) {
+      errors.push(...validateExactSubsections(lines, h2Sections, item.section, item.expected, item.errorCode));
+    }
+    const flags = new Set(rule.flags ?? []);
+    if (flags.has("redLineCautions")) {
+      errors.push(...validateRedLineCautions(lines, h2Sections));
+    }
+    if (flags.has("requiredDiagrams")) {
+      errors.push(...validateRequiredDiagrams(lines, h2Sections));
+    }
+    if (flags.has("interviewRecords")) {
+      errors.push(...validateInterviewRecords(lines, h2Sections));
+    }
+    if (flags.has("comparisonSection")) {
+      errors.push(...validateComparisonSection(lines, h2Sections));
+    }
+    if (flags.has("llmPromptSections")) {
+      errors.push(...validateLlmPromptSections(lines, h2Sections));
+    }
+    if (flags.has("llmUserPromptDiagram")) {
+      errors.push(...validateLlmUserPromptDiagram(lines, h2Sections));
+    }
+    if (flags.has("overviewReadOrderDiagram")) {
+      errors.push(...validateOverviewReadOrderDiagram(lines, h2Sections));
+    }
+    if (flags.has("referenceSection")) {
+      errors.push(...validateReferenceSection(lines, h2Sections));
+    }
+    if (flags.has("projectReadmeLinks")) {
+      errors.push(...validateProjectReadmeLinks(lines, h2Sections));
+    }
+  }
+  errors.push(...collectMarkdownDotErrors(normalized, { allowNoBlocks: true }));
+
+  return dedupeErrors(errors);
+}
+
+function dedupeErrors(errors) {
+  const seen = new Set();
+  return errors.filter((item) => {
+    const key = `${item.code}:${item.line ?? "?"}:${item.content ?? ""}`;
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
+function readStdin() {
+  return fs.readFileSync(0, "utf8");
+}
+
+function formatCliError(error) {
+  const location = error.line == null ? "" : `:${error.line}`;
+  const content = error.content ? `\n  ${error.content}` : "";
+  return `${error.code}${location} ${error.message}${content}`;
+}
+
+export function main(argv = process.argv.slice(2), { stdin = readStdin(), stdout = process.stdout, stderr = process.stderr } = {}) {
+  const useStdinJson = argv.includes("--stdin-json");
+  if (useStdinJson) {
+    const payload = JSON.parse(stdin);
+    const text = typeof payload.text === "string" ? payload.text : "";
+    const pathValue = typeof payload.path === "string" ? payload.path : null;
+    const errors = collectErrors(text, { pathValue });
+    stdout.write(`${JSON.stringify({ errors }, null, 2)}\n`);
+    return 0;
+  }
+
+  if (argv.length !== 1) {
+    stderr.write("usage: validate.mjs --stdin-json | validate.mjs <path>\n");
+    return 2;
+  }
+
+  const pathValue = path.resolve(argv[0]);
+  const text = fs.readFileSync(pathValue, "utf8");
+  const errors = collectErrors(text, { pathValue });
+  if (errors.length === 0) {
+    stdout.write(`document ok: ${pathValue}\n`);
+    return 0;
+  }
+
+  stderr.write(`document invalid: ${pathValue}\n`);
+  for (const error of errors) {
+    stderr.write(`${formatCliError(error)}\n`);
+  }
+  return 1;
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  process.exitCode = main();
+}

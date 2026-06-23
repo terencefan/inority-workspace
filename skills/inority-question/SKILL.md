@@ -73,7 +73,7 @@ When the parent artifact requires interview history, record each round in this s
 
 ## Parent-Skill Boundary
 
-- `$write-spec` still owns interview count, spec convergence, and artifact structure.
+- `$write-doc` still owns interview count, spec convergence, and artifact structure.
 - `$runbook` still owns 10% gate, recon branching, and execution-mode switching.
 - `$inority-slides` still owns deck QA density, section/slide confirmation coverage, and delivery shape.
 

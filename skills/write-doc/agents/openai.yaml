@@ -1,0 +1,4 @@
+interface:
+  display_name: "Write Doc"
+  short_description: "把粗糙需求整理成可评审的工程文档。"
+  default_prompt: "使用这个 skill 将粗糙需求、本地仓库事实和用户访谈整理成边界清晰、可评审、可验收的工程文档；需要澄清、选路或确认验收含义时，同时加载 $inority-question。"

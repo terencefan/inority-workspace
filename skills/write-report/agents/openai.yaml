@@ -1,4 +1,0 @@
-interface:
-  display_name: "Write Report"
-  short_description: "基于只读侦察证据生成结构化报告"
-  default_prompt: "Use $write-report to produce an evidence-backed Markdown report from read-only reconnaissance."
