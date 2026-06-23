@@ -1,0 +1,22 @@
+{
+  "mode": "readme",
+  "docTypes": [
+    {
+      "name": "Module README",
+      "typeLabel": "document",
+      "requiredBasename": "README.md",
+      "requiredH2": [
+        "模块简介",
+        "职责边界",
+        "入口与公共接口",
+        "依赖关系",
+        "扩展方式",
+        "相关文件",
+        "参考资料"
+      ],
+      "flags": [
+        "referenceSection"
+      ]
+    }
+  ]
+}

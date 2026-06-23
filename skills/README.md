@@ -35,9 +35,8 @@
 | `inority-slides/` | slides / deck / H5 演示稿规划与交付 |
 | `runbook/` | authority runbook 主 skill；主入口轻薄，规划与执行规则按子文档加载 |
 | `wow-addon-development/` | WoW addon 开发与调试 |
-| `write-readme/` | README 编写与重构 |
-| `write-feishu-doc/` | 飞书文档编写、持续维护与本地 lark-cli 发布；涉及 bitable/多维表格时依赖 `lark-mcp` |
-| `write-spec/` | spec / 设计文档编写与收敛 |
+| `write-doc-lark/` | 飞书文档编写、持续维护与本地 lark-cli 发布；涉及 bitable/多维表格时依赖 `lark-mcp` |
+| `write-doc/` | 工程文档编写与收敛 |
 
 ## 拓扑关系
 
@@ -78,8 +77,7 @@ digraph skills_topology {
     color="#cbd5e1";
     checkout [label="checkout", fillcolor="#fef3c7"];
     inority_base [label="inority", fillcolor="#fde68a"];
-    write_readme [label="write-readme"];
-    write_spec [label="write-spec"];
+    write_doc [label="write-doc"];
     inority_slides [label="inority-slides"];
     draw_dot [label="draw-dot", fillcolor="#dbeafe"];
     inority_question [label="inority-question", fillcolor="#dcfce7"];
@@ -105,8 +103,8 @@ digraph skills_topology {
   checkout -> inority_question [label="确认发布范围"];
   checkout -> inority_base [style=dashed, label="共享扫描脚本"];
 
-  write_spec -> inority_question [label="提问/消歧"];
-  write_spec -> draw_dot [style=dashed, label="结构图"];
+  write_doc -> inority_question [label="提问/消歧"];
+  write_doc -> draw_dot [style=dashed, label="结构图"];
 
   inority_slides -> inority_question [label="确认 deck / section / slide"];
   inority_slides -> draw_dot [style=dashed, label="mindmap / 图"];
@@ -135,8 +133,8 @@ digraph skills_topology {
 
 按主题查找时，可以直接这样分：
 
-- 文档类：`write-readme/`、`write-spec/`
-- 飞书文档类：`write-feishu-doc/`
+- 文档类：`write-doc/`
+- 飞书文档类：`write-doc-lark/`
 - 工作区收尾类：`checkout/`
 - Git 同步类：`checkin/`
 - 通用基座类：`inority/`
@@ -151,5 +149,4 @@ digraph skills_topology {
 - [inority-reply](./inority-reply/README.md)
 - [inority-slides](./inority-slides/README.md)
 - [runbook](./runbook/README.md)
-- [write-readme](./write-readme/README.md)
-- [write-spec](./write-spec/README.md)
+- [write-doc](./write-doc/README.md)

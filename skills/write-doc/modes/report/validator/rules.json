@@ -1,0 +1,23 @@
+{
+  "mode": "report",
+  "docTypes": [
+    {
+      "name": "调研报告",
+      "typeLabel": "document",
+      "titlePattern": "^\\d{4}-\\d{2}-\\d{2}\\b",
+      "requiredH2": [
+        "侦察结论",
+        "范围",
+        "方法",
+        "事实",
+        "排除项",
+        "未确认项",
+        "建议",
+        "参考资料"
+      ],
+      "flags": [
+        "referenceSection"
+      ]
+    }
+  ]
+}

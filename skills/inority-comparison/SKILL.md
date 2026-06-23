@@ -20,8 +20,8 @@ Good fits:
 
 Poor fits:
 
-- Normative engineering design specs; use `$write-spec`
-- README entrypoints; use `$write-readme`
+- Normative engineering design specs; use `$write-doc`
+- README entrypoints; use `$write-doc`
 - Incident/RCA documents; use the appropriate fault-analysis skill if available
 
 ## Workflow

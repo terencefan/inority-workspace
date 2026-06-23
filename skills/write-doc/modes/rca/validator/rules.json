@@ -1,0 +1,25 @@
+{
+  "mode": "rca",
+  "docTypes": [
+    {
+      "name": "RCA",
+      "typeLabel": "document",
+      "filenameSuffix": "-rca.md",
+      "requiredH2": [
+        "背景",
+        "现象与影响",
+        "调查范围与方法",
+        "侦察结论",
+        "已排除的故障原因",
+        "当前结论",
+        "仍未证实的部分",
+        "复现步骤",
+        "建议的下一步",
+        "参考资料"
+      ],
+      "flags": [
+        "referenceSection"
+      ]
+    }
+  ]
+}

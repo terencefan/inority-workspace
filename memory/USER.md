@@ -55,7 +55,7 @@
 - 删除工作区文件时，优先把文件移到 `/home/fantengyuan/workspace/.recycle/` 下，并保留相对路径，而不是永久删除。
 - 新建工作区 skill 时，默认把源码落在 `inority-workspace/skills/<skill-name>/`，再把该 skill 逐项软链接安装到工作区运行时入口 `.codex/skills/`；不要把新 skill 直接写进 `.codex/skills/` 源码面。
 - 在多仓库或单仓库的提交流程里，默认把当前选定范围保持为一个 PR；只有 Terence 明确要求拆分时，才把同一仓库的改动拆成多个 PR。
-- `runctl` 和 `specctl` 可以直接执行，无需事前询问。
+- `runctl` 和 `docctl` 可以直接执行，无需事前询问。
 - 默认把 runbook 存到目标项目的 `docs/runbook/` 下，除非用户指定其他位置。
 - 默认把 spec 存到目标项目的 `docs/specs/` 下，除非用户指定其他位置。
 - runbook 目录默认按日期分区，格式为 `<project>/docs/runbook/YYYY-MM-DD/`。

@@ -7,7 +7,7 @@ description: Generate or refine Graphviz DOT diagrams for architecture overviews
 
 Use this skill when the deliverable is a Graphviz DOT diagram, either standalone or embedded in Markdown.
 
-This skill is the style authority for DOT snippets used by `runbook`, `write-spec`, and adjacent Markdown-document skills. Those skills may define what a diagram must express, but DOT layout, node styling, color usage, and dark-mode behavior should converge here.
+This skill is the style authority for DOT snippets used by `runbook`, `write-doc`, and adjacent Markdown-document skills. Those skills may define what a diagram must express, but DOT layout, node styling, color usage, and dark-mode behavior should converge here.
 
 ## Output Contract
 

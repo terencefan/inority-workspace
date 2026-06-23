@@ -36,7 +36,7 @@ edge [
 ];
 ```
 
-- This is the default preset for `runbook` and `write-spec` examples unless the rendering context is known to be dark.
+- This is the default preset for `runbook` and `write-doc` examples unless the rendering context is known to be dark.
 - Nodes should usually override `fillcolor` by role so different domains or phases are legible at a glance.
 - Do not rely on renderer-default node border or font color.
 

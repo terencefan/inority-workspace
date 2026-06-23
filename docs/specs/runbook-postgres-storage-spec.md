@@ -407,7 +407,7 @@ digraph ArchitectureOverview {
 
 ## 验收标准
 
-- [ ] `docs/specs/runbook-postgres-storage-spec.md` 通过 `skills/write-spec/scripts/specctl validate`。
+- [ ] `docs/specs/runbook-postgres-storage-spec.md` 通过 `skills/write-doc/scripts/docctl validate`。
 - [ ] 根目录存在 `docker-compose.yml` 和 `.env.example`，且 `.env.example` 定义 `RUNBOOK_DB_DSN` 与 PostgreSQL 基础变量。
 - [ ] `docker compose config` 能解析 `postgres` service。
 - [ ] `docker compose up -d postgres` 能启动 PostgreSQL，且健康检查通过。
