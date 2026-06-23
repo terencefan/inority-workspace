@@ -39,6 +39,7 @@
 - 当某个 runbook 出现返工且经验具有复用价值时，把经验记录到当天的 `.codex/memory/dairy/YYYY-MM-DD.md`。
 - `*.tefa` 在当前工作区默认视为本地实例或本地上下文，不要自动把它表述为线上实例。
 - 存储长期记忆时，保持事实简洁，避免长篇分析。
+- 微调 LLM 节点输出结果时，优先修改 prompt 让模型自己产出目标行为；避免用后处理、硬编码分支或堆叠规则去修补输出。
 - 长期记忆文件中，优先大类标题加 bullet，而不是很深的标题树。
 - 除非 Terence 明确要求，否则默认在 WSL 中启动本地服务，而不是直接在 Windows 宿主上启动。
 - 需要 WSL 提权或系统级安装时，优先使用 `wsl -u root`，而不是当前用户下的交互式 `sudo`。
@@ -49,6 +50,7 @@
 - 在当前工作区里，`MogTracker/` 下的常规编辑已默认预授权，不需要事前询问。
 - 如果企业版 Gitee PR 创建返回 `401`，提醒 Terence 先在 Chrome 中重新登录，再重试自动化流程。
 - 对于 `inority-workspace`，默认以 `main` 为代码提交流程基线，并在 `git push` 前先执行 `git pull --rebase`。
+- 对于 `dev3-canary-automation`，默认遵循仓库内 `AGENTS.md` 的覆盖规则：直接在 `main` 上提交并推送到 `origin/main`，除非 Terence 明确要求创建 MR。
 - 当 Terence 要求清理 `inority-workspace` 里的历史文件时，优先删除过时的兼容 shell 和被跳过的占位测试；如果旧命令名仍必须可调用，只保留最薄的一层 wrapper。
 - 当用成熟 CLI（如 `rg`）替换自定义文件扫描路径时，优先采用工具原生语义，不要为了兼容旧行为再发明一层兼容 flag。
 - `.codex/memory/dairy/*.md` 下的日记文件可以直接做非破坏性编辑，无需提前询问；但删除、归档或移动日记文件前仍需先问。
