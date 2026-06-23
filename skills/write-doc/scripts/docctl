@@ -3,6 +3,24 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
+if [[ "${1-}" == "-h" || "${1-}" == "--help" || "${1-}" == "help" ]]; then
+  cat <<'EOF'
+Usage:
+  scripts/docctl validate <path>
+  scripts/docctl <path>
+
+Behavior:
+  - `validate` is the only docctl command and may be omitted.
+  - docctl validates full document structure and mode-specific rules.
+  - dot / graphviz fenced blocks are checked inside the same validation flow.
+
+Related:
+  - `dotctl validate-markdown <path>` belongs to draw-dot and only validates
+    fenced dot / graphviz blocks extracted from Markdown.
+EOF
+  exit 0
+fi
+
 if [[ "${1-}" == "validate" ]]; then
   shift
 fi

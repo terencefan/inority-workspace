@@ -44,6 +44,6 @@ description: 用于编写或整理产品 spec、技术 spec、LLM 节点 spec、
 2. 优先使用仓库事实，不用泛化措辞替代真实代码、接口、表、事件、目录边界。
 3. 正文定稿前，用真实用户问答收敛歧义、路径和验收含义；不要自问自答。
 4. 若涉及稳定接口、数据库表契约、状态 schema、事件 payload 或跨模块 I/O，默认同时进入 `contract` 模式，把稳定契约独立成 `-contract.md` 文件，再在 spec 正文里引用。
-5. 定稿前优先运行 `scripts/docctl validate <path>`；当模式说明、模板示例和 validator 不一致时，以 validator 为准。
+5. 定稿前使用 `$write-doc` skill 自带的 validator；统一执行 `scripts/docctl validate <path>`（`validate` 可省略），这里的 `scripts/docctl` 指 `inority-workspace/skills/write-doc/scripts/docctl`。对应规则与错误码统一来自当前 mode 目录下的 `validator/` 资产。若该 skill 自带 validator 当前无法运行，再退回到模板/模式规则 + 代码事实交叉校验，并在结果里明确说明“未运行 validator”及原因。Markdown 内嵌 DOT 的专项校验命令属于 `$draw-dot` 的 `dotctl validate-markdown <path>`。
 6. 新建、重命名、拆分、合并或废弃 authority spec / contract 后，按对应模式规则同步更新 `docs/spec/README.md` 或 `docs/contract/README.md`；`README` 模式不负责这两类总纲。
 7. 如果用户在本轮给出可复用的写作偏好，结束前更新主 skill 或对应模式目录下的说明文件。
