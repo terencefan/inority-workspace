@@ -62,6 +62,8 @@ contract 不复用 spec 的固定章节结构，默认按以下顺序组织：
 - code block 内直接体现字段嵌套、数组形状、可选字段和 canonical 命名，并通过行内注释说明来源、兼容别名、consumer 和约束语义。
 - 有历史兼容别名或多种 payload 变体时，优先在 JSON 注释里说明 canonical 字段与 fallback 字段；只有确实需要总览时再补表格。
 - 如果事件类型很多，允许先给一张“事件类型索引表”，再按事件类型分小节放对应 `jsonc` block。
+- 如果 contract 涉及颜色，不得只写 `blue`、`red`、`indigo` 这类语义名；必须精确到稳定色值，至少给出 `#RRGGBB`，推荐同时给出 `rgb(r g b)` 或等价说明。
+- 颜色 contract 可以额外声明框架级 alias（例如 Mantine color name、Design Token key），但 alias 不能替代精确色值；authority 仍应以 `#RRGGBB` 为准。
 
 ## 与 spec 的关系
 
