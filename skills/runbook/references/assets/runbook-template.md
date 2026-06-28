@@ -63,6 +63,17 @@ digraph target {
 - <明确不在本 runbook 覆盖的内容>
 - <必须留给后续 authority 的内容>
 
+## 资源命名
+
+- [ ] 用户已确认本 runbook 中所有资源命名。
+
+| 资源 | 名称 | 说明 |
+| --- | --- | --- |
+| <namespace / release / cluster / topic / secret / label> | `<name>` | <为什么采用该命名> |
+
+- `## 资源命名` 必须列出主 rollout 自行拍板的 namespace、release name、cluster name、StorageClass、topic/user、Secret、label key 等执行期会落入现场的资源名。
+- 上方 checkbox 只有在用户明确同意资源命名后才能勾选；未确认前必须保持 `- [ ]`。
+
 ## 风险与收益
 
 ### 风险
