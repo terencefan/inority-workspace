@@ -14,6 +14,7 @@ const ERROR_CODE_CATALOG_PATH = path.resolve(__dirname, "..", "..", "references"
 const REQUIRED_H2 = [
   "背景与现状",
   "目标与非目标",
+  "资源命名",
   "风险与收益",
   "思维脑图",
   "红线行为",
@@ -733,6 +734,20 @@ function validateRecordStep(lines, title, headingIdx, start, end, index) {
   return errors;
 }
 
+function validateResourceNaming(lines, h2Sections) {
+  const section = sectionSlice(h2Sections, "资源命名", lines.length);
+  if (section == null) {
+    return [];
+  }
+  const [start, end] = section;
+  const body = lines.slice(start, end).join("\n");
+  const errors = [];
+  if (!/^\s*-\s+\[(?: |x|X)\]\s+\S/m.test(body)) {
+    errors.push(err("E111", lines, start));
+  }
+  return errors;
+}
+
 function validateFinalAcceptance(lines, h2Sections) {
   const section = sectionSlice(h2Sections, "最终验收", lines.length);
   if (section == null) {
@@ -934,6 +949,7 @@ function collectErrors(text, pathValue = null) {
   errors.push(
     ...validateH3Whitelist(lines, h2Sections),
     ...validateCurrentAndTarget(lines, h2Sections),
+    ...validateResourceNaming(lines, h2Sections),
     ...validateQA(lines, h2Sections),
     ...validateMindmap(lines, h2Sections),
     ...validateRedlines(lines, h2Sections),
