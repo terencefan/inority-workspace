@@ -7,7 +7,7 @@ D003:
 D004:
   message: "DOT 图不允许继续使用 Arial"
 D010:
-  message: "Markdown 内嵌 DOT 图必须显式设置透明背景 `bgcolor=\"transparent\"`"
+  message: "DOT 图必须显式设置 graph 背景色；dark-mode 场景优先使用非透明深色背景"
 D011:
   message: "DOT 图的 node 默认属性必须显式包含 filled 样式"
 D012:
@@ -18,14 +18,16 @@ D014:
   message: "DOT 图的 node 默认属性必须显式设置文字颜色 `fontcolor`"
 D015:
   message: "DOT 图的 node 默认属性必须显式设置填充色 `fillcolor`"
+D016:
+  message: "DOT 图的 node 默认属性不允许使用透明填充色"
 D020:
   message: "DOT 图的 edge 默认属性必须显式设置线条颜色 `color`"
 D021:
   message: "DOT 图的 edge 默认属性必须显式设置文字颜色 `fontcolor`"
 D030:
-  message: "透明背景下的 cluster 必须显式设置边框颜色 `color`"
+  message: "DOT 图的 cluster 必须显式设置边框颜色 `color`"
 D031:
-  message: "透明背景下的 cluster 必须显式设置标题颜色 `fontcolor`"
+  message: "DOT 图的 cluster 必须显式设置标题颜色 `fontcolor`"
 D040:
   message: "Markdown 文档里没有找到 `dot` 或 `graphviz` 代码块"
 D090:

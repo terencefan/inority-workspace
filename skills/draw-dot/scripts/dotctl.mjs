@@ -219,7 +219,7 @@ export function collectDotDiagnostics(dotText, { lineOffset = 0, render = true }
     errors.push(diagnostic("D004", lineNumberForRegex(lines, /Arial/, lineOffset)));
   }
 
-  if (graphDefaults == null || graphDefaults.attrs.bgcolor !== "transparent") {
+  if (!hasExplicitColor(graphDefaults?.attrs.bgcolor)) {
     errors.push(diagnostic("D010", lineNumberForRegex(lines, /^\s*graph\s*\[/, lineOffset)));
   }
 
@@ -239,6 +239,9 @@ export function collectDotDiagnostics(dotText, { lineOffset = 0, render = true }
   }
   if (!hasExplicitColor(nodeDefaults?.attrs.fillcolor)) {
     errors.push(diagnostic("D015", lineNumberForRegex(lines, /^\s*node\s*\[/, lineOffset)));
+  }
+  if (isTransparentColor(nodeDefaults?.attrs.fillcolor)) {
+    errors.push(diagnostic("D016", lineNumberForRegex(lines, /^\s*node\s*\[/, lineOffset)));
   }
 
   if (!hasExplicitColor(edgeDefaults?.attrs.color)) {

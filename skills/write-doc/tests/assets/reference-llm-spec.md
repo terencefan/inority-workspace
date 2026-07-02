@@ -18,12 +18,12 @@
 ```dot
 digraph CurrentNeed {
   rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
-  a [label="代码 / prompt / 测试分散", fillcolor="#dbeafe"];
-  b [label="contract 易漂移", fillcolor="#fecaca"];
-  c [label="需要目标态 authority spec", fillcolor="#dcfce7"];
+  graph [bgcolor="#0b1220", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [fontname="Noto Sans CJK SC", color="#64748b", fontcolor="#64748b"];
+  a [label="代码 / prompt / 测试分散", fillcolor="#1e3a8a"];
+  b [label="contract 易漂移", fillcolor="#7f1d1d"];
+  c [label="需要目标态 authority spec", fillcolor="#14532d"];
   a -> b -> c;
 }
 ```
@@ -37,12 +37,12 @@ digraph CurrentNeed {
 ```dot
 digraph TargetNode {
   rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
-  prompts [label="prompt", fillcolor="#fef3c7"];
-  context [label="context", fillcolor="#dbeafe"];
-  contract [label="contract", fillcolor="#dcfce7"];
+  graph [bgcolor="#0b1220", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [fontname="Noto Sans CJK SC", color="#64748b", fontcolor="#64748b"];
+  prompts [label="prompt", fillcolor="#713f12"];
+  context [label="context", fillcolor="#1e3a8a"];
+  contract [label="contract", fillcolor="#14532d"];
   prompts -> context -> contract;
 }
 ```
@@ -75,13 +75,13 @@ digraph TargetNode {
 ```dot
 digraph UserPromptProduction {
   rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
-  upstream [label="上游 state", fillcolor="#dbeafe"];
-  map [label="压缩 / 映射", fillcolor="#fef3c7"];
-  payload [label="user_payload", fillcolor="#dcfce7"];
-  llm [label="LLM user prompt", fillcolor="#fecaca"];
+  graph [bgcolor="#0b1220", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [fontname="Noto Sans CJK SC", color="#64748b", fontcolor="#64748b"];
+  upstream [label="上游 state", fillcolor="#1e3a8a"];
+  map [label="压缩 / 映射", fillcolor="#713f12"];
+  payload [label="user_payload", fillcolor="#14532d"];
+  llm [label="LLM user prompt", fillcolor="#7f1d1d"];
   upstream -> map -> payload -> llm;
 }
 ```

@@ -323,15 +323,17 @@ function buildTheme(mode) {
     table: {
       border: alpha(
         baseTheme.palette.mode === 'dark' ? baseTheme.palette.common.white : '#0f172a',
-        baseTheme.palette.mode === 'dark' ? 0.08 : 0.12,
+        baseTheme.palette.mode === 'dark' ? 0.06 : 0.08,
       ),
       headerBackground: alpha(
-        baseTheme.palette.mode === 'dark' ? baseTheme.palette.common.white : '#0f172a',
-        baseTheme.palette.mode === 'dark' ? 0.04 : 0.03,
+        baseTheme.palette.mode === 'dark' ? '#78350f' : '#713f12',
+        baseTheme.palette.mode === 'dark' ? 0.72 : 0.9,
       ),
+      headerText: baseTheme.palette.mode === 'dark' ? '#fde68a' : '#fef3c7',
+      keyColumnText: baseTheme.palette.mode === 'dark' ? '#fef3c7' : '#713f12',
       rowStripe: alpha(
         baseTheme.palette.mode === 'dark' ? baseTheme.palette.common.white : '#0f172a',
-        baseTheme.palette.mode === 'dark' ? 0.015 : 0.018,
+        baseTheme.palette.mode === 'dark' ? 0.018 : 0.02,
       ),
     },
     toc: {

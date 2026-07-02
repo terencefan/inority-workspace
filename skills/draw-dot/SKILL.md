@@ -34,8 +34,9 @@ This skill is the style authority for DOT snippets used by `runbook`, `write-doc
    - `edge [fontname="Noto Sans CJK SC"]`
    - embedded Markdown diagrams should not rely on renderer defaults for node contrast; give nodes explicit `style`, `fillcolor`, `color`, and `fontcolor`
    - default to `style="rounded,filled"` for box-like nodes unless another shape semantic is more important
-   - when the rendering context is unknown, prefer cross-theme fills with explicit borders so nodes stay readable on both light and dark canvases
-   - if the diagram is intended for dark mode with transparent background, edge-label text must use a light font color so labels stay readable on dark canvases
+   - never use `fillcolor="transparent"` or `fillcolor="none"` for nodes in Markdown diagrams; nodes must have a real fill so they remain readable in dark mode
+   - when the rendering context is unknown, prefer dark-mode friendly solid nodes with explicit borders so the diagram is readable on both light and dark canvases
+   - if the graph background is transparent, treat that as a page-integration choice only; node backgrounds must still be solid
    - for dark-mode or TOC-style renders, default both line color and text color toward light tones instead of dark grays
 7. Use color deliberately:
    - nodes should usually have explicit fills rather than unstyled transparent boxes
@@ -52,12 +53,13 @@ This skill is the style authority for DOT snippets used by `runbook`, `write-doc
    - mixed shape semantics
    - crossing edges that can be removed by regrouping
 11. Do not emit placeholder nodes like `模块A/模块B/...` unless the user asked for a skeleton.
-12. If the target rendering context is dark mode and the background is transparent, treat contrast as mandatory for the whole graph, not only the edges:
+12. If the target rendering context is dark mode, treat contrast as mandatory for the whole graph, not only the edges:
+   - prefer dark solid node fills such as `fillcolor="#0f172a"` with light text such as `fontcolor="#e5e7eb"` for unknown Markdown renderers
    - prefer a light edge font color such as `fontcolor="#e5e7eb"`
    - when needed, also use a light stroke color such as `color="#cbd5e1"` so the line and its label remain visually coherent
    - apply the same preference to TOC-style connectors, guide lines, and cluster labels: keep both strokes and text light by default
-   - if nodes are unfilled in that context, they must switch to a dark fill + light text or a light fill + explicit border that still stands off from the page background
-   - do not leave cluster labels, edge labels, or guide text at renderer-default black on a transparent dark canvas
+   - do not leave node backgrounds transparent; switch to a dark fill + light text, or use a light solid fill with explicit dark text only when the surrounding document is known to support it
+   - do not leave cluster labels, edge labels, or guide text at renderer-default black on a dark canvas
 
 ## Diagram Style
 
@@ -86,8 +88,9 @@ This skill is the style authority for DOT snippets used by `runbook`, `write-doc
   - every referenced node id is defined or intentionally implicit
 - For Markdown-embedded diagrams, also do a visual pass mentally:
   - node fill, border, and text all have explicit contrast
+  - no node uses transparent or none fill
   - edge labels are readable against the likely page background
-  - cluster labels do not fall back to unreadable default black on transparent dark canvases
+  - cluster labels do not fall back to unreadable default black on dark canvases
 - When the workspace needs an executable check, use `scripts/dotctl`:
   - `dotctl validate <file>`: auto-detect Markdown vs raw DOT
   - `dotctl validate-markdown <file>`: extract fenced `dot` / `graphviz` blocks and validate them

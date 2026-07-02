@@ -37,13 +37,13 @@
 ```dot
 digraph ContractUsage {
   rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="#0b1220", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [fontname="Noto Sans CJK SC", color="#64748b", fontcolor="#64748b"];
 
-  contract [label="authority contract", fillcolor="#dbeafe"];
-  spec [label="referencing spec", fillcolor="#fef3c7"];
-  service [label="producer / consumer", fillcolor="#dcfce7"];
+  contract [label="authority contract", fillcolor="#1e3a8a"];
+  spec [label="referencing spec", fillcolor="#713f12"];
+  service [label="producer / consumer", fillcolor="#14532d"];
 
   spec -> contract;
   service -> contract;
@@ -100,14 +100,14 @@ digraph ContractUsage {
 ```dot
 digraph StateMachine {
   rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="#0b1220", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [fontname="Noto Sans CJK SC", color="#64748b", fontcolor="#64748b"];
 
-  queued [label="queued", fillcolor="#dbeafe"];
-  running [label="running", fillcolor="#fef3c7"];
-  done [label="succeeded", fillcolor="#dcfce7"];
-  failed [label="failed", fillcolor="#fecaca"];
+  queued [label="queued", fillcolor="#1e3a8a"];
+  running [label="running", fillcolor="#713f12"];
+  done [label="succeeded", fillcolor="#14532d"];
+  failed [label="failed", fillcolor="#7f1d1d"];
 
   queued -> running;
   running -> done;

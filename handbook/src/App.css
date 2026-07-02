@@ -512,12 +512,13 @@
 
 .markdown-body table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .markdown-body th,
 .markdown-body td {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 0;
   padding: 0.7rem 0.8rem;
 }
 
@@ -946,8 +947,6 @@
 .mui-shell.theme-light .toc-nav ul ul,
 .mui-shell.theme-light .sidebar-quick-access,
 .mui-shell.theme-light .doc-tree-view .MuiTreeItem-groupTransition,
-.mui-shell.theme-light .markdown-body th,
-.mui-shell.theme-light .markdown-body td,
 .mui-shell.theme-light .markdown-body .mermaid,
 .mui-shell.theme-light .markdown-body .graphviz,
 .mui-shell.theme-light .markdown-body pre,

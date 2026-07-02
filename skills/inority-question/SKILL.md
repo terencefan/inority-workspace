@@ -1,14 +1,15 @@
 ---
 name: inority-question
-description: Standardize clarification, disambiguation, route-confirmation, and user interview questions across workspace skills. Use when an agent needs to ask the user a planning question, narrow multiple viable paths, confirm goals or non-goals, validate acceptance meaning, or collect structured interview records before freezing an authority artifact.
+description: Standardize every user-facing question, clarification, disambiguation, route confirmation, authorization request, path choice, scope/risk/acceptance/rollback confirmation, and interview question across workspace skills. Use before asking the user anything, before requesting confirmation or permission, before presenting options for the user to choose, before sending wording such as 是否, 要不要, 能否, 可不可以, 确认一下, 请选择, 你选, 需要你确认, or whenever ambiguity must be reduced before proceeding or freezing an authority artifact.
 ---
 
 # Inority Question
 
-Use this skill whenever the current task cannot safely proceed without asking the user something to reduce ambiguity.
+Use this skill whenever the current task needs any user-facing question or confirmation before proceeding.
 
 This skill does not decide whether questioning is necessary. The parent skill still owns that decision.
 This skill standardizes how the question is framed once the parent skill has decided to ask.
+If multiple skills are active, use this as the final question-surface skill after the parent skill has determined what must be asked.
 
 ## What This Skill Owns
 

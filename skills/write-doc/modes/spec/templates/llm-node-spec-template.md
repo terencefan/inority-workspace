@@ -23,13 +23,13 @@
 ```dot
 digraph CurrentNeed {
   rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="#0b1220", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [fontname="Noto Sans CJK SC", color="#64748b", fontcolor="#64748b"];
 
-  scattered [label="代码 / prompt / 测试分散", fillcolor="#dbeafe"];
-  drift [label="contract 易漂移", fillcolor="#fecaca"];
-  spec [label="需要目标态 authority spec", fillcolor="#dcfce7"];
+  scattered [label="代码 / prompt / 测试分散", fillcolor="#1e3a8a"];
+  drift [label="contract 易漂移", fillcolor="#7f1d1d"];
+  spec [label="需要目标态 authority spec", fillcolor="#14532d"];
 
   scattered -> drift -> spec;
 }
@@ -44,13 +44,13 @@ digraph CurrentNeed {
 ```dot
 digraph TargetLlmNode {
   rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="#0b1220", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [fontname="Noto Sans CJK SC", color="#64748b", fontcolor="#64748b"];
 
-  prompts [label="冻结 prompt", fillcolor="#fef3c7"];
-  context [label="冻结 context", fillcolor="#dbeafe"];
-  contract [label="冻结输出与本地规则", fillcolor="#dcfce7"];
+  prompts [label="冻结 prompt", fillcolor="#713f12"];
+  context [label="冻结 context", fillcolor="#1e3a8a"];
+  contract [label="冻结输出与本地规则", fillcolor="#14532d"];
 
   prompts -> context -> contract;
 }
@@ -94,14 +94,14 @@ digraph TargetLlmNode {
 ```dot
 digraph UserPromptProduction {
   rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="#0b1220", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [fontname="Noto Sans CJK SC", color="#64748b", fontcolor="#64748b"];
 
-  upstream [label="上游 state", fillcolor="#dbeafe"];
-  compact [label="压缩 / 过滤 / 映射", fillcolor="#fef3c7"];
-  payload [label="user_payload", fillcolor="#dcfce7"];
-  llm [label="chat_json user prompt", fillcolor="#fecaca"];
+  upstream [label="上游 state", fillcolor="#1e3a8a"];
+  compact [label="压缩 / 过滤 / 映射", fillcolor="#713f12"];
+  payload [label="user_payload", fillcolor="#14532d"];
+  llm [label="chat_json user prompt", fillcolor="#7f1d1d"];
 
   upstream -> compact -> payload -> llm;
 }

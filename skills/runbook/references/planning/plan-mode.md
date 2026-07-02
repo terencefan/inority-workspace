@@ -33,6 +33,12 @@
 - 如果本轮 runbook 规划、返工或续跑暴露出可复用教训，主 rollout 在收口时应把该教训记入当天 `.codex/memory/dairy/YYYY-MM-DD.md`
 - 默认把 `plan` 与 `run` 明确分层：规划态必须先把 rollout 需要的代码、配置、Secret 模板、验证脚本、回滚入口和其他执行资产准备好并落盘；执行态只负责引用这些既有资产做 rollout，不应在现场临时发明实现面
 - 写 runbook 时，主 rollout 可以自行拍板不改变主路径的默认命名和执行参数，例如 namespace、release name、cluster name、StorageClass、smoke topic、label key 等；但在 authority 落盘定稿、宣称可执行或切入执行态之前，必须向用户汇总这些自定默认值并完成一轮确认。
+- 资源命名确认必须是独立的一轮用户问答：这一轮只问 `## 资源命名` 表里的名称是否确认，不得混入 `solo` / `team`、是否执行、是否授权、是否继续等执行态选择。
+- 发起资源命名确认前，必须先把 authority runbook 中 `## 资源命名` 的 Markdown 表格展示给用户；不要只给一句摘要或直接问 `Y/N`。
+- 资源命名确认的提问固定写成 `确认资源命名？(Y/N)`；接受大小写两种回答，`Y` / `y` 表示确认，`N` / `n` 表示不确认。
+- 当本轮已经执行 `scripts/runctl validate <runbook>` 且返回 `0`，并且 authority 中的 `## 资源命名` checkbox 仍未勾选时，主 rollout 本轮默认收口动作必须是展示 `## 资源命名` 表并询问 `确认资源命名？(Y/N)`；不要只报告“校验通过”就结束。
+- 上一条只表示“结构已通过校验，可以进入资源命名验收问答”，不表示 authority 已可执行；如果仍有镜像 tag、Secret、端口、回滚前提等执行参数未冻结，必须在提问前用一句话说明这些 blocker 仍存在。
+- `solo` / `team` 执行模式确认必须发生在资源命名确认之后，并且必须另起一轮问答；用户对执行模式的回答不能反向视为资源命名确认。
 
 ## 规划顺序
 
@@ -137,12 +143,15 @@ authority 定稿前，统一通过这些入口维护：
 - 目标、非目标、红线、回滚、验收路径都清楚
 - 主 rollout 自行拍板的默认命名和执行参数已经向用户汇总，并完成落地前确认
 - `## 资源命名` 已列出所有会落地的关键资源名，且“用户已确认本 runbook 中所有资源命名”checkbox 已在用户同意后勾选
+- 资源命名确认来自独立问答，没有和 `solo` / `team` 执行模式选择混在同一轮确认里
 - `scripts/runctl validate <topic>-runbook.md` 返回 `0`
 
-如果主 rollout 已经判断 authority runbook 可以进入执行态，那么默认收口动作不是直接宣告结束，而是：
+如果 `runctl validate` 已通过，或者主 rollout 已经判断 authority runbook 可以进入执行态，那么默认收口动作不是直接宣告结束，而是：
 
-1. 向用户确认这次走 `solo` 还是 `team`
-2. 收到选择后立刻切入对应执行态
+1. 如果 `## 资源命名` 尚未独立确认，先展示资源命名 Markdown 表格，再只向用户提问 `确认资源命名？(Y/N)`，并只在用户回答 `Y` / `y` 后更新 checkbox
+2. 如果 authority 仍有执行 blocker，资源命名确认后回到规划态继续冻结 blocker，不得直接询问 `solo` / `team`
+3. 资源命名已独立确认且 authority 已达到可执行标准后，另起一轮向用户确认这次走 `solo` 还是 `team`
+4. 收到执行模式选择后立刻切入对应执行态
 
 ## 停止条件
 

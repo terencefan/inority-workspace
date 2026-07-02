@@ -23,13 +23,13 @@
 ```dot
 digraph CurrentState {
   rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="#0b1220", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [fontname="Noto Sans CJK SC", color="#64748b", fontcolor="#64748b"];
 
-  current_user [label="当前用户入口", fillcolor="#dbeafe"];
-  current_flow [label="当前流程", fillcolor="#fef3c7"];
-  current_result [label="当前结果", fillcolor="#dcfce7"];
+  current_user [label="当前用户入口", fillcolor="#1e3a8a"];
+  current_flow [label="当前流程", fillcolor="#713f12"];
+  current_result [label="当前结果", fillcolor="#14532d"];
 
   current_user -> current_flow -> current_result;
 }
@@ -44,13 +44,13 @@ digraph CurrentState {
 ```dot
 digraph TargetState {
   rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="#0b1220", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [fontname="Noto Sans CJK SC", color="#64748b", fontcolor="#64748b"];
 
-  target_user [label="目标用户入口", fillcolor="#dbeafe"];
-  target_flow [label="目标流程", fillcolor="#fef3c7"];
-  target_result [label="目标结果", fillcolor="#dcfce7"];
+  target_user [label="目标用户入口", fillcolor="#1e3a8a"];
+  target_flow [label="目标流程", fillcolor="#713f12"];
+  target_result [label="目标结果", fillcolor="#14532d"];
 
   target_user -> target_flow -> target_result;
 }
@@ -91,28 +91,28 @@ digraph TargetState {
 ```dot
 digraph ArchitectureOverview {
   rankdir=TB;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="#0b1220", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [fontname="Noto Sans CJK SC", color="#64748b", fontcolor="#64748b"];
 
   subgraph cluster_ns {
     label="架构分层（南北向）";
-    color="#94a3b8";
-    fontcolor="#475569";
-    user [label="用户入口层", fillcolor="#dbeafe"];
-    interaction [label="交互 / 流程层", fillcolor="#fef3c7"];
-    capability [label="核心能力层", fillcolor="#dbeafe"];
-    support [label="支撑与数据层", fillcolor="#dcfce7"];
+    color="#64748b";
+    fontcolor="#cbd5e1";
+    user [label="用户入口层", fillcolor="#1e3a8a"];
+    interaction [label="交互 / 流程层", fillcolor="#713f12"];
+    capability [label="核心能力层", fillcolor="#1e3a8a"];
+    support [label="支撑与数据层", fillcolor="#14532d"];
     user -> interaction -> capability -> support;
   }
 
   subgraph cluster_ew {
     label="模块划分（东西向）";
-    color="#94a3b8";
-    fontcolor="#475569";
-    moduleA [label="模块 A", fillcolor="#dbeafe"];
-    moduleB [label="模块 B", fillcolor="#fef3c7"];
-    moduleC [label="模块 C", fillcolor="#dcfce7"];
+    color="#64748b";
+    fontcolor="#cbd5e1";
+    moduleA [label="模块 A", fillcolor="#1e3a8a"];
+    moduleB [label="模块 B", fillcolor="#713f12"];
+    moduleC [label="模块 C", fillcolor="#14532d"];
   }
 
   interaction -> moduleA [style=dashed];
@@ -141,9 +141,15 @@ digraph ArchitectureOverview {
 
 ### <模块一>
 
+> [!NOTE]
+> <一句话概括模块一的用户价值、职责边界或 ownership。>
+
 说明这一块承载的用户价值、功能边界和与其他模块的关系。
 
 ### <模块二>
+
+> [!NOTE]
+> <一句话概括模块二的用户价值、职责边界或 ownership。>
 
 说明这一块承载的用户价值、功能边界和与其他模块的关系。
 

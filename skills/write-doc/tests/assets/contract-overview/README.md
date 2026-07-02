@@ -19,13 +19,13 @@
 ```dot
 digraph ContractReadOrder {
   rankdir=LR;
-  graph [bgcolor="transparent"];
-  node [shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="#0b1220"];
+  node [shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [color="#64748b", fontcolor="#64748b"];
 
-  contract [label="event contract", fillcolor="#dbeafe"];
-  ui [label="timeline ui spec", fillcolor="#fef3c7"];
-  replay [label="history replay", fillcolor="#dcfce7"];
+  contract [label="event contract", fillcolor="#1e3a8a"];
+  ui [label="timeline ui spec", fillcolor="#713f12"];
+  replay [label="history replay", fillcolor="#14532d"];
 
   contract -> ui;
   contract -> replay;

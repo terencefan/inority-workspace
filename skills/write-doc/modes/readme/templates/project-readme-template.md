@@ -21,13 +21,13 @@
 
 ```dot
 digraph ProjectOverview {
-  graph [bgcolor="transparent"];
-  node [shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="#0b1220"];
+  node [shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [color="#64748b", fontcolor="#64748b"];
 
-  client [label="client", fillcolor="#dbeafe"];
-  service [label="service", fillcolor="#fef3c7"];
-  storage [label="storage", fillcolor="#dcfce7"];
+  client [label="client", fillcolor="#1e3a8a"];
+  service [label="service", fillcolor="#713f12"];
+  storage [label="storage", fillcolor="#14532d"];
 
   client -> service;
   service -> storage;

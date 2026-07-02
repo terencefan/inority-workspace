@@ -18,7 +18,7 @@
 
 ```dot
 digraph current {
-  graph [rankdir=LR, bgcolor="transparent", pad="0.45", nodesep="0.7", ranksep="0.95", fontname="Noto Sans CJK SC"];
+  graph [rankdir=LR, bgcolor="#0b1220", pad="0.45", nodesep="0.7", ranksep="0.95", fontname="Noto Sans CJK SC"];
   node [shape=box, style="rounded,filled", margin="0.18,0.12", width="2.2", fontname="Noto Sans CJK SC", fontsize=10.5, color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
   edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8", arrowsize="0.7"];
 
@@ -45,7 +45,7 @@ digraph current {
 
 ```dot
 digraph target {
-  graph [rankdir=LR, bgcolor="transparent", pad="0.45", nodesep="0.7", ranksep="0.95", fontname="Noto Sans CJK SC"];
+  graph [rankdir=LR, bgcolor="#0b1220", pad="0.45", nodesep="0.7", ranksep="0.95", fontname="Noto Sans CJK SC"];
   node [shape=box, style="rounded,filled", margin="0.18,0.12", width="2.2", fontname="Noto Sans CJK SC", fontsize=10.5, color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
   edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8", arrowsize="0.7"];
 
@@ -93,7 +93,7 @@ digraph target {
 
 ```dot
 digraph runbook_mindmap {
-  graph [rankdir=LR, bgcolor="transparent", pad="0.45", nodesep="0.7", ranksep="0.95", fontname="Noto Sans CJK SC"];
+  graph [rankdir=LR, bgcolor="#0b1220", pad="0.45", nodesep="0.7", ranksep="0.95", fontname="Noto Sans CJK SC"];
   node [shape=box, style="rounded,filled", margin="0.18,0.12", width="2.2", fontname="Noto Sans CJK SC", fontsize=10.5, color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
   edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8", arrowsize="0.7"];
 

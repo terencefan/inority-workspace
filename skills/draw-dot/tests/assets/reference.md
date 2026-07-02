@@ -2,22 +2,22 @@
 
 ```dot
 digraph G {
-  graph [fontname="Noto Sans CJK SC", rankdir=LR, bgcolor="transparent"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [fontname="Noto Sans CJK SC", rankdir=LR, bgcolor="#0b1220"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [fontname="Noto Sans CJK SC", color="#64748b", fontcolor="#64748b"];
 
   subgraph cluster_current {
     label="现状";
-    color="#94a3b8";
-    fontcolor="#475569";
-    current [label="当前组件", fillcolor="#dbeafe"];
+    color="#64748b";
+    fontcolor="#cbd5e1";
+    current [label="当前组件", fillcolor="#1e3a8a"];
   }
 
   subgraph cluster_target {
     label="目标";
-    color="#94a3b8";
-    fontcolor="#475569";
-    target [label="目标组件", fillcolor="#dcfce7"];
+    color="#64748b";
+    fontcolor="#cbd5e1";
+    target [label="目标组件", fillcolor="#14532d"];
   }
 
   current -> target [label="演进"];

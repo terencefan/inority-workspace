@@ -1,17 +1,17 @@
 digraph G {
-  graph [fontname="Noto Sans CJK SC", rankdir=LR, bgcolor="transparent"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [fontname="Noto Sans CJK SC", rankdir=LR, bgcolor="#0b1220"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [fontname="Noto Sans CJK SC", color="#64748b", fontcolor="#64748b"];
 
   subgraph cluster_entry {
     label="入口层";
-    color="#94a3b8";
-    fontcolor="#475569";
-    gateway [label="API Gateway", fillcolor="#fef3c7"];
+    color="#64748b";
+    fontcolor="#cbd5e1";
+    gateway [label="API Gateway", fillcolor="#713f12"];
   }
 
-  user [label="用户", fillcolor="#dbeafe"];
-  store [label="存储", fillcolor="#dcfce7"];
+  user [label="用户", fillcolor="#1e3a8a"];
+  store [label="存储", fillcolor="#14532d"];
 
   user -> gateway [label="请求"];
   gateway -> store [label="读取"];

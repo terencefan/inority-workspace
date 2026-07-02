@@ -1,0 +1,4 @@
+interface:
+  display_name: "Inority Code"
+  short_description: "Apply Inority code conventions by language."
+  default_prompt: "Use inority-code to apply the workspace coding conventions for this change."

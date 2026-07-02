@@ -44,14 +44,14 @@
 ```dot
 digraph ReadingOrder {
   rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="#0b1220", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [fontname="Noto Sans CJK SC", color="#64748b", fontcolor="#64748b"];
 
-  root [label="根 spec", fillcolor="#dbeafe"];
-  online [label="在线专题", fillcolor="#fef3c7"];
-  offline [label="离线专题", fillcolor="#dcfce7"];
-  deprecated [label="deprecated", fillcolor="#fecaca"];
+  root [label="根 spec", fillcolor="#1e3a8a"];
+  online [label="在线专题", fillcolor="#713f12"];
+  offline [label="离线专题", fillcolor="#14532d"];
+  deprecated [label="deprecated", fillcolor="#7f1d1d"];
 
   root -> online;
   root -> offline;

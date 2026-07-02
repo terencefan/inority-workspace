@@ -20,13 +20,13 @@
 
 ```dot
 digraph ProjectOverview {
-  graph [bgcolor="transparent"];
-  node [shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="#0b1220"];
+  node [shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [color="#64748b", fontcolor="#64748b"];
 
-  cli [label="cli", fillcolor="#dbeafe"];
-  runtime [label="runtime", fillcolor="#fef3c7"];
-  data [label="dataset metadata", fillcolor="#dcfce7"];
+  cli [label="cli", fillcolor="#1e3a8a"];
+  runtime [label="runtime", fillcolor="#713f12"];
+  data [label="dataset metadata", fillcolor="#14532d"];
 
   cli -> runtime;
   runtime -> data;

@@ -70,7 +70,12 @@ runbook 的职责不是重新定义规范、边界或目标，而是把已经明
 
 当 authority runbook 已达到可执行标准后：
 
-- 主 rollout 先向用户确认进入 `solo` 还是 `team`
+- 主 rollout 必须先完成一轮独立的资源命名确认；这轮只确认 `## 资源命名` 表里的名称，不得同时询问 `solo` / `team`
+- 资源命名确认前，主 rollout 必须先把 `## 资源命名` 表用 Markdown 表格原样展示给用户查看
+- 资源命名确认提问固定使用 `确认资源命名？(Y/N)`；`Y` / `y` 表示确认，`N` / `n` 表示不确认
+- 用户回答 `Y` / `y` 确认资源命名后，主 rollout 才能勾选“用户已确认本 runbook 中所有资源命名”
+- 如果规划态本轮已经通过 `runctl validate`，但 authority 仍有执行 blocker，也必须先展示资源命名表并完成这轮命名确认；命名确认不等于执行授权，不能在同一轮混问 `solo` / `team`
+- 资源命名确认完成且 authority runbook 仍达到可执行标准后，主 rollout 再单独向用户确认进入 `solo` 还是 `team`
 - 用户确认 `solo` 后，加载 `references/execution/solo.md`
 - 用户确认 `team` 后，加载 `references/execution/team.md`
 - 如果执行途中出现失败、未通过、停止条件、新 blocker 或新事实，立即退出回规划态，并重新加载 `references/planning/plan-mode.md`

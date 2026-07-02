@@ -1,0 +1,4 @@
+interface:
+  display_name: "H Cluster"
+  short_description: "H 集群运维、排障与 runbook 入口"
+  default_prompt: "Use $h-cluster to inspect an H cluster issue safely and summarize the next action."

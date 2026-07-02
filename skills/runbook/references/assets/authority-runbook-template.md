@@ -18,7 +18,7 @@
 
 ```dot
 digraph current {
-  graph [rankdir=LR, bgcolor="transparent", pad="0.45", nodesep="0.7", ranksep="0.95", fontname="Noto Sans CJK SC"];
+  graph [rankdir=LR, bgcolor="#0b1220", pad="0.45", nodesep="0.7", ranksep="0.95", fontname="Noto Sans CJK SC"];
   node [shape=box, style="rounded,filled", margin="0.18,0.12", width="2.2", fontname="Noto Sans CJK SC", fontsize=10.5, color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
   edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8", arrowsize="0.7"];
 
@@ -45,7 +45,7 @@ digraph current {
 
 ```dot
 digraph target {
-  graph [rankdir=LR, bgcolor="transparent", pad="0.45", nodesep="0.7", ranksep="0.95", fontname="Noto Sans CJK SC"];
+  graph [rankdir=LR, bgcolor="#0b1220", pad="0.45", nodesep="0.7", ranksep="0.95", fontname="Noto Sans CJK SC"];
   node [shape=box, style="rounded,filled", margin="0.18,0.12", width="2.2", fontname="Noto Sans CJK SC", fontsize=10.5, color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
   edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8", arrowsize="0.7"];
 
@@ -73,6 +73,9 @@ digraph target {
 
 - `## 资源命名` 必须列出主 rollout 自行拍板的 namespace、release name、cluster name、StorageClass、topic/user、Secret、label key 等执行期会落入现场的资源名。
 - 上方 checkbox 只有在用户明确同意资源命名后才能勾选；未确认前必须保持 `- [ ]`。
+- 资源命名确认必须是独立问答；不得和 `solo` / `team` 执行模式选择、是否执行、是否授权或是否继续混在同一轮用户确认里。
+- 发起资源命名确认前，必须先把本章节中的资源命名 Markdown 表格展示给用户查看。
+- 资源命名确认提问固定写成 `确认资源命名？(Y/N)`；接受 `Y` / `y` 确认，接受 `N` / `n` 不确认。
 
 ## 风险与收益
 
@@ -93,7 +96,7 @@ digraph target {
 
 ```dot
 digraph runbook_mindmap {
-  graph [rankdir=LR, bgcolor="transparent", pad="0.45", nodesep="0.7", ranksep="0.95", fontname="Noto Sans CJK SC"];
+  graph [rankdir=LR, bgcolor="#0b1220", pad="0.45", nodesep="0.7", ranksep="0.95", fontname="Noto Sans CJK SC"];
   node [shape=box, style="rounded,filled", margin="0.18,0.12", width="2.2", fontname="Noto Sans CJK SC", fontsize=10.5, color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
   edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8", arrowsize="0.7"];
 

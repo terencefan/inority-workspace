@@ -1314,18 +1314,24 @@ function renderMarkdownNode(node, key, themeMode = 'dark') {
           sx={{
             my: 3,
             overflowX: 'auto',
-            border: (theme) => `1px solid ${getMarkdownTokens(theme).table?.border || alpha(theme.palette.common.white, 0.08)}`,
+            borderRadius: 1,
           }}
         >
           <Table
             size="small"
             sx={{
               minWidth: '100%',
+              borderCollapse: 'separate',
+              borderSpacing: 0,
               '& td, & th': {
-                borderColor: (theme) => getMarkdownTokens(theme).table?.border || theme.palette.divider,
+                border: 0,
               },
               '& tbody tr:nth-of-type(odd)': {
                 backgroundColor: (theme) => getMarkdownTokens(theme).table?.rowStripe || 'transparent',
+              },
+              '& tbody td:first-of-type': {
+                color: (theme) => getMarkdownTokens(theme).table?.keyColumnText || theme.palette.primary.main,
+                fontWeight: 700,
               },
             }}
           >
@@ -1348,7 +1354,7 @@ function renderMarkdownNode(node, key, themeMode = 'dark') {
           align={getCellAlign(token)}
           sx={{
             fontWeight: 700,
-            color: 'common.white',
+            color: (theme) => getMarkdownTokens(theme).table?.headerText || theme.palette.primary.main,
             backgroundColor: (theme) => getMarkdownTokens(theme).table?.headerBackground || 'transparent',
           }}
         >

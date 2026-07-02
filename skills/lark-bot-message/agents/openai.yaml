@@ -1,0 +1,4 @@
+interface:
+  display_name: "Lark Bot Message"
+  short_description: "Send Feishu/Lark bot messages and cards to group chats."
+  default_prompt: "Use a bot to send a confirmed message or card to a Feishu/Lark group chat."

@@ -39,13 +39,19 @@ runCase("reference markdown passes shared validator", () => {
 });
 
 runCase("missing node fillcolor is rejected", () => {
-  const mutated = mutate(referenceDot, 'fillcolor="#f8fafc"', "");
+  const mutated = mutate(referenceDot, 'fillcolor="#0f172a"', "");
   const codes = new Set(collectDotDiagnostics(mutated, { render: false }).errors.map((item) => item.code));
   assert.ok(codes.has("D015"));
 });
 
+runCase("transparent node fillcolor is rejected", () => {
+  const mutated = mutate(referenceDot, 'fillcolor="#0f172a"', 'fillcolor="transparent"');
+  const codes = new Set(collectDotDiagnostics(mutated, { render: false }).errors.map((item) => item.code));
+  assert.ok(codes.has("D016"));
+});
+
 runCase("cluster without fontcolor is rejected", () => {
-  const mutated = mutate(referenceDot, '    fontcolor="#475569";\n', "");
+  const mutated = mutate(referenceDot, '    fontcolor="#cbd5e1";\n', "");
   const codes = new Set(collectDotDiagnostics(mutated, { render: false }).errors.map((item) => item.code));
   assert.ok(codes.has("D031"));
 });
@@ -66,7 +72,7 @@ runCase("catalog covers runtime codes", () => {
   const catalog = loadErrorCatalog();
   const runtimeCodes = new Set((loadText(path.join(SCRIPTS_DIR, "dotctl.mjs")).match(/"(D\d{3})"/g) ?? []).map((item) => item.slice(1, -1)));
   assert.ok([...runtimeCodes].every((code) => code in catalog));
-  assert.equal(errorMessage("D010"), 'Markdown 内嵌 DOT 图必须显式设置透明背景 `bgcolor="transparent"`');
+  assert.equal(errorMessage("D010"), "DOT 图必须显式设置 graph 背景色；dark-mode 场景优先使用非透明深色背景");
 });
 
 runCase("cli validate-markdown returns success for reference markdown", () => {

@@ -23,13 +23,13 @@
 ```dot
 digraph CurrentState {
   rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="#0b1220", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [fontname="Noto Sans CJK SC", color="#64748b", fontcolor="#64748b"];
 
-  current_a [label="当前组件 A", fillcolor="#dbeafe"];
-  current_b [label="当前组件 B", fillcolor="#fef3c7"];
-  current_c [label="当前组件 C", fillcolor="#dcfce7"];
+  current_a [label="当前组件 A", fillcolor="#1e3a8a"];
+  current_b [label="当前组件 B", fillcolor="#713f12"];
+  current_c [label="当前组件 C", fillcolor="#14532d"];
 
   current_a -> current_b -> current_c;
 }
@@ -44,13 +44,13 @@ digraph CurrentState {
 ```dot
 digraph TargetState {
   rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="#0b1220", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [fontname="Noto Sans CJK SC", color="#64748b", fontcolor="#64748b"];
 
-  target_a [label="目标组件 A", fillcolor="#dbeafe"];
-  target_b [label="目标组件 B", fillcolor="#fef3c7"];
-  target_c [label="目标组件 C", fillcolor="#dcfce7"];
+  target_a [label="目标组件 A", fillcolor="#1e3a8a"];
+  target_b [label="目标组件 B", fillcolor="#713f12"];
+  target_c [label="目标组件 C", fillcolor="#14532d"];
 
   target_a -> target_b -> target_c;
 }
@@ -91,28 +91,28 @@ digraph TargetState {
 ```dot
 digraph ArchitectureOverview {
   rankdir=TB;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="#0b1220", fontname="Noto Sans CJK SC"];
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#e5e7eb", fillcolor="#0f172a"];
+  edge [fontname="Noto Sans CJK SC", color="#64748b", fontcolor="#64748b"];
 
   subgraph cluster_ns {
     label="架构分层（南北向）";
-    color="#94a3b8";
-    fontcolor="#475569";
-    external [label="外部入口层", fillcolor="#dbeafe"];
-    gateway [label="接入 / 网关层", fillcolor="#fef3c7"];
-    service [label="业务服务层", fillcolor="#dbeafe"];
-    data [label="数据与基础设施层", fillcolor="#dcfce7"];
+    color="#64748b";
+    fontcolor="#cbd5e1";
+    external [label="外部入口层", fillcolor="#1e3a8a"];
+    gateway [label="接入 / 网关层", fillcolor="#713f12"];
+    service [label="业务服务层", fillcolor="#1e3a8a"];
+    data [label="数据与基础设施层", fillcolor="#14532d"];
     external -> gateway -> service -> data;
   }
 
   subgraph cluster_ew {
     label="模块划分（东西向）";
-    color="#94a3b8";
-    fontcolor="#475569";
-    moduleA [label="模块 A", fillcolor="#dbeafe"];
-    moduleB [label="模块 B", fillcolor="#fef3c7"];
-    moduleC [label="模块 C", fillcolor="#dcfce7"];
+    color="#64748b";
+    fontcolor="#cbd5e1";
+    moduleA [label="模块 A", fillcolor="#1e3a8a"];
+    moduleB [label="模块 B", fillcolor="#713f12"];
+    moduleC [label="模块 C", fillcolor="#14532d"];
   }
 
   gateway -> moduleA [style=dashed];
@@ -139,13 +139,22 @@ digraph ArchitectureOverview {
 
 ### <模块一>
 
+> [!NOTE]
+> <一句话概括模块一的核心职责、调用边界或 ownership。>
+
 说明这个模块负责什么、与哪些上下游模块协作，以及它的边界是什么。
 
 ### <模块二>
 
+> [!NOTE]
+> <一句话概括模块二的核心职责、调用边界或 ownership。>
+
 说明这个模块负责什么、与哪些上下游模块协作，以及它的边界是什么。
 
 ### 方案设计
+
+> [!NOTE]
+> <一句话说明方案设计如何把模块职责落到接口、数据、失败处理和发布路径上。>
 
 #### 接口与契约
 
