@@ -60,9 +60,11 @@ def strip_tags(text: str) -> str:
 
 
 def find_next_block(blocks: list[Block], current: Block) -> Block | None:
-    for block in blocks:
-        if block.start > current.end:
-            return block
+    for idx, block in enumerate(blocks):
+        if block is current:
+            if idx + 1 < len(blocks):
+                return blocks[idx + 1]
+            return None
     return None
 
 

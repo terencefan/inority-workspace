@@ -46,6 +46,7 @@ This skill is the style authority for DOT snippets used by `runbook`, `write-doc
 8. Choose direction deliberately:
    - `rankdir=TB` for hierarchies, steps, trees
    - `rankdir=LR` for pipelines, data paths, layered architecture
+   - default to elbow / orthogonal connectors with `graph [splines=ortho]`; do not use curved splines unless a loop, free-form relationship, or explicit user request makes curvature meaningful
 9. Use `subgraph cluster_*` only when grouping materially improves readability.
 10. Avoid decorative noise:
    - too many colors

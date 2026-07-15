@@ -44,6 +44,7 @@
 - README 的定位是“某个文件夹的介绍”，不是 authority spec 总纲。
 - 不要把大段 spec 正文复制进 README；README 更像入口地图。
 - 如果目录已有更上层 README 或 spec，总是链接过去，而不是重复整份内容。
+- 当一个章节描述多个文件、schema、产物或接口契约时，每个对象必须拆成独立小标题；例如 `文件内容契约` 下应分别写 `manifest.jsonl`、`meta.json`、`summary.json`，再配对应说明和 code block。
 
 ## 通用写作规则
 
