@@ -142,6 +142,7 @@ Include:
 - skipped or blocked repositories and exact reasons
 
 Prefer a flat list or table that the user can open one by one.
+Put every PR or MR URL on its own standalone line, outside tables, so the rendered link is easy to click.
 
 If every in-scope repository has been fully processed for this checkout wave, end with one short celebratory message that includes a fireworks emoji.
 
