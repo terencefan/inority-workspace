@@ -2,12 +2,11 @@
 
 import { dirname, join, parse, resolve } from "node:path";
 import { readFileSync } from "node:fs";
-import { execFileSync, spawnSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = resolve(SCRIPT_DIR, "..");
-const DETECT_SCRIPT = join(SCRIPT_DIR, "detect-host-interface.sh");
 const CLI_TEMPLATE = join(PACKAGE_ROOT, "references", "reply-format-cli.md");
 const MD_TEMPLATE = join(PACKAGE_ROOT, "references", "reply-format-md.md");
 const RUNTIME_CONFIG = join(PACKAGE_ROOT, "runtime.json");
@@ -46,19 +45,99 @@ function readRuntimeConfig() {
   return parsed && typeof parsed === "object" ? parsed : {};
 }
 
-function detectHostInterface() {
-  try {
-    return execFileSync("bash", [DETECT_SCRIPT], {
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-    }).trim() || "unknown";
-  } catch {
-    return "unknown";
+function getPayloadStringField(payload, keys) {
+  if (!payload || typeof payload !== "object") {
+    return "";
   }
+
+  for (const key of keys) {
+    const value = payload[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+
+  return "";
+}
+
+function hasCodexDesktopSignal(payload) {
+  const envOriginator = process.env.CODEX_INTERNAL_ORIGINATOR_OVERRIDE;
+  if (typeof envOriginator === "string" && envOriginator.trim().toLowerCase() === "codex desktop") {
+    return true;
+  }
+
+  const payloadOriginator = getPayloadStringField(payload, [
+    "originator",
+    "originatorOverride",
+    "clientName",
+    "hostInterface",
+    "host",
+  ]).toLowerCase();
+
+  return payloadOriginator.includes("codex desktop");
+}
+
+function hasEditorSignal(payload) {
+  if (
+    process.env.VSCODE_IPC_HOOK_CLI ||
+    process.env.VSCODE_GIT_IPC_HANDLE ||
+    process.env.VSCODE_PID ||
+    process.env.CURSOR_TRACE_ID ||
+    process.env.CURSOR_TRACE_FILE
+  ) {
+    return true;
+  }
+
+  const termProgram = (process.env.TERM_PROGRAM || "").toLowerCase();
+  if (termProgram === "vscode" || termProgram === "cursor") {
+    return true;
+  }
+
+  const payloadHost = getPayloadStringField(payload, [
+    "originator",
+    "originatorOverride",
+    "clientName",
+    "hostInterface",
+    "host",
+  ]).toLowerCase();
+
+  return payloadHost.includes("cursor") || payloadHost.includes("vscode") || payloadHost.includes("visual studio code");
+}
+
+function hasTerminalSignal() {
+  return Boolean(
+    process.stdin.isTTY ||
+    process.stdout.isTTY ||
+    process.env.TERM ||
+    process.env.COLORTERM ||
+    process.env.TERM_PROGRAM ||
+    process.env.WT_SESSION ||
+    process.env.TMUX
+  );
+}
+
+function detectHostInterface(payload) {
+  if (hasCodexDesktopSignal(payload)) {
+    return "md";
+  }
+
+  if (hasEditorSignal(payload)) {
+    return "md";
+  }
+
+  if (hasTerminalSignal()) {
+    return "cli";
+  }
+
+  return "unknown";
 }
 
 function resolveTemplatePath(hostInterface) {
   if (hostInterface === "md") {
+    return MD_TEMPLATE;
+  }
+
+  if (hostInterface === "unknown") {
     return MD_TEMPLATE;
   }
 
@@ -74,7 +153,7 @@ function buildHostContextLine(hostInterface, templatePath) {
     return `Detected host interface: cli. Use the terminal-hosted reply template at ${templatePath}.`;
   }
 
-  return `Detected host interface: unknown. Default to the CLI reply template at ${templatePath} unless stronger host evidence appears later.`;
+  return `Detected host interface: unknown. Default to the Markdown-safe reply template at ${templatePath} unless stronger host evidence appears later.`;
 }
 
 function findExistingFile(startDir, relativePath) {
@@ -291,7 +370,7 @@ if (typeof nativeResult.status === "number" && nativeResult.status !== 0) {
   process.exit();
 }
 
-const hostInterface = detectHostInterface();
+const hostInterface = detectHostInterface(payload);
 const existingOutput = parseJson(nativeResult.stdout || "");
 const hookEventName = detectHookEventName(payload, existingOutput);
 const additionalContext = buildAdditionalContext(hostInterface, hookEventName, payload);
