@@ -59,6 +59,9 @@ At runtime:
 - `UserPromptSubmit` prepends a lightweight reminder pointing back to the rules file
 - rules lookup prefers the nearest upward `.codex/memory/USER.md`, then falls back to `~/.codex/memory/USER.md`
 - template lookup is relative to the installed package root
+- Codex Desktop and editor-style hosts should resolve to the Markdown/code-block template
+- unknown hosts should default to the Markdown-safe template instead of assuming ANSI-safe CLI output
+- native host detection should run inside the Node wrapper so Windows Codex setups do not depend on external `bash` availability
 
 ## Operational Rules
 
@@ -66,6 +69,7 @@ At runtime:
 - Keep the runtime templates in `references/` and sync them through the installer instead of duplicating them into `USER.md`.
 - If the user asks to verify installation, check both the install root under `CODEX_HOME` and the managed entries in `hooks.json`.
 - If the installed wrapper exists but points at stale paths, reinstall instead of hand-editing the generated runtime tree.
+- When Markdown hosts render alignment inconsistently, prefer a fenced `text` code block over tables or raw aligned prose.
 
 ## Output Contract
 
@@ -79,3 +83,12 @@ When working under this skill:
 
 - Keep explanation concise and operational.
 - Treat hook installation as a concrete runtime prerequisite, not as implied metadata.
+
+## Postmortems
+
+### Host detection should not depend on missing shell runtimes
+
+- Symptom: reply-format hooks in Windows Codex Desktop kept falling back to the wrong template even after host-specific rules existed.
+- Root cause: the native hook wrapper delegated host detection to a `bash` script, but the runtime environment had no usable WSL/bash, so detection always degraded to `unknown`.
+- Repair pattern: run host-capability detection inside the always-available wrapper runtime first, and treat shell helpers as optional secondary entrypoints rather than required dependencies.
+- Preventative check: when a cross-host hook decides formatting or policy, verify the primary detection path runs in the same runtime that executes the hook, and test one Windows/no-WSL environment before trusting shell-based probes.

@@ -51,6 +51,13 @@ bash scripts/reinstall.sh
 
 默认会把运行时安装到用户当前工作区里最近的 `.codex/`；如果当前目录向上没有工作区级 `.codex/`，则回退到包含这个 `inority-workspace` 仓库的总工作区 `.codex/`。
 
+## 当前格式约定 | Current Format Contract
+
+- CLI 宿主继续使用三行 `Goal / Ambiguity / Risk` 的纯文本头部。
+- Markdown/Codex Desktop 宿主默认使用 fenced `text` code block，而不是 Markdown 表格。
+- 未识别宿主默认回退到 Markdown-safe 模板，不再假设 ANSI 一定可用。
+- 原生 hook 的宿主判断应在 Node wrapper 内完成，避免依赖外部 `bash` 或 WSL。
+
 ## 相关文件 | Related Files
 
 | 路径 | 说明 |
