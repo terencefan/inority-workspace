@@ -1,0 +1,6 @@
+interface:
+  display_name: "Inority 反思沉淀"
+  short_description: "提炼当前线程的长期记忆候选，等待用户选择后再落盘。"
+  default_prompt: "Use $inority-memory-reflect when the user wants reusable lesson candidates from the current thread or just-finished repair in the inority memory system. Produce numbered candidates, map each one to USER.md, WORKSPACE.md, SOUL.md, or credential.yaml, and wait for explicit user selection before writing durable memory."
+policy:
+  allow_implicit_invocation: false

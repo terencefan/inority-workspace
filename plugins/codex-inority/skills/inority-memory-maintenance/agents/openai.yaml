@@ -1,6 +1,0 @@
-interface:
-  display_name: "Inority Memory Maintenance"
-  short_description: "安装、修复和审计 codex-inority memory runtime。"
-  default_prompt: "Use $inority-memory-maintenance to install, repair, audit, or reorganize the codex-inority workspace memory runtime. Link only SOUL and USER to maintained sources; keep all other runtime files local."
-policy:
-  allow_implicit_invocation: false

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Inority Reply"
+  short_description: "管理 inority reply hook、模板与运行时安装。"
+  default_prompt: "Use $inority-reply to manage the inority reply-format system, including hook installation, verification, repair, and host-aware reply templates."
+policy:
+  allow_implicit_invocation: false

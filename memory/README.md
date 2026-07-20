@@ -4,12 +4,10 @@ Cross-environment reusable memory assets live in this directory.
 
 ## Scope
 
-- `SOUL.md`: agent 的稳定行事风格
-- `USER.md`: 用户个人偏好
-- runtime `WORKSPACE.md`: 团队在当前工作区通用的偏好
-- 具体 workflow、工具和领域规则由对应 skill 维护，不写入 memory
+- `SOUL.md`: reusable operating principles
+- `USER.md`: reusable collaboration preferences
 - public runtime-facing memory entrypoints are installed into target workspaces by
-  `plugins/codex-inority/skills/inority-memory-maintenance/scripts/`
+  `skills/inority-memory/scripts/`
 
 ## Install Contract
 
@@ -26,6 +24,5 @@ Sensitive workspace-local memory content should stay outside this source directo
 as real content:
 
 - `WORKSPACE.md`
-- `credential.md`：credential 总索引；按用途指向 `credential.d/*.yaml`
-- `credential.d/`：分类保存的本地敏感 credential YAML
+- `credential.yaml`
 - `dairy/`

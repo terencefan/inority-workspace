@@ -1,0 +1,6 @@
+interface:
+  display_name: "Inority Memory"
+  short_description: "管理 inority 风格的 memory runtime、安装修复与落点治理。"
+  default_prompt: "Use $inority-memory to govern the inority-style workspace memory runtime, including runtime initialization and repair, `.codex/memory/` structure, entrypoint cleanup, integrity checks, durable-memory placement, and migrate suggestions for non-inority-style memory. Use sibling skills for current-thread reflection and dairy-note distillation."
+policy:
+  allow_implicit_invocation: false
