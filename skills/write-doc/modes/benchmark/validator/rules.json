@@ -32,7 +32,7 @@
           "errorCode": "E061"
         }
       ],
-      "flags": ["referenceSection", "experimentResultMapping"]
+      "flags": ["referenceSection", "experimentResultMapping", "benchmarkExperimentCallouts"]
     }
   ]
 }

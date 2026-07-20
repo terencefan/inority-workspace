@@ -42,7 +42,7 @@ description: 用于编写或整理产品 spec、技术 spec、LLM 节点 spec、
 
 ## 跨模式共通规则
 
-1. 先判定模式，再读取对应模式目录里的 `MODE.md`、template 和 validator 规则；不要在主 skill 里硬背每种模式的章节细节。
+1. 先判定模式，再读取对应模式目录里的 `MODE.md`、template 和 validator 规则。主 skill 只保留跨模式规则和需要稳定复用的文档格式契约，实验方法等领域细节由对应 mode 维护。
 2. 优先使用仓库事实，不用泛化措辞替代真实代码、接口、表、事件、目录边界。
 3. 正文定稿前，用真实用户问答收敛歧义、路径和验收含义；不要自问自答。
 4. 若涉及稳定接口、数据库表契约、状态 schema、事件 payload 或跨模块 I/O，默认同时进入 `contract` 模式，把稳定契约独立成 `-contract.md` 文件，再在 spec 正文里引用。
@@ -50,6 +50,27 @@ description: 用于编写或整理产品 spec、技术 spec、LLM 节点 spec、
 6. 新建、重命名、拆分、合并或废弃 authority spec / contract 后，按对应模式规则同步更新 `docs/spec/README.md` 或 `docs/contract/README.md`；`README` 模式不负责这两类总纲。
 7. 如果用户在本轮给出可复用的写作偏好，结束前更新主 skill 或对应模式目录下的说明文件。
 8. 文档需要数学、统计或性能计算公式时，完整读取 `references/formulas.md` 并遵循其中的语法选择、符号定义和渲染验收规则；不要把公式截图当作正文公式。
+
+## Benchmark 文档格式
+
+本节只定义 benchmark 的呈现契约。实验设计、有效窗口、统计判定、基线晋升、精度门禁和资源回收方法统一读取 `modes/benchmark/MODE.md`，不得在这里另建一套方法论。
+
+- 文档类型固定写为 `当前文档类型：benchmark`。
+- 一级标题使用 `<对象> <实验主题> Benchmark`，不添加日期、实验 ID 或批次前缀。
+- 默认路径为 `docs/benchmark/YYYY-MM-DD/<topic>.md`。项目已约定 `docs/report/` 时可以沿用目录，但文档类型仍为 benchmark。
+- H2 固定按 `结论`、`目标`、`范围`、`方法`、`实验基线`、`实验组`、`实验结果`、`排除项`、`未确认项`、`资源回收`、`建议`、`参考资料` 排列。
+- `目标` 下固定使用 `待提升的指标`、`实验约束` 两个 H3。`方法` 下固定使用 `实验设计`、`统计方法` 两个 H3。
+- `实验组` 登记表与 `实验结果` 的实验 ID 必须一一对应、顺序一致。
+- 每个实验结果只使用一个 `### <实验 ID> <名称>`。首个内容块必须是 callout，并写明结论分类。已完成实验同时写相对控制基线的带符号百分比，例如 `显著正向（+12.3%）`。
+- 实验卡片内使用加粗字段、列表和 Markdown 表格组织参数、配置、逐轮数据、精度、决策、资产和资源回收，不再增加 H4、H5 或 H6。
+- `实验结果` 必须保留 Markdown 结果表。未知值写为 `测量中` 或 `未取得（具体原因）`，不能填写推测值。
+- `参考资料` 必须位于最后。公式遵循 `references/formulas.md`。
+
+新建文档从 `modes/benchmark/templates/benchmark-template.md` 开始，定稿前执行：
+
+```shell
+scripts/docctl validate <benchmark-path>
+```
 
 ## Validator 入口回归规则
 

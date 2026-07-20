@@ -18,24 +18,6 @@
       "flags": [
         "referenceSection"
       ]
-    },
-    {
-      "name": "压测报告",
-      "typeLabel": "document",
-      "titlePattern": "^\\d{4}-\\d{2}-\\d{2}\\b",
-      "requiredH2": [
-        "目标",
-        "回退门禁",
-        "基线",
-        "实验矩阵",
-        "实验结论",
-        "最终结果",
-        "风险与后续",
-        "证据"
-      ],
-      "flags": [
-        "benchmarkExperimentCallouts"
-      ]
     }
   ]
 }

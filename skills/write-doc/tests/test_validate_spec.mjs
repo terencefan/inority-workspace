@@ -11,7 +11,7 @@ const REFERENCE_CONTRACT = path.join(ASSETS_DIR, "reference-contract.md");
 const REFERENCE_CONTRACT_OVERVIEW = path.join(ASSETS_DIR, "contract-overview", "README.md");
 const REFERENCE_RCA = path.join(ASSETS_DIR, "reference-rca.md");
 const REFERENCE_REPORT = path.join(ASSETS_DIR, "reference-report.md");
-const REFERENCE_BENCHMARK_REPORT = path.join(ASSETS_DIR, "reference-benchmark-report.md");
+const REFERENCE_BENCHMARK = path.join(ASSETS_DIR, "reference-benchmark.md");
 const REFERENCE_MODULE_README = path.join(ASSETS_DIR, "folder-readme", "README.md");
 const REFERENCE_PROJECT_README = path.join(ASSETS_DIR, "project-readme", "README.md");
 
@@ -32,7 +32,7 @@ function fixturePath(name) {
     case "research_report":
       return REFERENCE_REPORT;
     case "benchmark_report":
-      return REFERENCE_BENCHMARK_REPORT;
+      return REFERENCE_BENCHMARK;
     case "readme_doc":
       return REFERENCE_MODULE_README;
     case "project_readme":
@@ -70,34 +70,35 @@ test("reference research report passes validation", () => {
   assert.deepEqual(collectErrors(loadText(REFERENCE_REPORT), { pathValue: REFERENCE_REPORT }), []);
 });
 
-test("reference benchmark report passes validation", () => {
-  assert.deepEqual(collectErrors(loadText(REFERENCE_BENCHMARK_REPORT), { pathValue: REFERENCE_BENCHMARK_REPORT }), []);
+test("reference benchmark passes validation", () => {
+  assert.deepEqual(collectErrors(loadText(REFERENCE_BENCHMARK), { pathValue: REFERENCE_BENCHMARK }), []);
 });
 
-test("benchmark report requires direction callout for every experiment", () => {
-  const mutated = loadText(REFERENCE_BENCHMARK_REPORT)
-    .replace("> [!TIP]\n> 显著正向（+100.0%）：吞吐量达到目标。\n", "吞吐量达到目标。\n");
-  const codes = new Set(collectErrors(mutated, { pathValue: REFERENCE_BENCHMARK_REPORT }).map((item) => item.code));
-  assert.ok(codes.has("E059"));
+test("benchmark requires a classified callout for every experiment", () => {
+  const mutated = loadText(REFERENCE_BENCHMARK)
+    .replace("> [!TIP]\n> 结论分类：显著正向（+100.0%）。吞吐量达到目标且约束通过。\n", "吞吐量达到目标。\n");
+  const codes = new Set(collectErrors(mutated, { pathValue: REFERENCE_BENCHMARK }).map((item) => item.code));
+  assert.ok(codes.has("E067"));
 });
 
-test("benchmark report requires a markdown result table for every experiment", () => {
-  const mutated = loadText(REFERENCE_BENCHMARK_REPORT)
+test("benchmark requires a markdown result table for every experiment", () => {
+  const mutated = loadText(REFERENCE_BENCHMARK)
     .replace("| 项目 | 结果 |\n| --- | --- |\n| 吞吐量 | 20 req/s |\n| 证据 | `/tmp/run.json` |", "吞吐量为 20 req/s");
-  const codes = new Set(collectErrors(mutated, { pathValue: REFERENCE_BENCHMARK_REPORT }).map((item) => item.code));
-  assert.ok(codes.has("E060"));
+  const codes = new Set(collectErrors(mutated, { pathValue: REFERENCE_BENCHMARK }).map((item) => item.code));
+  assert.ok(codes.has("E068"));
 });
 
-test("benchmark report accepts an unrelated experiment callout", () => {
-  const mutated = loadText(REFERENCE_BENCHMARK_REPORT)
-    .replace("> [!TIP]\n> 显著正向（+100.0%）：吞吐量达到目标。", "> [!NOTE]\n> 不相关（+0.0%）：该变量不影响吞吐量。");
-  assert.deepEqual(collectErrors(mutated, { pathValue: REFERENCE_BENCHMARK_REPORT }), []);
+test("benchmark accepts an unrelated experiment callout", () => {
+  const mutated = loadText(REFERENCE_BENCHMARK)
+    .replace("> [!TIP]\n> 结论分类：显著正向（+100.0%）。吞吐量达到目标且约束通过。", "> [!IMPORTANT]\n> 结论分类：不相关（排除）（+0.0%）。该变量不影响吞吐量。");
+  assert.deepEqual(collectErrors(mutated, { pathValue: REFERENCE_BENCHMARK }), []);
 });
 
-test("benchmark report requires matrix and conclusion names to align", () => {
-  const mutated = loadText(REFERENCE_BENCHMARK_REPORT).replace("### 实验 1：增大 batch", "### 另一个实验");
-  const codes = new Set(collectErrors(mutated, { pathValue: REFERENCE_BENCHMARK_REPORT }).map((item) => item.code));
-  assert.ok(codes.has("E061"));
+test("benchmark completed callout requires a signed relative percentage", () => {
+  const mutated = loadText(REFERENCE_BENCHMARK)
+    .replace("显著正向（+100.0%）", "显著正向");
+  const codes = new Set(collectErrors(mutated, { pathValue: REFERENCE_BENCHMARK }).map((item) => item.code));
+  assert.ok(codes.has("E069"));
 });
 
 test("reference module README passes validation", () => {

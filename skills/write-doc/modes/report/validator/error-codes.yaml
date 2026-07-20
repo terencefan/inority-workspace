@@ -1,10 +1,2 @@
 E057:
   message: "调研报告标题必须以 YYYY-MM-DD 开头"
-E059:
-  message: "压测报告的每组实验结论必须以 TIP/正向、WARNING/负向或 NOTE/不相关 callout 开头"
-E060:
-  message: "压测报告的每组实验结论必须在方向 callout 后使用 Markdown 表格展示结果"
-E061:
-  message: "压测报告的实验矩阵方向与实验结论三级标题必须同名且一一对应"
-E062:
-  message: "压测报告的已完成实验方向 callout 必须包含带符号百分比"
