@@ -1,0 +1,22 @@
+{
+  "name": "codex-inority",
+  "version": "0.1.0+codex.20260716115555",
+  "description": "Workspace memory loading and host-aware reply contracts for Codex.",
+  "author": {
+    "name": "Terence Fan"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Codex Inority",
+    "shortDescription": "Load workspace memory and apply reply contracts.",
+    "longDescription": "Codex Inority reinjects workspace and project memory plus host-aware reply rules at session start and on every prompt.",
+    "developerName": "Terence Fan",
+    "category": "Productivity",
+    "capabilities": [
+      "Read"
+    ],
+    "defaultPrompt": [
+      "Check the Codex Inority runtime status"
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Inority 反思沉淀"
+  short_description: "提炼当前线程的长期记忆候选，等待用户选择后再落盘。"
+  default_prompt: "Use $inority-memory-reflect to classify current-thread candidates as personal preference, team workspace preference, agent style, domain skill rule, credential, or nowhere. Wait for explicit user selection before writing."
+policy:
+  allow_implicit_invocation: false
