@@ -41,6 +41,37 @@
 - dry-run 通过只证明命令形状大概率可行，不等同于执行授权
 - dry-run 失败是规划输入，不要在 recon lane 里修命令
 
+## 规划态并行 lane
+
+规划态允许主 agent 并行启动多个 recon subagent，但每个 lane 必须满足：
+
+- 问题原子化：只回答一个可独立判定的事实集合，例如单台主机容量、单个 namespace 资源、单条网络路径或单份上游 authority
+- 边界不重叠：避免多个 lane 同时占用同一交互式 SSH 会话、轰击同一远端接口或重复扫描同一范围
+- 上下文最小化：dispatch 只提供问题、目标环境、只读边界、必要路径和返回 schema，不附带主 agent 的预期结论
+- 模型轻量化：运行时支持模型选择时，优先使用满足工具与推理要求的轻量模型；不支持时自然回退，不阻断 recon
+- 产物只回传：subagent 不编辑 authority、spec 或共享记录，不调用 `runctl`，只向主 agent 返回证据
+
+推荐返回 schema：
+
+```text
+lane: <稳定名称>
+scope: <主机/namespace/URL/文件边界>
+observed_at: <带时区时间>
+commands: <关键只读命令及退出码>
+confirmed: <已确认事实>
+unknown: <未确认项>
+conflicts: <与既有证据的冲突；无则 none>
+impact: <对 ambiguity/risk/路径的影响>
+```
+
+主 agent 回收后必须：
+
+1. 等待所有必需 lane 返回，非必需 lane 超时可标记未确认。
+2. 检查证据是否仍在指定 scope、是否只读、时间是否足够新。
+3. 对冲突结论做主 agent 复核或追加一个独立只读 lane，不以多数票替代事实。
+4. 去重并区分已确认与未确认项，再更新 `ambiguity`、`risk` 和 authority。
+5. 在用户可见的规划更新中汇报 lane 数量、覆盖范围和未确认项，不暴露凭据或冗长原始输出。
+
 ## 最终验收专用约束
 
 如果当前 recon 用于 `## 最终验收`：
@@ -57,3 +88,5 @@
 - 已确认事实
 - 未确认项
 - 对规划或执行路径的影响
+
+并行 recon 还必须遵循本文件的统一返回 schema，便于主 agent 机械回收与交叉检查。

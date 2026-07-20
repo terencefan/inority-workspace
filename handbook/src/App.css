@@ -647,12 +647,52 @@
   min-width: 0;
 }
 
-.sidebar-quick-access {
+.sidebar-document-search {
   display: grid;
   gap: 0.7rem;
   margin-bottom: 0.9rem;
   padding-bottom: 0.9rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-search-results {
+  display: grid;
+  gap: 0.35rem;
+  max-height: min(42vh, 420px);
+  overflow-y: auto;
+}
+
+.sidebar-search-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.16rem;
+  width: 100%;
+  padding: 0.48rem 0.58rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #d4d4d4;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar-search-result:hover,
+.sidebar-search-result.is-active {
+  border-color: rgba(78, 161, 255, 0.5);
+  background: rgba(78, 161, 255, 0.1);
+}
+
+.sidebar-search-title {
+  color: #dce7f5;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.sidebar-search-path,
+.sidebar-search-hint {
+  color: #7f8794;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  word-break: break-word;
 }
 
 .sidebar-quick-access-header {
@@ -966,7 +1006,7 @@
 
 .mui-shell.theme-light .mui-sidebar-toc ul ul,
 .mui-shell.theme-light .toc-nav ul ul,
-.mui-shell.theme-light .sidebar-quick-access,
+.mui-shell.theme-light .sidebar-document-search,
 .mui-shell.theme-light .doc-tree-view .MuiTreeItem-groupTransition,
 .mui-shell.theme-light .markdown-body th,
 .mui-shell.theme-light .markdown-body td,
@@ -975,6 +1015,15 @@
 .mui-shell.theme-light .markdown-body pre,
 .mui-shell.theme-light .markdown-body .codehilite {
   border-color: rgba(15, 23, 42, 0.1);
+}
+
+.mui-shell.theme-light .sidebar-search-title {
+  color: #142033;
+}
+
+.mui-shell.theme-light .sidebar-search-path,
+.mui-shell.theme-light .sidebar-search-hint {
+  color: #64748b;
 }
 
 .mui-shell.theme-light .mui-sidebar-toc a,

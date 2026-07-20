@@ -107,3 +107,43 @@ export function reconcileExpandedItems(currentExpandedItems, files, selectionPat
 
   return nextExpandedItems
 }
+
+export function searchDocuments(files, fileMeta, query, limit = 20) {
+  const normalizedQuery = query.trim().toLocaleLowerCase()
+  if (!normalizedQuery) {
+    return []
+  }
+
+  return files
+    .map((path) => {
+      const fileName = path.split('/').filter(Boolean).at(-1) || path
+      const title = fileMeta[path]?.title || ''
+      const normalizedFileName = fileName.toLocaleLowerCase()
+      const normalizedTitle = title.toLocaleLowerCase()
+      const fileNameIndex = normalizedFileName.indexOf(normalizedQuery)
+      const titleIndex = normalizedTitle.indexOf(normalizedQuery)
+
+      if (fileNameIndex === -1 && titleIndex === -1) {
+        return null
+      }
+
+      const score =
+        normalizedFileName === normalizedQuery || normalizedTitle === normalizedQuery
+          ? 0
+          : normalizedFileName.startsWith(normalizedQuery) || normalizedTitle.startsWith(normalizedQuery)
+            ? 1
+            : Math.min(fileNameIndex === -1 ? Infinity : fileNameIndex, titleIndex === -1 ? Infinity : titleIndex) + 2
+
+      const modifiedAt = Date.parse(fileMeta[path]?.modified_at || '') || 0
+      return { path, fileName, title, score, modifiedAt }
+    })
+    .filter(Boolean)
+    .sort(
+      (left, right) =>
+        right.modifiedAt - left.modifiedAt ||
+        left.score - right.score ||
+        left.fileName.localeCompare(right.fileName) ||
+        left.path.localeCompare(right.path),
+    )
+    .slice(0, limit)
+}

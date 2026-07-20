@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { rmSync } from "node:fs";
-import { collectErrors } from "../scripts/commands/validate.mjs";
+import { collectErrors, filterIncrementalDraftErrors } from "../scripts/commands/validate.mjs";
 import { REFERENCE_TEMPLATE, loadText, runRunctl } from "./helpers.mjs";
 
 test("runctl remove-step removes plan and record item", async () => {
@@ -17,7 +17,7 @@ test("runctl remove-step removes plan and record item", async () => {
     const content = readFileSync(runbookPath, "utf8");
     assert.match(result.stdout, /\[runbook-remove-step] removed item 2/);
     assert.ok(!content.includes("### 🔴 2. <编号项标题>"));
-    assert.deepEqual(await collectErrors(content), []);
+    assert.deepEqual(filterIncrementalDraftErrors(await collectErrors(content)), []);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -36,7 +36,7 @@ test("runctl move-step reorders existing item", async () => {
     assert.match(moveResult.stdout, /\[runbook-move-step] moved item 3 after 1/);
     assert.equal((content.match(/### 🟡 2\. 收尾检查/g) ?? []).length, 2);
     assert.equal((content.match(/### 🔴 3\. <编号项标题>/g) ?? []).length, 2);
-    assert.deepEqual(await collectErrors(content), []);
+    assert.deepEqual(filterIncrementalDraftErrors(await collectErrors(content)), []);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

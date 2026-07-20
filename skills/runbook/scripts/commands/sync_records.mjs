@@ -2,7 +2,7 @@ import path from "node:path";
 import { promises as fs } from "node:fs";
 import { splitLinesKeepEnds } from "./shared.mjs";
 import { NUMBERED_H3_RE, extractH3Blocks, normalizeFile, parseSections, sectionSlice } from "./normalize.mjs";
-import { collectErrors, printFail } from "./validate.mjs";
+import { collectErrors, filterIncrementalDraftErrors, printFail } from "./validate.mjs";
 
 const TRAFFIC_PREFIXES = ["🟢 ", "🟡 ", "🔴 "];
 
@@ -45,7 +45,7 @@ export async function handleSyncRecords(args) {
     const rewritten = syncRecords(await fs.readFile(filePath, "utf8"));
     await fs.writeFile(filePath, rewritten, "utf8");
     const { normalized } = await normalizeFile(filePath);
-    const errors = await collectErrors(normalized);
+    const errors = filterIncrementalDraftErrors(await collectErrors(normalized));
     if (errors.length > 0) {
       printFail(filePath, errors, false);
       return 1;

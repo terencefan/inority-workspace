@@ -12,6 +12,27 @@ test("reference template passes validation", async () => {
   assert.deepEqual(await collectErrors(loadText(REFERENCE_TEMPLATE)), []);
 });
 
+test("record blocks reject duplicate execution and acceptance headings", async () => {
+  const templateText = loadText(REFERENCE_TEMPLATE);
+  const duplicateExecution = templateText.replace(
+    "#### 执行记录\n\n执行命令：",
+    "#### 执行记录\n\n#### 执行记录\n\n执行命令：",
+  );
+  const duplicateAcceptance = templateText.replace(
+    "#### 验收记录\n\n验收命令：",
+    "#### 验收记录\n\n#### 验收记录\n\n验收命令：",
+  );
+  assert.ok((await collectErrors(duplicateExecution)).some((item) => item.code === "E130"));
+  assert.ok((await collectErrors(duplicateAcceptance)).some((item) => item.code === "E131"));
+});
+
+test("final validation rejects incomplete final acceptance", async () => {
+  const codes = new Set((await collectErrors(loadText(REFERENCE_TEMPLATE), null, { final: true })).map((item) => item.code));
+  for (const code of ["E117", "E118", "E119", "E120", "E121"]) {
+    assert.ok(codes.has(code), code);
+  }
+});
+
 test("error code catalog covers runtime codes", async () => {
   const runtimeCodes = new Set((loadText(path.join(SCRIPTS_DIR, "commands", "validate.mjs")).match(/"(E\d{3})"/g) ?? []).map((item) => item.slice(1, -1)));
   runtimeCodes.add("E000");

@@ -143,6 +143,7 @@ test('tree payload excludes hidden markdown by default and includes file metadat
 
   assert.deepEqual(payload.files, ['project/docs/README.md', 'project/README.md', 'slides/brand-fancy', 'slides/demo-basic'])
   assert.equal(payload.file_meta['project/README.md'].bytes, Buffer.byteLength('# Visible\n'))
+  assert.match(payload.file_meta['project/README.md'].modified_at, /^\d{4}-\d{2}-\d{2}T/)
   assert.equal(payload.file_meta['project/README.md'].title, 'Visible')
   assert.equal(payload.file_meta['project/docs/README.md'].title, 'Docs')
   assert.equal(payload.file_meta['slides/brand-fancy'].kind, 'slides')

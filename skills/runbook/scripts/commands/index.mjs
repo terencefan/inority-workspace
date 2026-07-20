@@ -17,7 +17,7 @@ const COMMANDS = {
   "move-step": { handler: handleMoveStep, options: ["path", "--item", "--after"] },
   "remove-step": { handler: handleRemoveStep, options: ["path", "--item"] },
   normalize: { handler: handleNormalize, options: ["path"] },
-  validate: { handler: handleValidate, options: ["path", "--json"] },
+  validate: { handler: handleValidate, options: ["path", "--json", "--final"] },
   "validate-planning-mode": { handler: handleValidatePlanningMode, options: ["path", "--mode", "--json"] },
   "shift-items": { handler: handleShiftItems, options: ["runbook", "--start", "--shift", "--in-place"] },
   "sign-step": { handler: handleSignStep, options: ["runbook", "--item", "--phase", "--signer", "--timestamp", "--dry-run"] },
@@ -104,9 +104,10 @@ function parseArgs(command, argv) {
     case "remove-step":
       return { path: ensurePositional(argv, 0, "path"), item: parseIntegerFlag(argv, "--item") };
     case "normalize":
-    case "validate":
     case "sync-records":
       return { path: ensurePositional(argv, 0, "path"), json: hasFlag(argv, "--json") };
+    case "validate":
+      return { path: ensurePositional(argv, 0, "path"), json: hasFlag(argv, "--json"), final: hasFlag(argv, "--final") };
     case "validate-planning-mode":
       return { path: ensurePositional(argv, 0, "path"), mode: parseFlagValue(argv, "--mode"), json: hasFlag(argv, "--json") };
     case "shift-items":

@@ -17,10 +17,7 @@
 
 - skill 文档：`SKILL.md`
 - 规划态子文档：`references/planning/plan-mode.md`
-- 类型子文档：
-  - `references/planning/coding-runbook.md`
-  - `references/planning/operation-runbook.md`
-  - `references/planning/migration-runbook.md`
+- operation 子文档：`references/planning/operation-runbook.md`
 - 执行态子文档：
   - `references/execution/solo.md`
   - `references/execution/team.md`
@@ -37,9 +34,7 @@
 | --- | --- |
 | `SKILL.md` | 主入口骨架，负责分流与装配 |
 | `references/planning/plan-mode.md` | 规划态主体规则 |
-| `references/planning/coding-runbook.md` | coding 类型 runbook 子文档 |
 | `references/planning/operation-runbook.md` | operation 类型 runbook 子文档 |
-| `references/planning/migration-runbook.md` | migration 类型 runbook 子文档 |
 | `references/execution/solo.md` | `solo` 执行控制面子文档 |
 | `references/execution/team.md` | `team` 执行控制面子文档 |
 | `references/recon/recon.md` | 只读侦察 phase 子文档 |
@@ -49,4 +44,3 @@
 | `references/assets/validator-error-codes.yaml` | `runctl validate` 的错误码与解释 |
 | `scripts/runctl` | runbook 初始化、编辑、规范化、校验的统一入口 |
 | `tests/` | `runctl` 子命令与规则的回归测试 |
-

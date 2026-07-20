@@ -17,7 +17,7 @@ E021:
 E022:
   message: "### {title} 的 dot 代码块不允许继续使用 Arial"
 E030:
-  message: "## 访谈记录 至少需要 5 条真实用户访谈"
+  message: "## 访谈记录 至少需要 3 条真实用户访谈，禁止为满足数量制造问答"
 E031:
   message: "## 访谈记录 下的三级标题必须是 ### Q：问题正文"
 E032:
@@ -177,9 +177,49 @@ E108:
 E109:
   message: "runbook 标题下必须紧跟 > [!NOTE]"
 E110:
-  message: "runbook 标题下必须紧跟一行 当前模式：`coding|operation|migration`"
+  message: "runbook 标题下必须紧跟一行 当前模式：`operation`"
 E111:
   message: "## 资源命名 必须包含一个 Markdown checkbox，用于确认用户已同意资源命名"
+E112:
+  message: "### {title} 的 #### 验收 必须包含 验收命令："
+E113:
+  message: "### {title} 的 #### 验收 必须包含 判定标准：，并写明退出码、精确返回值、字段、计数或阈值"
+E114:
+  message: "### {title} 的 #### 验收命令仍含 ...、<占位符> 或空命令，必须替换为可直接执行的真实命令"
+E115:
+  message: "### {title} 必须且只能包含一个 #### 执行；同类动作请在一个块内串行，跨 scope 请拆成新编号项"
+E116:
+  message: "### {title} 必须且只能包含一个 #### 验收；请用一个汇总验收块完成该编号项判定"
+E117:
+  message: "final 校验要求 ## 最终验收 中的 checkbox 全部勾选"
+E118:
+  message: "final 校验要求 最终验收命令 为不含占位符的真实命令"
+E119:
+  message: "final 校验要求 最终验收结果 非空且不含占位符或待验收状态"
+E120:
+  message: "final 校验要求 最终验收结论 明确为通过"
+E121:
+  message: "final 校验要求勾选 spec 对齐项，或明确说明 spec 对齐不适用"
+E122:
+  message: "### {title} 的 #### 验收 仍含 ...、<占位符> 或待填写内容"
+E123:
+  message: "### {title} 的 判定标准 必须在退出码之外明确字段、返回值、计数、阈值或可验证状态"
+E124:
+  message: "### {title} 的验收命令不能只使用 true、冒号、echo 或 printf 等无判定能力命令"
+E125:
+  message: "## 清理现场 标记不适用时必须填写不含占位符的不适用原因"
+E126:
+  message: "## 清理现场 不能同时标记不适用并提供清理命令"
+E127:
+  message: "## 资源命名 标记不适用时必须填写不含占位符的不适用原因"
+E128:
+  message: "## 资源命名 适用时必须包含资源/名称/说明三列表格和至少一条资源记录"
+E129:
+  message: "## 资源命名 必须由用户明确确认并勾选 checkbox，包括不适用场景"
+E130:
+  message: "### {title} 的执行记录必须且只能有一个 #### 执行记录 heading"
+E131:
+  message: "### {title} 的执行记录必须且只能有一个 #### 验收记录 heading"
 E200:
   message: "planning mode 标题必须严格为: {expected_title}"
 E201:

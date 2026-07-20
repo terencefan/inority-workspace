@@ -79,7 +79,7 @@ function insertionIndex(blocks, after) {
 function buildPlanStep(number, title) {
   const trafficLight = TRAFFIC_PREFIXES.find((prefix) => title.startsWith(prefix)) ?? "🟡 ";
   const clean = TRAFFIC_PREFIXES.some((prefix) => title.startsWith(prefix)) ? title.slice(2) : title;
-  return `\n<a id="item-${number}"></a>\n\n### ${trafficLight}${number}. ${clean}\n\n> [!WARNING]\n> 本步骤以幂等方式执行：${clean}。\n\n#### 执行\n\n[跳转到执行记录](#item-${number}-execution-record)\n\n操作性质：幂等\n\n执行分组：<执行分组标题>\n\n\`\`\`bash\n...\n\`\`\`\n\n预期结果：\n\n- <预期状态变化或产物>\n\n停止条件：\n\n- <失败条件>\n- <若命中停止条件或出现新的事实，必须回规划态>\n\n#### 验收\n\n[跳转到验收记录](#item-${number}-acceptance-record)\n\n验收命令：\n\n\`\`\`bash\n...\n\`\`\`\n\n预期结果：\n\n- <通过证据>\n\n停止条件：\n\n- <验收失败条件>\n- <若验收失败或出现新 blocker，不得直接续跑下一项>\n`;
+  return `\n<a id="item-${number}"></a>\n\n### ${trafficLight}${number}. ${clean}\n\n> [!WARNING]\n> 本步骤以幂等方式执行：${clean}。\n\n#### 执行\n\n[跳转到执行记录](#item-${number}-execution-record)\n\n操作性质：幂等\n\n执行分组：<执行分组标题>\n\n\`\`\`bash\n...\n\`\`\`\n\n预期结果：\n\n- <预期状态变化或产物>\n\n停止条件：\n\n- <失败条件>\n- <若命中停止条件或出现新的事实，必须回规划态>\n\n#### 验收\n\n[跳转到验收记录](#item-${number}-acceptance-record)\n\n验收命令：\n\n\`\`\`bash\n...\n\`\`\`\n\n判定标准：\n\n- 命令退出码为 0\n- <精确返回值、字段、计数或阈值>\n\n预期结果：\n\n- <由上述命令直接证明的终态>\n\n停止条件：\n\n- <验收失败条件>\n- <若验收失败或出现新 blocker，不得直接续跑下一项>\n`;
 }
 
 function buildRecordStep(number, title) {

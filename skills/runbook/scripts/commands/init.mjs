@@ -2,14 +2,13 @@ import path from "node:path";
 import { promises as fs } from "node:fs";
 
 export const TITLE_PLACEHOLDER = "# <主题>执行手册";
-const MODE_PLACEHOLDER = "> 当前模式：`<coding|operation|migration>`";
 const AUTHORITY_SOURCE_PLACEHOLDER = "- authority source： [<spec 设计文档>.md](./<spec-设计文档>.md)";
-const VALID_MODES = new Set(["coding", "operation", "migration"]);
+const VALID_MODES = new Set(["operation"]);
 const AUTHORITY_TEMPLATE_PATH = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../../references/assets/authority-runbook-template.md");
 export const SKELETON_TEMPLATE = `# <主题>执行手册
 
 > [!NOTE]
-> 当前模式：\`<coding|operation|migration>\`
+> 当前模式：\`operation\`
 
 ## 背景与现状
 
@@ -60,7 +59,7 @@ function cleanTitle(title) {
   if (!cleaned || cleaned.includes("\n")) {
     throw new Error("`--title` must be a single non-empty line");
   }
-  return cleaned;
+  return cleaned.endsWith("执行手册") ? cleaned : `${cleaned}执行手册`;
 }
 
 function assertMode(mode) {
@@ -80,30 +79,11 @@ function sourceLinkLine(sourcePath, targetPath) {
   return `- authority source： [${linkLabel}](${normalized.startsWith(".") ? normalized : `./${normalized}`})`;
 }
 
-function renderCodingFirstStep(template) {
-  return template
-    .replace("第一个编号项必须写成 `冻结现状`。", "第一个编号项必须写成 `保证工作区干净`。")
-    .replace("### 🟢 1. 冻结现状", "### 🟢 1. 保证工作区干净")
-    .replace("本步骤只读冻结当前现场状态并生成后续执行依据。", "本步骤只读确认工作区、分支和未提交变更状态，为后续代码修改提供一致基线。")
-    .replace("<现场冻结分组标题>", "<工作区基线分组标题>")
-    .replace("<冻结后的证据 1>", "<工作区干净或已识别脏文件边界>")
-    .replace("<冻结后的证据 2>", "<当前分支、HEAD 与相关工作区状态已留证>")
-    .replace("<冻结失败条件 1>", "<无法确认当前仓库或工作区范围>")
-    .replace("<冻结失败条件 2>", "<存在未收敛的脏变更且边界不清>")
-    .replace("<执行者可以确认后续动作基于同一份冻结现状>", "<执行者可以确认后续代码修改基于同一份工作区基线>")
-    .replace("<冻结证据不足>", "<工作区状态证据不足>")
-    .replace("<冻结证据无法支撑 `### 现状`>", "<工作区基线无法支撑 `### 现状`>");
-}
-
 async function renderAuthorityTemplate({ title, mode, source, targetPath }) {
   let template = await fs.readFile(AUTHORITY_TEMPLATE_PATH, "utf8");
   template = template.replace(TITLE_PLACEHOLDER, `# ${title}`);
-  template = template.replace(MODE_PLACEHOLDER, `> 当前模式：\`${mode}\``);
   if (source) {
     template = template.replace(AUTHORITY_SOURCE_PLACEHOLDER, sourceLinkLine(source, targetPath));
-  }
-  if (mode === "coding") {
-    template = renderCodingFirstStep(template);
   }
   return template;
 }
