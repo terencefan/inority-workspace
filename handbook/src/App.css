@@ -277,6 +277,28 @@
     monospace;
 }
 
+.markdown-body .md-math-inline {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: middle;
+}
+
+.markdown-body .md-math-block {
+  max-width: 100%;
+  margin: 1rem 0 1.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  color: inherit;
+}
+
+.markdown-body .md-math-block .katex-display {
+  width: max-content;
+  min-width: 100%;
+  margin: 0;
+  padding: 0.35rem 0.5rem;
+  text-align: center;
+}
+
 .markdown-body :not(pre) > code {
   padding: 0.15rem 0.35rem;
   background: rgba(255, 255, 255, 0.06);

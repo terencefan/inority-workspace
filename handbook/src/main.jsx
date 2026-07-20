@@ -2,6 +2,7 @@ import { StrictMode, useEffect, useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material'
 import { alpha } from '@mui/material/styles'
+import 'katex/dist/katex.min.css'
 import './index.css'
 import App from './App.jsx'
 
@@ -326,9 +327,12 @@ function buildTheme(mode) {
         baseTheme.palette.mode === 'dark' ? 0.08 : 0.12,
       ),
       headerBackground: alpha(
-        baseTheme.palette.mode === 'dark' ? baseTheme.palette.common.white : '#0f172a',
-        baseTheme.palette.mode === 'dark' ? 0.04 : 0.03,
+        baseTheme.palette.primary.main,
+        baseTheme.palette.mode === 'dark' ? 0.2 : 0.1,
       ),
+      headerText: baseTheme.palette.mode === 'dark' ? '#eff6ff' : '#163b73',
+      headerBorder: alpha(baseTheme.palette.primary.main, baseTheme.palette.mode === 'dark' ? 0.72 : 0.58),
+      headerShadow: alpha(baseTheme.palette.primary.main, baseTheme.palette.mode === 'dark' ? 0.12 : 0.08),
       rowStripe: alpha(
         baseTheme.palette.mode === 'dark' ? baseTheme.palette.common.white : '#0f172a',
         baseTheme.palette.mode === 'dark' ? 0.015 : 0.018,

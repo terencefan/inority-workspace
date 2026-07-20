@@ -1,4 +1,5 @@
 import MarkdownIt from 'markdown-it'
+import katex from 'katex'
 
 const markdownParser = new MarkdownIt({
   html: true,
@@ -8,8 +9,130 @@ const markdownParser = new MarkdownIt({
 
 applyTaskListPlugin(markdownParser)
 applyColorSpanPlugin(markdownParser)
+applyKatexPlugin(markdownParser)
 
 const COLOR_SPAN_PATTERN = /\[([^\]\n]+)\]\{(#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?)\}/gu
+
+function renderKatex(source, displayMode) {
+  return katex.renderToString(source, {
+    displayMode,
+    throwOnError: false,
+    strict: 'warn',
+    trust: false,
+    output: 'htmlAndMathml',
+  })
+}
+
+function applyKatexPlugin(renderer) {
+  renderer.core.ruler.after('block', 'math_fences', (state) => {
+    for (const token of state.tokens) {
+      if (token.type !== 'fence') {
+        continue
+      }
+
+      const language = token.info.trim().split(/\s+/u)[0]?.toLowerCase()
+      if (language !== 'katex' && language !== 'math') {
+        continue
+      }
+
+      const content = token.content.trim()
+      token.type = 'html_block'
+      token.tag = ''
+      token.nesting = 0
+      token.content = content
+        ? `<div class="md-math-block">${renderKatex(content, true)}</div>`
+        : ''
+    }
+  })
+
+  renderer.block.ruler.before('fence', 'math_block', (state, startLine, endLine, silent) => {
+    const start = state.bMarks[startLine] + state.tShift[startLine]
+    const finish = state.eMarks[startLine]
+    const openingLine = state.src.slice(start, finish).trim()
+
+    if (!openingLine.startsWith('$$')) {
+      return false
+    }
+
+    let content = ''
+    let nextLine = startLine + 1
+    if (openingLine.length > 4 && openingLine.endsWith('$$')) {
+      content = openingLine.slice(2, -2).trim()
+    } else if (openingLine !== '$$') {
+      return false
+    } else {
+      const body = []
+      let foundClosingDelimiter = false
+      while (nextLine < endLine) {
+        const lineStart = state.bMarks[nextLine] + state.tShift[nextLine]
+        const lineEnd = state.eMarks[nextLine]
+        const line = state.src.slice(lineStart, lineEnd)
+        if (line.trim() === '$$') {
+          foundClosingDelimiter = true
+          break
+        }
+        body.push(line)
+        nextLine += 1
+      }
+      if (!foundClosingDelimiter) {
+        return false
+      }
+      content = body.join('\n').trim()
+    }
+
+    if (!content) {
+      return false
+    }
+    if (silent) {
+      return true
+    }
+
+    const token = state.push('html_block', '', 0)
+    token.block = true
+    token.map = [startLine, nextLine + 1]
+    token.content = `<div class="md-math-block">${renderKatex(content, true)}</div>`
+    state.line = nextLine + 1
+    return true
+  })
+
+  renderer.inline.ruler.before('escape', 'math_inline', (state, silent) => {
+    const start = state.pos
+    if (state.src[start] !== '$' || state.src[start + 1] === '$') {
+      return false
+    }
+    if (start > 0 && state.src[start - 1] === '\\') {
+      return false
+    }
+
+    let end = start + 1
+    while (end < state.posMax) {
+      if (state.src[end] === '$' && state.src[end - 1] !== '\\') {
+        break
+      }
+      end += 1
+    }
+    if (end >= state.posMax || end === start + 1) {
+      return false
+    }
+    const content = state.src.slice(start + 1, end)
+    if (content.includes('`') || /\r|\n/u.test(content)) {
+      return false
+    }
+    if (/\s/u.test(state.src[start + 1]) || /\s/u.test(state.src[end - 1])) {
+      return false
+    }
+    if (/\d/u.test(state.src[end + 1] || '')) {
+      return false
+    }
+
+    if (!silent) {
+      const token = state.push('html_inline', '', 0)
+      token.content = `<span class="md-math-inline">${renderKatex(content, false)}</span>`
+    }
+    state.pos = end + 1
+    return true
+  })
+}
 
 function applyTaskListPlugin(renderer) {
   renderer.core.ruler.after('inline', 'task_list_items', (state) => {
