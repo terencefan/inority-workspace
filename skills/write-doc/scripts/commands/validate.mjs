@@ -545,48 +545,41 @@ function validateProjectReadmeLinks(lines, h2Sections) {
 
 function validateBenchmarkExperimentCallouts(lines, h2Sections) {
   const errors = [];
-  const section = sectionSlice(h2Sections, "实验结论", lines.length);
+  const section = sectionSlice(h2Sections, "实验结果", lines.length);
   if (section == null) {
     return errors;
   }
   const [start, end] = section;
-  const experiments = parseNestedSections(lines, start + 1, end, 3);
+  const experiments = parseNestedSections(lines, start + 1, end, 3)
+    .filter(([, title]) => title !== "结果总表");
   for (const [headingStart, , headingEnd] of experiments) {
     const calloutIdx = firstNonEmptyLineIdx(lines, headingStart + 1, headingEnd);
     const callout = calloutIdx == null ? "" : lines[calloutIdx].trim();
     const bodyIdx = calloutIdx == null ? null : firstNonEmptyLineIdx(lines, calloutIdx + 1, headingEnd);
     const body = bodyIdx == null ? "" : lines[bodyIdx].trim();
-    const positive = callout === "> [!TIP]" && /^> (?:显著)?正向（\+\d+(?:\.\d+)?%）：/.test(body);
-    const negative = callout === "> [!WARNING]" && /^> (?:显著)?负向（-\d+(?:\.\d+)?%）：/.test(body);
-    const unrelated = callout === "> [!NOTE]" && /^> 不相关（[+-]\d+(?:\.\d+)?%）：/.test(body);
-    const pending = callout === "> [!IMPORTANT]" && body.startsWith("> 待验证：");
-    if (!positive && !negative && !unrelated && !pending) {
-      errors.push(err("E059", lines, calloutIdx ?? headingStart));
+    const positive = callout === "> [!TIP]" && /^> 结论分类：显著正向/.test(body);
+    const directional = callout === "> [!NOTE]" && /^> 结论分类：(正向但不显著|中性)/.test(body);
+    const negative = ["> [!WARNING]", "> [!CAUTION]"].includes(callout)
+      && /^> 结论分类：(负向但不显著|显著负向)/.test(body);
+    const excluded = callout === "> [!IMPORTANT]" && /^> 结论分类：不相关（排除）/.test(body);
+    const pending = callout === "> [!IMPORTANT]" && /^> (?:结论分类：)?测量中/.test(body);
+    if (!positive && !directional && !negative && !excluded && !pending) {
+      errors.push(err("E067", lines, calloutIdx ?? headingStart));
     }
     if (!pending && !/（[+-]\d+(?:\.\d+)?%）/.test(body)) {
-      errors.push(err("E062", lines, bodyIdx ?? headingStart));
+      errors.push(err("E069", lines, bodyIdx ?? headingStart));
     }
-    const tableStart = bodyIdx == null ? null : firstNonEmptyLineIdx(lines, bodyIdx + 1, headingEnd);
-    const tableHeader = tableStart == null ? "" : lines[tableStart].trim();
-    const tableDivider = tableStart == null ? "" : (lines[tableStart + 1] ?? "").trim();
-    if (!tableHeader.startsWith("|") || !tableHeader.endsWith("|") || !/^\|(?:\s*:?-+:?\s*\|)+$/.test(tableDivider)) {
-      errors.push(err("E060", lines, tableStart ?? headingStart));
+    let tableStart = null;
+    for (let idx = (bodyIdx ?? headingStart) + 1; idx < headingEnd - 1; idx += 1) {
+      const header = lines[idx].trim();
+      const divider = (lines[idx + 1] ?? "").trim();
+      if (header.startsWith("|") && header.endsWith("|") && /^\|(?:\s*:?-+:?\s*\|)+$/.test(divider)) {
+        tableStart = idx;
+        break;
+      }
     }
-  }
-  const matrix = sectionSlice(h2Sections, "实验矩阵", lines.length);
-  if (matrix != null) {
-    const [matrixStart, matrixEnd] = matrix;
-    const names = [];
-    for (let idx = matrixStart + 1; idx < matrixEnd; idx += 1) {
-      const row = lines[idx].trim();
-      if (!row.startsWith("|") || !row.endsWith("|")) continue;
-      const cells = row.slice(1, -1).split("|").map((cell) => cell.trim());
-      if (!cells[0] || cells[0] === "实验" || /^:?-+:?$/.test(cells[0])) continue;
-      names.push(cells[0].replace(/<[^>]+>/g, "").replace(/\*\*/g, "").replace(/`/g, ""));
-    }
-    const headings = experiments.map(([, title]) => title);
-    if (JSON.stringify(names) !== JSON.stringify(headings)) {
-      errors.push(err("E061", lines, matrixStart));
+    if (tableStart == null) {
+      errors.push(err("E068", lines, headingStart));
     }
   }
   return errors;

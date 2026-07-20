@@ -12,3 +12,9 @@ E065:
   message: "benchmark 的‘实验组’与‘实验结果’必须按实验 ID 一一对应，不得缺失、重复或多出"
 E066:
   message: "benchmark 的实验 ID 必须在‘实验组’与‘实验结果’中保持相同顺序，并按同一编号前缀严格递增"
+E067:
+  message: "benchmark 的每个实验结果必须以匹配结论分类的 callout 开头"
+E068:
+  message: "benchmark 的每个实验结果必须包含 Markdown 结果表"
+E069:
+  message: "benchmark 的已完成实验 callout 必须包含相对控制基线的带符号百分比"
