@@ -66,7 +66,7 @@ description: 用于编写或整理产品 spec、技术 spec、LLM 节点 spec、
 - `实验结果` 必须保留 Markdown 结果表。未知值写为 `测量中` 或 `未取得（具体原因）`，不能填写推测值。
 - `参考资料` 必须位于最后。公式遵循 `references/formulas.md`。
 
-新建文档从 report mode 统一维护的 `modes/report/templates/report-template.md` 开始。Benchmark 使用文件前半部分的主模板，非压测 report 使用末尾的补充模板。定稿前执行：
+新建文档从 `modes/benchmark/templates/benchmark-template.md` 开始，定稿前执行：
 
 ```shell
 scripts/docctl validate <benchmark-path>

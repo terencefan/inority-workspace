@@ -37,8 +37,7 @@
 
 ## 模板
 
-- 统一模板：`templates/report-template.md`
-- 文件前半部分是 Benchmark 主模板。非压测 report 使用末尾的补充模板，创建文档时删除 Benchmark 部分。
+- `templates/report-template.md`
 
 ## Validator
 
