@@ -75,6 +75,53 @@ test("reference project README passes validation", () => {
   assert.deepEqual(collectErrors(loadText(REFERENCE_PROJECT_README), { pathValue: REFERENCE_PROJECT_README }), []);
 });
 
+function benchmarkWithExperiments(groupIds, resultIds) {
+  const requiredSections = ["结论", "目标", "范围", "方法", "实验基线"];
+  const lines = [
+    "# Example Benchmark",
+    "",
+    "> [!NOTE]",
+    "> 当前文档类型：benchmark",
+    "",
+    ...requiredSections.flatMap((title) => {
+      if (title === "目标") return ["## 目标", "", "### 待提升的指标", "", "### 实验约束", ""];
+      if (title === "方法") return ["## 方法", "", "### 实验设计", "", "### 统计方法", ""];
+      return [`## ${title}`, ""];
+    }),
+    "## 实验组",
+    "",
+    "| 实验组 | 状态 |",
+    "| --- | --- |",
+    ...groupIds.map((id) => `| ${id} test | completed |`),
+    "",
+    "## 实验结果",
+    "",
+    "### 结果总表",
+    "",
+    ...resultIds.flatMap((id) => [`### ${id} test`, ""]),
+    "## 排除项", "", "## 未确认项", "", "## 资源回收", "", "## 建议", "",
+    "## 参考资料", "", "- [asset](./asset.json)", "",
+  ];
+  return lines.join("\n");
+}
+
+test("benchmark experiment groups and results map one-to-one in increasing order", () => {
+  const errors = collectErrors(benchmarkWithExperiments(["N1", "N2", "P0", "N2b", "N3"], ["N1", "N2", "P0", "N2b", "N3"]));
+  assert.equal(errors.some((item) => item.code === "E065" || item.code === "E066"), false);
+});
+
+test("benchmark rejects missing or duplicate result cards", () => {
+  const codes = new Set(collectErrors(benchmarkWithExperiments(["N1", "N2"], ["N1", "N1"])).map((item) => item.code));
+  assert.ok(codes.has("E065"));
+});
+
+test("benchmark rejects mismatched order and decreasing experiment IDs", () => {
+  const orderCodes = new Set(collectErrors(benchmarkWithExperiments(["N1", "N2"], ["N2", "N1"])).map((item) => item.code));
+  const decreasingCodes = new Set(collectErrors(benchmarkWithExperiments(["N2", "N1"], ["N2", "N1"])).map((item) => item.code));
+  assert.ok(orderCodes.has("E066"));
+  assert.ok(decreasingCodes.has("E066"));
+});
+
 test("llm spec requires explicit system and user prompt sections", () => {
   const mutated = loadText(REFERENCE_LLM_SPEC)
     .replace(`### system prompt

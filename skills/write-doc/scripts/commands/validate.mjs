@@ -221,7 +221,7 @@ function validateHeadingStructure(lines, pathValue) {
     errors.push(err("E002", lines, 0));
   }
   if (rule.titlePattern && !(new RegExp(rule.titlePattern).test(title))) {
-    errors.push(err("E057", lines, 0));
+    errors.push(err(rule.titleErrorCode ?? "E057", lines, 0));
   }
 
   if (pathValue != null) {
@@ -608,6 +608,88 @@ function validateComparisonSection(lines, h2Sections) {
   return errors;
 }
 
+function parseExperimentId(value) {
+  const match = value.match(/^([A-Za-z]+)(\d+)([a-z]*)$/);
+  if (!match) {
+    return null;
+  }
+  return { prefix: match[1].toUpperCase(), number: Number(match[2]), suffix: match[3] };
+}
+
+function collectBenchmarkExperimentIds(lines, h2Sections) {
+  const groupsSection = sectionSlice(h2Sections, "实验组", lines.length);
+  const resultsSection = sectionSlice(h2Sections, "实验结果", lines.length);
+  const groupIds = [];
+  const resultIds = [];
+
+  if (groupsSection != null) {
+    for (let idx = groupsSection[0] + 1; idx < groupsSection[1]; idx += 1) {
+      const match = lines[idx].match(/^\|\s*([A-Za-z]+\d+[a-z]*)\b/);
+      if (match && parseExperimentId(match[1])) {
+        groupIds.push({ id: match[1], lineIdx: idx });
+      }
+    }
+  }
+
+  if (resultsSection != null) {
+    for (let idx = resultsSection[0] + 1; idx < resultsSection[1]; idx += 1) {
+      const match = lines[idx].match(/^###\s+([A-Za-z]+\d+[a-z]*)\b/);
+      if (match && parseExperimentId(match[1])) {
+        resultIds.push({ id: match[1], lineIdx: idx });
+      }
+    }
+  }
+
+  return { groupIds, resultIds };
+}
+
+function sameIdMultiset(left, right) {
+  const counts = (items) => {
+    const result = new Map();
+    for (const { id } of items) {
+      result.set(id, (result.get(id) ?? 0) + 1);
+    }
+    return result;
+  };
+  const leftCounts = counts(left);
+  const rightCounts = counts(right);
+  return leftCounts.size === rightCounts.size
+    && [...leftCounts].every(([id, count]) => rightCounts.get(id) === count && count === 1);
+}
+
+function firstNonIncreasingExperiment(items) {
+  const previousByPrefix = new Map();
+  for (const item of items) {
+    const parsed = parseExperimentId(item.id);
+    const previous = previousByPrefix.get(parsed.prefix);
+    if (previous != null) {
+      const increasing = parsed.number > previous.number
+        || (parsed.number === previous.number && parsed.suffix > previous.suffix);
+      if (!increasing) {
+        return item;
+      }
+    }
+    previousByPrefix.set(parsed.prefix, parsed);
+  }
+  return null;
+}
+
+function validateBenchmarkExperimentMapping(lines, h2Sections) {
+  const { groupIds, resultIds } = collectBenchmarkExperimentIds(lines, h2Sections);
+  if (!sameIdMultiset(groupIds, resultIds)) {
+    const lineIdx = groupIds[0]?.lineIdx ?? resultIds[0]?.lineIdx ?? 0;
+    return [err("E065", lines, lineIdx, `实验组: ${groupIds.map(({ id }) => id).join(", ")}；实验结果: ${resultIds.map(({ id }) => id).join(", ")}`)];
+  }
+
+  const sameOrder = groupIds.every(({ id }, index) => resultIds[index]?.id === id);
+  const nonIncreasing = firstNonIncreasingExperiment(groupIds) ?? firstNonIncreasingExperiment(resultIds);
+  if (!sameOrder || nonIncreasing != null) {
+    const lineIdx = nonIncreasing?.lineIdx ?? groupIds[0]?.lineIdx ?? 0;
+    return [err("E066", lines, lineIdx, `实验组: ${groupIds.map(({ id }) => id).join(", ")}；实验结果: ${resultIds.map(({ id }) => id).join(", ")}`)];
+  }
+  return [];
+}
+
 export function collectErrors(text, { pathValue = null } = {}) {
   const normalized = text.replace(/\r\n/g, "\n");
   const lines = normalized.split("\n");
@@ -649,6 +731,9 @@ export function collectErrors(text, { pathValue = null } = {}) {
     }
     if (flags.has("projectReadmeLinks")) {
       errors.push(...validateProjectReadmeLinks(lines, h2Sections));
+    }
+    if (flags.has("experimentResultMapping")) {
+      errors.push(...validateBenchmarkExperimentMapping(lines, h2Sections));
     }
   }
   errors.push(...collectMarkdownDotErrors(normalized, { allowNoBlocks: true }));
@@ -709,6 +794,6 @@ export function main(argv = process.argv.slice(2), { stdin = readStdin(), stdout
   return 1;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] != null && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   process.exitCode = main();
 }

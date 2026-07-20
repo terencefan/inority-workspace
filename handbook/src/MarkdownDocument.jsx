@@ -1315,6 +1315,8 @@ function renderMarkdownNode(node, key, themeMode = 'dark') {
             my: 3,
             overflowX: 'auto',
             border: (theme) => `1px solid ${getMarkdownTokens(theme).table?.border || alpha(theme.palette.common.white, 0.08)}`,
+            boxShadow: (theme) =>
+              `0 8px 24px ${getMarkdownTokens(theme).table?.headerShadow || alpha(theme.palette.common.black, 0.08)}`,
           }}
         >
           <Table
@@ -1323,6 +1325,10 @@ function renderMarkdownNode(node, key, themeMode = 'dark') {
               minWidth: '100%',
               '& td, & th': {
                 borderColor: (theme) => getMarkdownTokens(theme).table?.border || theme.palette.divider,
+              },
+              '& thead th': {
+                borderBottom: (theme) =>
+                  `2px solid ${getMarkdownTokens(theme).table?.headerBorder || theme.palette.primary.main}`,
               },
               '& tbody tr:nth-of-type(odd)': {
                 backgroundColor: (theme) => getMarkdownTokens(theme).table?.rowStripe || 'transparent',
@@ -1347,9 +1353,15 @@ function renderMarkdownNode(node, key, themeMode = 'dark') {
           scope="col"
           align={getCellAlign(token)}
           sx={{
-            fontWeight: 700,
-            color: 'common.white',
+            py: 1.15,
+            fontWeight: 800,
+            fontSize: '0.84rem',
+            lineHeight: 1.35,
+            letterSpacing: '0.025em',
+            color: (theme) => getMarkdownTokens(theme).table?.headerText || theme.palette.text.primary,
             backgroundColor: (theme) => getMarkdownTokens(theme).table?.headerBackground || 'transparent',
+            borderBottom: (theme) =>
+              `2px solid ${getMarkdownTokens(theme).table?.headerBorder || theme.palette.primary.main}`,
           }}
         >
           {renderNodeChildren(children, `${key}-th`, themeMode)}

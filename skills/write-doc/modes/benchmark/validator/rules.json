@@ -1,0 +1,38 @@
+{
+  "mode": "benchmark",
+  "docTypes": [
+    {
+      "name": "benchmark",
+      "typeLabel": "document",
+      "titlePattern": "^(?!\\d{4}-\\d{2}-\\d{2}\\b).+\\bBenchmark\\b",
+      "titleErrorCode": "E064",
+      "requiredH2": [
+        "结论",
+        "目标",
+        "范围",
+        "方法",
+        "实验基线",
+        "实验组",
+        "实验结果",
+        "排除项",
+        "未确认项",
+        "资源回收",
+        "建议",
+        "参考资料"
+      ],
+      "exactH3": [
+        {
+          "section": "目标",
+          "expected": ["待提升的指标", "实验约束"],
+          "errorCode": "E060"
+        },
+        {
+          "section": "方法",
+          "expected": ["实验设计", "统计方法"],
+          "errorCode": "E061"
+        }
+      ],
+      "flags": ["referenceSection", "experimentResultMapping"]
+    }
+  ]
+}

@@ -102,6 +102,50 @@ test('table cells support inline color span syntax', () => {
   assert.equal(tokens[1].content, '#abcdef')
 })
 
+test('markdown formulas render through KaTeX for inline and display math', () => {
+  const source = `Inline $R=N/T$ formula.
+
+$$
+R_j=\\frac{N_j}{T_j}
+$$
+`
+
+  const { nodes } = buildMarkdownNodes(source)
+  const paragraph = nodes.find((node) => node.token.type === 'paragraph_open')
+  const inline = paragraph?.children.find((node) => node.token.type === 'inline')
+  const inlineMath = inline?.token.children?.find((token) => token.type === 'html_inline')
+  const blockMath = nodes.find((node) => node.token.type === 'html_block')
+
+  assert.match(inlineMath?.content || '', /md-math-inline/u)
+  assert.match(inlineMath?.content || '', /class="katex"/u)
+  assert.match(blockMath?.token.content || '', /md-math-block/u)
+  assert.match(blockMath?.token.content || '', /class="katex-display"/u)
+  assert.match(blockMath?.token.content || '', /\\frac/u)
+})
+
+test('markdown formulas leave currency and inline code untouched', () => {
+  const { nodes } = buildMarkdownNodes('Price is $5 and $10; code is `$R=N/T$`.')
+  const paragraph = nodes.find((node) => node.token.type === 'paragraph_open')
+  const inline = paragraph?.children.find((node) => node.token.type === 'inline')
+  const tokens = inline?.token.children || []
+
+  assert.equal(tokens.some((token) => token.type === 'html_inline'), false)
+  assert.equal(tokens.some((token) => token.type === 'code_inline' && token.content === '$R=N/T$'), true)
+})
+
+test('katex and math fenced blocks render as display formulas while ordinary fences stay code', () => {
+  const source = ['```katex', 'R_j=\\frac{N_j}{T_j}', '```', '', '```js', 'const value = 1', '```'].join('\n')
+  const { nodes } = buildMarkdownNodes(source)
+  const formula = nodes.find((node) => node.token.type === 'html_block')
+  const code = nodes.find((node) => node.token.type === 'fence')
+
+  assert.match(formula?.token.content || '', /md-math-block/u)
+  assert.match(formula?.token.content || '', /class="katex-display"/u)
+  assert.match(formula?.token.content || '', /\\frac/u)
+  assert.equal(code?.token.info, 'js')
+  assert.equal(code?.token.content, 'const value = 1\n')
+})
+
 test('svg render utils detect fenced svg and html svg blocks', () => {
   const svgMarkup = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
   <rect x="10" y="10" width="80" height="80" />

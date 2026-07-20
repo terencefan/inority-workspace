@@ -28,7 +28,6 @@ FROM ${BASE_IMAGE_PREFIX}${NODE_BASE_IMAGE} AS markdown-packager
 
 WORKDIR /src/workspace
 
-COPY dataset-asset-dashboard ./dataset-asset-dashboard
 COPY . ./
 
 RUN mkdir -p /out/workspace \

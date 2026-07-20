@@ -1,0 +1,14 @@
+E060:
+  message: "benchmark 的‘目标’必须且只能包含：待提升的指标 / 实验约束"
+E061:
+  message: "benchmark 的‘方法’必须且只能包含：实验设计 / 统计方法"
+E062:
+  message: "benchmark 的‘基线’必须且只能包含：历史基线 / 当前控制基线 / 基线候选 / 连续三轮验证 / 晋升决策"
+E063:
+  message: "benchmark 的‘实验结果’必须且只能包含：结果总表 / 显著正向 / 正向但不显著 / 中性 / 负向但不显著 / 显著负向"
+E064:
+  message: "benchmark 标题必须以 Benchmark 收尾，且不得重复日期前缀"
+E065:
+  message: "benchmark 的‘实验组’与‘实验结果’必须按实验 ID 一一对应，不得缺失、重复或多出"
+E066:
+  message: "benchmark 的实验 ID 必须在‘实验组’与‘实验结果’中保持相同顺序，并按同一编号前缀严格递增"
