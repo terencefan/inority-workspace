@@ -15,6 +15,31 @@ const REFERENCE_BENCHMARK = path.join(ASSETS_DIR, "reference-benchmark.md");
 const REFERENCE_MODULE_README = path.join(ASSETS_DIR, "folder-readme", "README.md");
 const REFERENCE_PROJECT_README = path.join(ASSETS_DIR, "project-readme", "README.md");
 
+const TEMPLATE_CASES = [
+  ["modes/spec/templates/product-spec-template.md", "/tmp/product-spec.md"],
+  ["modes/spec/templates/technical-spec-template.md", "/tmp/technical-spec.md"],
+  ["modes/spec/templates/llm-node-spec-template.md", "/tmp/llm-node-spec.md"],
+  ["modes/spec/templates/spec-overview-readme-template.md", "/tmp/spec/README.md"],
+  ["modes/contract/templates/contract-template.md", "/tmp/example-contract.md"],
+  ["modes/contract/templates/contract-overview-readme-template.md", "/tmp/contract/README.md"],
+  ["modes/readme/templates/project-readme-template.md", "/tmp/project/README.md"],
+  ["modes/readme/templates/module-readme-template.md", "/tmp/module/README.md"],
+  ["modes/benchmark/templates/benchmark-template.md", "/tmp/example-benchmark.md"],
+  ["modes/report/templates/report-template.md", "/tmp/example-report.md"],
+  ["modes/rca/templates/rca-template.md", "/tmp/example-rca.md"],
+];
+
+test("full document templates conform to their mode validators", () => {
+  for (const [relativePath, targetPath] of TEMPLATE_CASES) {
+    const templatePath = path.join(path.dirname(ASSETS_DIR), "..", relativePath);
+    assert.deepEqual(
+      collectErrors(loadText(templatePath), { pathValue: targetPath }),
+      [],
+      `invalid template: ${relativePath}`,
+    );
+  }
+});
+
 function fixturePath(name) {
   switch (name) {
     case "spec":

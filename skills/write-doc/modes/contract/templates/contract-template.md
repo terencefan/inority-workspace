@@ -1,8 +1,3 @@
-# Contract 模板
-
-适用于需要把稳定接口、数据库表契约、事件载荷、状态机、JSON Schema 或跨模块 I/O 独立冻结成 authority contract 的场景。默认落盘位置是与 `spec/` 平级的 `contract/` 目录，例如 `docs/contract/`；当该目录下 contract 增长到多份时，默认再补一份 `docs/contract/README.md` 作为总纲入口。
-
-```md
 # <主题>Contract
 
 > [!NOTE]
@@ -14,7 +9,7 @@
 
 说明这份 contract 覆盖哪些对象，以及明确不覆盖哪些实现细节或方案叙事。
 
-## Authority 说明
+## authority 说明
 
 - authority owner：<谁维护这份 contract>
 - primary consumers：<哪些服务 / 仓 / 模块依赖它>
@@ -158,4 +153,3 @@ digraph StateMachine {
 
 - [引用这份 contract 的 spec](./example-spec.md)
 - [schema / migration / code owner 文档](../README.md)
-```
