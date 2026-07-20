@@ -27,7 +27,8 @@
 
 ## 模板
 
-- `templates/benchmark-template.md`
+- 统一模板：`../report/templates/report-template.md`
+- Benchmark 使用文件前半部分的主模板。非压测 report 补充模板由 report mode 使用。
 
 ## Validator
 
