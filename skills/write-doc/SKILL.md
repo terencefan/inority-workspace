@@ -79,14 +79,7 @@ description: 用于编写或整理产品 spec、技术 spec、LLM 节点 spec、
 
 ### Benchmark
 
-- 文档类型固定写为 `当前文档类型：benchmark`。
-- 一级标题使用 `<对象> <实验主题> Benchmark`，不添加日期、实验 ID 或批次前缀。
-- 默认路径为 `docs/benchmark/YYYY-MM-DD/<topic>.md`。项目已约定 `docs/report/` 时可以沿用目录，但文档类型仍为 benchmark。
-- H2 固定按 `结论`、`目标`、`范围`、`方法`、`实验基线`、`实验组`、`实验结果`、`排除项`、`未确认项`、`资源回收`、`建议`、`参考资料` 排列。
-- `目标` 固定包含 `待提升的指标`、`实验约束` 两个 H3。`方法` 固定包含 `实验设计`、`统计方法` 两个 H3。
-- `实验组` 与 `实验结果` 的实验 ID 必须一一对应且顺序一致。每个结果只使用一个 `### <实验 ID> <名称>`，首个内容块必须是含结论分类和带符号百分比的 callout。
-- 实验卡片使用加粗字段、列表和 Markdown 表格，不增加 H4、H5 或 H6。未知值写为 `测量中` 或 `未取得（具体原因）`。
-- 模板位于 `modes/benchmark/templates/benchmark-template.md`。
+- 详细格式、模板和实验方法统一由 `modes/benchmark/MODE.md` 维护。
 
 ### Report
 
