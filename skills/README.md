@@ -27,11 +27,7 @@
 | `checkout/` | 工作区级 Git 扫描、提交与 PR/MR 汇总发布 |
 | `draw-dot/` | Graphviz / DOT 图生成与收敛 |
 | `inority/` | inority workspace 的通用资产与共享脚本 |
-| `inority-memory/` | workspace memory 安装、同步与维护 |
-| `inority-memory-distill/` | memory 蒸馏与沉淀 |
-| `inority-memory-reflect/` | memory 反思与回写 |
 | `inority-question/` | 统一提问、澄清、路线确认与访谈问答协议 |
-| `inority-reply/` | 回复格式与运行时 hook 安装 |
 | `inority-slides/` | slides / deck / H5 演示稿规划与交付 |
 | `runbook/` | authority runbook 主 skill；主入口轻薄，规划与执行规则按子文档加载 |
 | `wow-addon-development/` | WoW addon 开发与调试 |
@@ -93,10 +89,7 @@ digraph skills_topology {
     label="运行时治理与其他独立 skill";
     color="#cbd5e1";
     inority_base_runtime [label="inority", fillcolor="#fde68a"];
-    inority_memory [label="inority-memory"];
-    inority_memory_distill [label="inority-memory-distill"];
-    inority_memory_reflect [label="inority-memory-reflect"];
-    inority_reply [label="inority-reply"];
+    codex_inority [label="codex-inority plugin"];
     wow_addon [label="wow-addon-development"];
   }
 
@@ -113,11 +106,9 @@ digraph skills_topology {
   runbook -> inority_question [label="提问/确认路线"];
   runbook -> draw_dot [style=dashed, label="需要 DOT 时"];
 
-  inority_memory -> inority_memory_distill [style=dotted, label="同域协作"];
-  inority_memory -> inority_memory_reflect [style=dotted, label="同域协作"];
-  inority_base_runtime -> inority_memory [style=invis];
+  inority_base_runtime -> codex_inority [style=invis];
 
-  inority_reply -> wow_addon [style=invis];
+  codex_inority -> wow_addon [style=invis];
   write_readme -> write_spec [style=invis];
 }
 ```
@@ -140,13 +131,12 @@ digraph skills_topology {
 - 通用基座类：`inority/`
 - 运维类：`runbook/`
 - 演示类：`inority-slides/`、`draw-dot/`
-- 运行时治理类：`inority-memory/`、`inority-reply/`、`inority-question/`
+- 运行时治理类：`../plugins/codex-inority/`、`inority-question/`
 
 ## 相关文档
 
 - [仓库根 README](../README.md)
-- [inority-memory](./inority-memory/README.md)
-- [inority-reply](./inority-reply/README.md)
+- [codex-inority](../plugins/codex-inority/README.md)
 - [inority-slides](./inority-slides/README.md)
 - [runbook](./runbook/README.md)
 - [write-doc](./write-doc/README.md)
