@@ -11,5 +11,6 @@ description: 编写、维护和校验性能压测、模型吞吐、延迟、资�
 2. 完整读取 [`../write-doc/modes/benchmark/MODE.md`](../write-doc/modes/benchmark/MODE.md)，按其中的方法冻结目标、约束、数据集、统计判定、资源和回收责任。
 3. 新建文档使用 benchmark mode 内聚维护的 [`../write-doc/modes/benchmark/templates/benchmark-template.md`](../write-doc/modes/benchmark/templates/benchmark-template.md)，本 skill 不保存模板副本。
 4. 定稿前从 `write-doc` skill 根目录执行 `scripts/docctl validate <benchmark-path>`。
+5. 修改 skill 目录或引用后执行 `node scripts/validate.mjs`，检查目录结构和引用有效性。
 
 本入口不维护另一份 benchmark 规则。格式以主 `write-doc` skill 为准，实验方法、模板和 validator 以 benchmark mode 为准。

@@ -21,6 +21,7 @@
     "dot:test": "node ./skills/draw-dot/tests/run.mjs",
     "runbook:test": "node ./skills/runbook/tests/run.mjs",
     "slides:test": "node ./skills/inority-slides/tests/run.mjs",
-    "doc:test": "node ./skills/write-doc/tests/run.mjs"
+    "doc:test": "node ./skills/write-doc/tests/run.mjs",
+    "benchmark:skill:test": "node --test ./skills/benchmark/tests/validate.test.mjs"
   }
 }
