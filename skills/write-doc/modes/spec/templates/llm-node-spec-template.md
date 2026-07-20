@@ -1,8 +1,3 @@
-# LLM 节点 spec 模板
-
-适用于主要任务是冻结单个 LLM 节点、agent 节点或 prompt 驱动节点的 system prompt、user prompt、context 装配、输入输出契约、本地 reconcile 和状态写回边界的场景。`LLM 节点 spec` 默认写目标状态 authority contract，不承担“现状说明书”职责。
-
-```md
 # <主题>设计文档
 
 > [!NOTE]
@@ -216,4 +211,3 @@ digraph UserPromptProduction {
 
 - [节点实现](./node.py)
 - [prompt 定义](./prompt.py)
-```
