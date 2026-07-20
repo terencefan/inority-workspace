@@ -9,7 +9,7 @@ description: 编写、维护和校验性能压测、模型吞吐、延迟、资�
 
 1. 先读取 [`../../SKILL.md`](../../SKILL.md) 中的 `Benchmark 文档格式`，遵循统一呈现契约。
 2. 完整读取 [`MODE.md`](MODE.md)，按其中的方法冻结目标、约束、数据集、统计判定、资源和回收责任。
-3. 新建文档使用 [`templates/benchmark-template.md`](templates/benchmark-template.md)。
+3. 新建文档使用主 `write-doc` skill 统一维护的 [`../../templates/benchmark-template.md`](../../templates/benchmark-template.md)，本 skill 不保存模板副本。
 4. 定稿前从 `write-doc` skill 根目录执行 `scripts/docctl validate <benchmark-path>`。
 
 本入口不维护另一份 benchmark 规则。格式以主 `write-doc` skill 为准，实验方法以 `MODE.md` 为准。

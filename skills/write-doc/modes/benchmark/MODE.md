@@ -27,7 +27,8 @@
 
 ## 模板
 
-- `templates/benchmark-template.md`
+- 主 `write-doc` skill 统一维护：`../../templates/benchmark-template.md`
+- Benchmark mode 不单独保存模板副本。
 
 ## Validator
 
