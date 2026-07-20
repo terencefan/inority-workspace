@@ -74,7 +74,7 @@ await runCase("init supports title and force overwrite", async () => {
     const runbookPath = path.join(dir, "authority.md");
     let result = await runRunctl(["init", runbookPath, "--title", "Canary Bootstrap"]);
     assert.equal(result.status, 0);
-    assert.ok(readFileSync(runbookPath, "utf8").startsWith("# Canary Bootstrap\n"));
+    assert.ok(readFileSync(runbookPath, "utf8").startsWith("# Canary Bootstrap执行手册\n"));
     writeFileSync(runbookPath, "existing\n", "utf8");
     result = await runRunctl(["init", runbookPath]);
     assert.equal(result.status, 1);
@@ -85,32 +85,38 @@ await runCase("init supports title and force overwrite", async () => {
   });
 });
 
-await runCase("init supports mode-aware authority template and source injection", async () => {
+await runCase("init supports operation authority template and source injection", async () => {
   await withTempDir("runbook-init-mode-", async (dir) => {
     const runbookPath = path.join(dir, "authority.md");
     const sourcePath = path.join(dir, "upstream-spec.md");
     writeFileSync(sourcePath, "# upstream\n", "utf8");
-    let result = await runRunctl(["init", runbookPath, "--title", "Migration Authority", "--mode", "migration"]);
+    let result = await runRunctl(["init", runbookPath, "--title", "Operation Authority", "--mode", "operation"]);
     assert.equal(result.status, 0);
     let created = readFileSync(runbookPath, "utf8");
-    assert.equal(created, await renderTemplate({ title: "Migration Authority", mode: "migration", targetPath: runbookPath }));
-    assert.ok(created.includes("> 当前模式：`migration`"));
+    assert.equal(created, await renderTemplate({ title: "Operation Authority", mode: "operation", targetPath: runbookPath }));
+    assert.ok(created.startsWith("# Operation Authority执行手册\n"));
+    assert.ok(created.includes("> 当前模式：`operation`"));
     assert.ok(created.includes("| name | type | link | desc |"));
+    const draftCodes = new Set((await collectErrors(created)).map((error) => error.code));
+    assert.ok(draftCodes.has("E114"));
+    assert.ok(!draftCodes.has("E101"));
+    assert.ok(!draftCodes.has("E107"));
+    assert.ok(!draftCodes.has("E113"));
 
     result = await runRunctl([
       "init",
       runbookPath,
       "--title",
-      "Coding Authority",
+      "Operation Authority",
       "--mode",
-      "coding",
+      "operation",
       "--source",
       sourcePath,
       "--force",
     ]);
     assert.equal(result.status, 0);
     created = readFileSync(runbookPath, "utf8");
-    assert.ok(created.includes("### 🟢 1. 保证工作区干净"));
+    assert.ok(created.includes("### 🟢 1. 冻结现状"));
     assert.ok(created.includes("[upstream-spec.md](./upstream-spec.md)"));
   });
 });
@@ -118,9 +124,13 @@ await runCase("init supports mode-aware authority template and source injection"
 await runCase("init rejects invalid mode combinations", async () => {
   await withTempDir("runbook-init-invalid-", async (dir) => {
     const runbookPath = path.join(dir, "authority.md");
-    let result = await runRunctl(["init", runbookPath, "--mode", "migration"]);
+    let result = await runRunctl(["init", runbookPath, "--mode", "operation"]);
     assert.equal(result.status, 1);
     assert.match(result.stderr, /--mode` requires `--title`/);
+
+    result = await runRunctl(["init", runbookPath, "--title", "Legacy Migration", "--mode", "migration"]);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /expected one of: operation/);
 
     result = await runRunctl(["init", runbookPath, "--title", "Bad Source", "--source", "spec.md"]);
     assert.equal(result.status, 1);
@@ -139,6 +149,79 @@ await runCase("validate reference template and error catalog", async () => {
   assert.ok(loadText(ERROR_CODE_CATALOG).startsWith("E000:"));
   assert.ok([...runtimeCodes].every((code) => code in catalog));
   assert.equal(await errorMessage("E001"), "首行必须是 runbook 标题");
+});
+
+await runCase("final validation enforces completion evidence", async () => {
+  const draftErrors = await collectErrors(templateText, null, { final: true });
+  const draftCodes = new Set(draftErrors.map((item) => item.code));
+  for (const code of ["E117", "E118", "E119", "E120", "E121"]) {
+    assert.ok(draftCodes.has(code), `missing ${code}`);
+  }
+
+  const completed = templateText
+    .replaceAll("- [ ]", "- [x]")
+    .replace("最终验收命令：\n\n```bash\n...\n```", "最终验收命令：\n\n```bash\ntest -f /etc/os-release\n```")
+    .replace(
+      "<粘贴独立上下文 recon 子代理本轮返回的最终终态证据；不要粘贴或转述旧执行 / 验收证据>",
+      "独立只读终验已确认目标状态。",
+    )
+    .replace("- 通过 / 未通过", "- 通过。");
+  assert.deepEqual(await collectErrors(completed, null, { final: true }), []);
+});
+
+await runCase("acceptance validation rejects placeholders and no-op commands", async () => {
+  const noOp = templateText.replace("test -f /etc/os-release", "true");
+  assert.ok((await collectErrors(noOp)).some((item) => item.code === "E124"));
+
+  const vagueCriteria = templateText.replace("- 文件 /etc/os-release 存在", "- 命令执行正常");
+  assert.ok((await collectErrors(vagueCriteria)).some((item) => item.code === "E123"));
+
+  const placeholder = templateText.replace("- 文件 /etc/os-release 存在", "- <精确阈值>");
+  const placeholderCodes = new Set((await collectErrors(placeholder)).map((item) => item.code));
+  assert.ok(placeholderCodes.has("E122"));
+  assert.ok(placeholderCodes.has("E123"));
+});
+
+await runCase("interview validation requires three real entries", async () => {
+  const twoInterviews = templateText.replace(
+    "\n### Q：<...>\n\n> A：<...>\n\n访谈时间：2026-04-23 14:40 CST\n\n<...>\n",
+    "\n",
+  );
+  assert.ok((await collectErrors(twoInterviews)).some((item) => item.code === "E030"));
+});
+
+await runCase("cleanup validation supports explicit not applicable", async () => {
+  const noCleanup = templateText.replace(
+    /## 清理现场\n[\s\S]*?\n## 执行计划/,
+    "## 清理现场\n\n清理策略：不适用\n\n不适用原因：\n\n- 全部步骤只读且不会产生中断残留。\n\n## 执行计划",
+  );
+  assert.deepEqual(await collectErrors(noCleanup), []);
+
+  const missingReason = noCleanup.replace("- 全部步骤只读且不会产生中断残留。", "- <待填写原因>");
+  assert.ok((await collectErrors(missingReason)).some((item) => item.code === "E125"));
+
+  const mixedStrategy = noCleanup.replace(
+    "- 全部步骤只读且不会产生中断残留。",
+    "- 全部步骤只读且不会产生中断残留。\n\n清理命令：\n\n```bash\ntrue\n```",
+  );
+  assert.ok((await collectErrors(mixedStrategy)).some((item) => item.code === "E126"));
+});
+
+await runCase("resource naming requires confirmation in all cases", async () => {
+  const notApplicable = templateText.replace(
+    /## 资源命名\n[\s\S]*?\n## 风险与收益/,
+    "## 资源命名\n\n资源命名：不适用\n\n- [x] 用户已确认本 runbook 中所有资源命名。\n\n不适用原因：\n\n- 本次操作不新增、不重命名任何现场或消息资源。\n\n## 风险与收益",
+  );
+  assert.deepEqual(await collectErrors(notApplicable), []);
+
+  const unconfirmed = notApplicable.replace("- [x] 用户已确认", "- [ ] 用户已确认");
+  assert.ok((await collectErrors(unconfirmed)).some((item) => item.code === "E129"));
+
+  const missingReason = notApplicable.replace("- 本次操作不新增、不重命名任何现场或消息资源。", "- <待填写原因>");
+  assert.ok((await collectErrors(missingReason)).some((item) => item.code === "E127"));
+
+  const missingTable = templateText.replace(/\| 资源 \| 名称 \| 说明 \|[\s\S]*?\n\n## 风险与收益/, "## 风险与收益");
+  assert.ok((await collectErrors(missingTable)).some((item) => item.code === "E128"));
 });
 
 await runCase("validate planning mode reference and fixtures", async () => {
@@ -233,10 +316,13 @@ await runCase("add-step and add-qa workflows", async () => {
     assert.equal(result.status, 0);
     let content = readFileSync(runbookPath, "utf8");
     assert.equal((content.match(/### 🟡 2\. 检查镜像缓存/g) ?? []).length, 2);
+    const stepCodes = new Set((await collectErrors(content)).map((error) => error.code));
+    assert.ok(stepCodes.has("E114"));
+    assert.ok(!stepCodes.has("E113"));
     result = await runRunctl(["add-qa", runbookPath, "--question", "是否要求只读侦察先行", "--answer", "需要先冻结现场再规划", "--impact", "后续 authority 保持先 freeze 再落执行路径"]);
     assert.equal(result.status, 0);
     content = readFileSync(runbookPath, "utf8");
-    assert.deepEqual(await collectErrors(content), []);
+    assert.deepEqual(filterIncrementalDraftErrors(await collectErrors(content)), []);
   });
 
   await withTempDir("runbook-add-blank-", async (dir) => {

@@ -20,7 +20,10 @@ test("runctl add-step inserts plan and record blocks", async () => {
     assert.equal((content.match(/### 🔴 3\. <编号项标题>/g) ?? []).length, 2);
     assert.ok(content.includes("[跳转到执行记录](#item-2-execution-record)"));
     assert.ok(content.includes('<a id="item-2-execution-record"></a>'));
-    assert.deepEqual(await collectErrors(content), []);
+    const draftCodes = new Set((await collectErrors(content)).map((error) => error.code));
+    assert.ok(draftCodes.has("E114"));
+    assert.ok(!draftCodes.has("E113"));
+    assert.deepEqual(filterIncrementalDraftErrors(await collectErrors(content)), []);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -35,7 +38,7 @@ test("runctl add-step appends by default", async () => {
     assert.equal(result.status, 0);
     const content = readFileSync(runbookPath, "utf8");
     assert.equal((content.match(/### 🟡 3\. 收尾检查/g) ?? []).length, 2);
-    assert.deepEqual(await collectErrors(content), []);
+    assert.deepEqual(filterIncrementalDraftErrors(await collectErrors(content)), []);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

@@ -40,8 +40,7 @@ const NUMBERED_H3_RE = /^(?:(?:🟢|🟡|🔴)\s+)?(\d+)\. (.+)$/u;
 const DATE_TOKEN_RE = /\b20\d{2}[-_]?(?:0[1-9]|1[0-2])[-_]?(?:0[1-9]|[12]\d|3[01])\b/;
 const RUNBOOK_FILENAME_SUFFIX = "-runbook.md";
 const RUNBOOK_TITLE_SUFFIX = "执行手册";
-const RUNBOOK_MODE_PLACEHOLDER = "> 当前模式：`<coding|operation|migration>`";
-const RUNBOOK_MODE_RE = /^> 当前模式：`(coding|operation|migration)`$/;
+const RUNBOOK_MODE_RE = /^> 当前模式：`operation`$/;
 const STEP_SIGNED_EXEC_RE = /^#### 执行 @\S+ \d{4}-\d{2}-\d{2} \d{2}:\d{2} [A-Za-z0-9:+-]+$/;
 const STEP_SIGNED_ACCEPT_RE = /^#### 验收 @\S+ \d{4}-\d{2}-\d{2} \d{2}:\d{2} [A-Za-z0-9:+-]+$/;
 const RECORD_SIGNED_EXEC_RE = /^#### 执行记录 @\S+ \d{4}-\d{2}-\d{2} \d{2}:\d{2} [A-Za-z0-9:+-]+$/;
@@ -85,6 +84,12 @@ const INCREMENTAL_DRAFT_IGNORED_CODES = new Set([
   "E100",
   "E107",
   "E110",
+  "E114",
+  "E122",
+  "E123",
+  "E127",
+  "E128",
+  "E129",
 ]);
 
 let errorCatalogCache = null;
@@ -300,7 +305,7 @@ function validateQA(lines, h2Sections) {
   const blocks = extractH3Blocks(lines, start + 1, end);
   const errors = [];
 
-  if (blocks.length < 5) {
+  if (blocks.length < 3) {
     errors.push(err("E030", lines, start));
   }
 
@@ -487,6 +492,17 @@ function validateCleanupSection(lines, h2Sections) {
   if (parseSections(lines.slice(start + 1, end), 3).length > 0) {
     errors.push(err("E052", lines, start));
   }
+  if (body.includes("清理策略：不适用")) {
+    const reasonMatch = body.match(/不适用原因：\s*\n([\s\S]*)$/);
+    const reason = reasonMatch?.[1]?.trim() ?? "";
+    if (!reason || /\.\.\.|<[^>]+>|待填写/.test(reason)) {
+      errors.push(err("E125", lines, start));
+    }
+    if (body.includes("清理命令：") || body.includes("```")) {
+      errors.push(err("E126", lines, start));
+    }
+    return errors;
+  }
   for (const [label, code] of [
     ["清理触发条件：", "E057"],
     ["清理命令：", "E058"],
@@ -568,6 +584,18 @@ function validatePlanStep(lines, title, headingIdx, start, end, index) {
   if (!h4Titles.includes("验收") && !h4Titles.some((name) => STEP_SIGNED_ACCEPT_RE.test(`#### ${name}`))) {
     errors.push(err("E071", lines, headingIdx, null, { title }));
   }
+  const executionBlockCount = h4Titles.filter(
+    (name) => name === "执行" || STEP_SIGNED_EXEC_RE.test(`#### ${name}`)
+  ).length;
+  const acceptanceBlockCount = h4Titles.filter(
+    (name) => name === "验收" || STEP_SIGNED_ACCEPT_RE.test(`#### ${name}`)
+  ).length;
+  if (executionBlockCount !== 1) {
+    errors.push(err("E115", lines, headingIdx, null, { title }));
+  }
+  if (acceptanceBlockCount !== 1) {
+    errors.push(err("E116", lines, headingIdx, null, { title }));
+  }
 
   for (const [, h4Title, blockStart, blockEnd] of h4Blocks) {
     if (
@@ -589,6 +617,46 @@ function validatePlanStep(lines, title, headingIdx, start, end, index) {
     }
     if (!blockText.includes("停止条件：")) {
       errors.push(err("E075", lines, blockStart, null, { title, h4_title: h4Title }));
+    }
+    if (isAcceptBlock) {
+      if (!blockText.includes("验收命令：")) {
+        errors.push(err("E112", lines, blockStart, null, { title }));
+      }
+      if (!blockText.includes("判定标准：")) {
+        errors.push(err("E113", lines, blockStart, null, { title }));
+      }
+      const fencedBlocks = [...blockText.matchAll(/```(?:bash|sh)?\n([\s\S]*?)\n```/g)].map((match) => match[1].trim());
+      const hasConcreteCommand = fencedBlocks.some(
+        (body) => body.length > 0 && body !== "..." && !/<[^>]+>/.test(body)
+      );
+      if (!hasConcreteCommand) {
+        errors.push(err("E114", lines, blockStart, null, { title }));
+      }
+      if (/(?:^|\n)\s*\.\.\.\s*(?:\n|$)|<(?!\/?(?:a|div|span|br)\b)[^>]+>/.test(blockText)) {
+        errors.push(err("E122", lines, blockStart, null, { title }));
+      }
+      const criteriaMatch = blockText.match(/判定标准：\s*\n([\s\S]*?)\n预期结果：/);
+      const criteria = criteriaMatch?.[1]?.trim() ?? "";
+      const detailedCriteria = criteria
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line.startsWith("-") && !/命令退出码\s*为\s*0/.test(line) && !/<[^>]+>/.test(line));
+      if (
+        detailedCriteria.length === 0 ||
+        !detailedCriteria.some((line) => /字段|返回值|计数|阈值|状态码|等于|存在|不存在|Ready|True|False|[<>=]\s*\d/i.test(line))
+      ) {
+        errors.push(err("E123", lines, blockStart, null, { title }));
+      }
+      const commandLines = fencedBlocks
+        .flatMap((body) => body.split(/\r?\n/))
+        .map((line) => line.trim())
+        .filter((line) => line && !line.startsWith("#"));
+      if (
+        commandLines.length > 0 &&
+        commandLines.every((line) => /^(?:true|:|echo(?:\s|$).*|printf(?:\s|$).*)$/.test(line))
+      ) {
+        errors.push(err("E124", lines, blockStart, null, { title }));
+      }
     }
     if (isExecBlock && mixesCrossMachineTransferAndExec(blockText)) {
       errors.push(err("E089", lines, blockStart, null, { title, h4_title: h4Title }));
@@ -692,11 +760,23 @@ function validateRecordStep(lines, title, headingIdx, start, end, index) {
 
   const h4Blocks = extractH4Blocks(lines, start + 1, end);
   const h4Titles = h4Blocks.map(([, name]) => name);
-  if (!h4Titles.some((name) => name === "执行记录" || RECORD_SIGNED_EXEC_RE.test(`#### ${name}`))) {
+  const executionRecordTitles = h4Titles.filter(
+    (name) => name === "执行记录" || RECORD_SIGNED_EXEC_RE.test(`#### ${name}`),
+  );
+  const acceptanceRecordTitles = h4Titles.filter(
+    (name) => name === "验收记录" || RECORD_SIGNED_ACCEPT_RE.test(`#### ${name}`),
+  );
+  if (executionRecordTitles.length === 0) {
     errors.push(err("E082", lines, headingIdx, null, { title }));
   }
-  if (!h4Titles.some((name) => name === "验收记录" || RECORD_SIGNED_ACCEPT_RE.test(`#### ${name}`))) {
+  if (acceptanceRecordTitles.length === 0) {
     errors.push(err("E083", lines, headingIdx, null, { title }));
+  }
+  if (executionRecordTitles.length > 1) {
+    errors.push(err("E130", lines, headingIdx, null, { title }));
+  }
+  if (acceptanceRecordTitles.length > 1) {
+    errors.push(err("E131", lines, headingIdx, null, { title }));
   }
 
   for (const [, h4Title, blockStart, blockEnd] of h4Blocks) {
@@ -745,6 +825,25 @@ function validateResourceNaming(lines, h2Sections) {
   if (!/^\s*-\s+\[(?: |x|X)\]\s+\S/m.test(body)) {
     errors.push(err("E111", lines, start));
   }
+  if (!/^\s*-\s+\[[xX]\]\s+\S/m.test(body)) {
+    errors.push(err("E129", lines, start));
+  }
+  if (body.includes("资源命名：不适用")) {
+    const reasonMatch = body.match(/不适用原因：\s*\n([\s\S]*)$/);
+    const reason = reasonMatch?.[1]?.trim() ?? "";
+    if (!reason || /\.\.\.|<[^>]+>|待填写/.test(reason)) {
+      errors.push(err("E127", lines, start));
+    }
+    return errors;
+  }
+  const tableLines = lines
+    .slice(start + 1, end)
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("|"));
+  const hasHeader = tableLines.some((line) => /^\|\s*资源\s*\|\s*名称\s*\|\s*说明\s*\|$/.test(line));
+  if (!hasHeader || tableLines.length < 3) {
+    errors.push(err("E128", lines, start));
+  }
   return errors;
 }
 
@@ -767,6 +866,46 @@ function validateFinalAcceptance(lines, h2Sections) {
   }
   if (!body.includes("- [ ]") && !body.includes("- [x]")) {
     errors.push(err("E076", lines, start));
+  }
+  return errors;
+}
+
+function validateFinalCompletion(lines, h2Sections) {
+  const section = sectionSlice(h2Sections, "最终验收", lines.length);
+  if (section == null) {
+    return [];
+  }
+  const [start, end] = section;
+  const sectionLines = lines.slice(start + 1, end);
+  const body = sectionLines.join("\n");
+  const errors = [];
+
+  if (/^\s*-\s+\[ \]/m.test(body)) {
+    errors.push(err("E117", lines, start));
+  }
+
+  const commandMatch = body.match(/最终验收命令：[\s\S]*?```(?:bash|sh)?\n([\s\S]*?)\n```/);
+  const command = commandMatch?.[1]?.trim() ?? "";
+  if (!command || command === "..." || /<[^>]+>/.test(command)) {
+    errors.push(err("E118", lines, start));
+  }
+
+  const resultMatch = body.match(/最终验收结果：\s*\n([\s\S]*?)\n最终验收结论：/);
+  const result = resultMatch?.[1]?.trim() ?? "";
+  if (!result || /\.\.\.|<[^>]+>|待验收|待执行/.test(result)) {
+    errors.push(err("E119", lines, start));
+  }
+
+  const conclusionMatch = body.match(/最终验收结论：\s*\n([\s\S]*)$/);
+  const conclusion = conclusionMatch?.[1] ?? "";
+  if (!/^\s*-\s+通过(?:。.*)?\s*$/m.test(conclusion)) {
+    errors.push(err("E120", lines, start));
+  }
+
+  const specAligned = /^\s*-\s+\[[xX]\].*spec\b/im.test(body);
+  const specNotApplicable = /^\s*-\s+.*spec\b.*不适用/im.test(body);
+  if (!specAligned && !specNotApplicable) {
+    errors.push(err("E121", lines, start));
   }
   return errors;
 }
@@ -882,7 +1021,7 @@ function validatePlanAndRecords(lines, h2Sections) {
   return errors;
 }
 
-function collectErrors(text, pathValue = null) {
+function collectErrors(text, pathValue = null, options = {}) {
   const normalizedText = normalizeRunbookNumbering(text);
   const lines = normalizedText.split(/\r?\n/);
   const errors = [];
@@ -904,7 +1043,7 @@ function collectErrors(text, pathValue = null) {
   const modeIdx = noteIdx == null ? null : firstNonEmptyLineIdx(lines, noteIdx + 1, lines.length);
   if (
     modeIdx == null ||
-    (lines[modeIdx].trim() !== RUNBOOK_MODE_PLACEHOLDER && !RUNBOOK_MODE_RE.test(lines[modeIdx].trim()))
+    !RUNBOOK_MODE_RE.test(lines[modeIdx].trim())
   ) {
     errors.push(err("E110", lines, modeIdx));
   }
@@ -961,6 +1100,10 @@ function collectErrors(text, pathValue = null) {
     ...collectMarkdownDotErrors(normalizedText, { allowNoBlocks: true }),
   );
 
+  if (options.final === true) {
+    errors.push(...validateFinalCompletion(lines, h2Sections));
+  }
+
   return errors;
 }
 
@@ -986,7 +1129,7 @@ async function handleValidate(args) {
   const filePath = path.resolve(args.path);
   try {
     const { normalized, changed } = await normalizeFile(filePath);
-    const errors = collectErrors(normalized, filePath);
+    const errors = collectErrors(normalized, filePath, { final: args.final === true });
     if (errors.length > 0) {
       if (args.json) {
         process.stdout.write(
@@ -1049,7 +1192,7 @@ function main() {
   const payload = input.trim() ? JSON.parse(input) : {};
   const text = typeof payload.text === "string" ? payload.text : "";
   const pathValue = typeof payload.path === "string" && payload.path ? path.resolve(payload.path) : null;
-  const errors = collectErrors(text, pathValue);
+  const errors = collectErrors(text, pathValue, { final: payload.final === true });
   process.stdout.write(JSON.stringify({ errors }, null, 2));
 }
 

@@ -37,6 +37,7 @@ type MarkdownPayload = {
 type FileMeta = {
   bytes: number
   kind?: 'markdown' | 'slides'
+  modified_at: string
   title: string
 }
 
@@ -248,6 +249,7 @@ export async function collectMarkdownFileMeta(
       fileMeta[rawPath] = {
         bytes: statResult.size,
         kind: 'markdown',
+        modified_at: statResult.mtime.toISOString(),
         title: extractMarkdownPrimaryTitle(source, path.basename(rawPath)),
       }
     } catch (error) {
@@ -273,14 +275,20 @@ async function collectWorkspaceFileMeta(
 ): Promise<Record<string, FileMeta>> {
   const markdownMeta = await collectMarkdownFileMeta(workspaceDirResolved, markdownPaths)
   const slidesMeta = Object.fromEntries(
-    slidesProjects.map((project) => [
-      project.id,
-      {
-        bytes: 0,
-        kind: 'slides',
-        title: project.title,
-      } satisfies FileMeta,
-    ]),
+    await Promise.all(
+      slidesProjects.map(async (project) => {
+        const statResult = await fs.stat(path.join(workspaceDirResolved, project.entryRelativePath))
+        return [
+          project.id,
+          {
+            bytes: 0,
+            kind: 'slides',
+            modified_at: statResult.mtime.toISOString(),
+            title: project.title,
+          } satisfies FileMeta,
+        ] as const
+      }),
+    ),
   )
 
   return {

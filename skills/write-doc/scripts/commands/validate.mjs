@@ -543,6 +543,55 @@ function validateProjectReadmeLinks(lines, h2Sections) {
   return errors;
 }
 
+function validateBenchmarkExperimentCallouts(lines, h2Sections) {
+  const errors = [];
+  const section = sectionSlice(h2Sections, "实验结论", lines.length);
+  if (section == null) {
+    return errors;
+  }
+  const [start, end] = section;
+  const experiments = parseNestedSections(lines, start + 1, end, 3);
+  for (const [headingStart, , headingEnd] of experiments) {
+    const calloutIdx = firstNonEmptyLineIdx(lines, headingStart + 1, headingEnd);
+    const callout = calloutIdx == null ? "" : lines[calloutIdx].trim();
+    const bodyIdx = calloutIdx == null ? null : firstNonEmptyLineIdx(lines, calloutIdx + 1, headingEnd);
+    const body = bodyIdx == null ? "" : lines[bodyIdx].trim();
+    const positive = callout === "> [!TIP]" && /^> (?:显著)?正向（\+\d+(?:\.\d+)?%）：/.test(body);
+    const negative = callout === "> [!WARNING]" && /^> (?:显著)?负向（-\d+(?:\.\d+)?%）：/.test(body);
+    const unrelated = callout === "> [!NOTE]" && /^> 不相关（[+-]\d+(?:\.\d+)?%）：/.test(body);
+    const pending = callout === "> [!IMPORTANT]" && body.startsWith("> 待验证：");
+    if (!positive && !negative && !unrelated && !pending) {
+      errors.push(err("E059", lines, calloutIdx ?? headingStart));
+    }
+    if (!pending && !/（[+-]\d+(?:\.\d+)?%）/.test(body)) {
+      errors.push(err("E062", lines, bodyIdx ?? headingStart));
+    }
+    const tableStart = bodyIdx == null ? null : firstNonEmptyLineIdx(lines, bodyIdx + 1, headingEnd);
+    const tableHeader = tableStart == null ? "" : lines[tableStart].trim();
+    const tableDivider = tableStart == null ? "" : (lines[tableStart + 1] ?? "").trim();
+    if (!tableHeader.startsWith("|") || !tableHeader.endsWith("|") || !/^\|(?:\s*:?-+:?\s*\|)+$/.test(tableDivider)) {
+      errors.push(err("E060", lines, tableStart ?? headingStart));
+    }
+  }
+  const matrix = sectionSlice(h2Sections, "实验矩阵", lines.length);
+  if (matrix != null) {
+    const [matrixStart, matrixEnd] = matrix;
+    const names = [];
+    for (let idx = matrixStart + 1; idx < matrixEnd; idx += 1) {
+      const row = lines[idx].trim();
+      if (!row.startsWith("|") || !row.endsWith("|")) continue;
+      const cells = row.slice(1, -1).split("|").map((cell) => cell.trim());
+      if (!cells[0] || cells[0] === "实验" || /^:?-+:?$/.test(cells[0])) continue;
+      names.push(cells[0].replace(/<[^>]+>/g, "").replace(/\*\*/g, "").replace(/`/g, ""));
+    }
+    const headings = experiments.map(([, title]) => title);
+    if (JSON.stringify(names) !== JSON.stringify(headings)) {
+      errors.push(err("E061", lines, matrixStart));
+    }
+  }
+  return errors;
+}
+
 function validateReferenceSection(lines, h2Sections) {
   const errors = [];
   const section = sectionSlice(h2Sections, "参考资料", lines.length);
@@ -734,6 +783,9 @@ export function collectErrors(text, { pathValue = null } = {}) {
     }
     if (flags.has("experimentResultMapping")) {
       errors.push(...validateBenchmarkExperimentMapping(lines, h2Sections));
+    }
+    if (flags.has("benchmarkExperimentCallouts")) {
+      errors.push(...validateBenchmarkExperimentCallouts(lines, h2Sections));
     }
   }
   errors.push(...collectMarkdownDotErrors(normalized, { allowNoBlocks: true }));

@@ -2,7 +2,7 @@ import path from "node:path";
 import { promises as fs } from "node:fs";
 import { splitLinesKeepEnds } from "./shared.mjs";
 import { NUMBERED_H3_RE, extractH3Blocks, extractH4Blocks, normalizeRunbookNumbering, parseSections, sectionSlice } from "./normalize.mjs";
-import { collectErrors, printFail } from "./validate.mjs";
+import { collectErrors, filterIncrementalDraftErrors, printFail } from "./validate.mjs";
 
 function extractItemBlocks(lines, sectionName, { includeAnchor }) {
   const h2Sections = parseSections(lines, 2);
@@ -87,7 +87,7 @@ export async function handleMoveStep(args) {
   try {
     const rewritten = moveStep(await fs.readFile(filePath, "utf8"), args.item, args.after);
     const normalized = normalizeRunbookNumbering(rewritten);
-    const errors = await collectErrors(normalized);
+    const errors = filterIncrementalDraftErrors(await collectErrors(normalized));
     if (errors.length > 0) {
       printFail(filePath, errors, false);
       return 1;

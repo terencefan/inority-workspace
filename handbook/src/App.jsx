@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import mermaid from 'mermaid'
 import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded'
 import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined'
@@ -11,6 +11,7 @@ import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded'
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded'
 import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded'
 import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded'
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
 import SlideshowRoundedIcon from '@mui/icons-material/SlideshowRounded'
 import {
   Alert,
@@ -22,7 +23,9 @@ import {
   CardContent,
   CardHeader,
   Chip,
+  InputAdornment,
   Stack,
+  TextField,
   Toolbar,
   Typography,
 } from '@mui/material'
@@ -31,13 +34,13 @@ import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView'
 import { TreeItem } from '@mui/x-tree-view/TreeItem'
 import './App.css'
 import { MarkdownDocument, extractDocumentPrimaryTitle, renderMarkdownDocument } from './MarkdownDocument.jsx'
-import { buildQuickAccessDocuments } from './quickAccess.js'
 import {
   buildDirectoryPathSetFromFiles,
   buildFileTree,
   collectDirectoryPaths,
   countDirectories,
   reconcileExpandedItems,
+  searchDocuments,
 } from './treeState.js'
 
 const drawerWidth = 'clamp(280px, 20vw, 420px)'
@@ -48,7 +51,7 @@ const RECENT_DOCUMENTS_VERSION = 3
 const DOCUMENT_SCROLL_STATE_KEY = 'handbook.documentScrollState'
 const DOCUMENT_SCROLL_STATE_VERSION = 1
 const MAX_RECENT_DOCUMENTS = 20
-const MAX_QUICK_ACCESS_DOCUMENTS = 5
+const MAX_SEARCH_RESULTS = 20
 const DOCUMENT_POLL_INTERVAL_MS = 3000
 const TREE_POLL_INTERVAL_MS = 5000
 const API_FETCH_OPTIONS = { cache: 'no-store' }
@@ -149,7 +152,10 @@ function TreeLabel({ node, fileMeta }) {
     node.type === 'directory' ? `${countFiles(node.children)} docs` : formatDocumentKindLabel(metaEntry)
 
   return (
-    <Box className={`doc-tree-label-row ${node.type === 'directory' ? 'is-directory' : 'is-file'}`}>
+    <Box
+      className={`doc-tree-label-row ${node.type === 'directory' ? 'is-directory' : 'is-file'}`}
+      data-tree-path={node.path}
+    >
       <Box className="doc-tree-label-main">
         <Box className="doc-tree-icon">
           {node.type === 'directory' ? (
@@ -858,6 +864,7 @@ function App({ themeMode, onToggleTheme }) {
   const [documentLoading, setDocumentLoading] = useState(false)
   const [documentError, setDocumentError] = useState('')
   const [expandedItems, setExpandedItems] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
   const [activeHeadingId, setActiveHeadingId] = useState('')
   const [collapsedTocIds, setCollapsedTocIds] = useState([])
   const [recentDocuments, setRecentDocuments] = useState(() => readRecentDocuments())
@@ -1199,10 +1206,12 @@ function App({ themeMode, onToggleTheme }) {
   const filePathSet = new Set(files)
   const directoryPathSet = collectDirectoryPaths(fileTree)
   const documentRoots = detectDocumentRoots(files, fileMeta)
-  const quickAccessDocuments = buildQuickAccessDocuments(recentDocuments, {
-    filePathSet,
-    limit: MAX_QUICK_ACCESS_DOCUMENTS,
-  })
+  const searchResults = searchDocuments(files, fileMeta, searchQuery, MAX_SEARCH_RESULTS)
+  const isSearching = Boolean(searchQuery.trim())
+  const visibleFileTree = isSearching ? buildFileTree(searchResults.map((item) => item.path)) : fileTree
+  const visibleExpandedItems = isSearching
+    ? Array.from(collectDirectoryPaths(visibleFileTree))
+    : expandedItems
   const tocTree = buildTocTree(renderedDocument.tocItems)
   const activeTocPathIds = collectTocPathIds(tocTree, activeHeadingId)
   const activeHeadingIndex = renderedDocument.tocItems.findIndex((item) => item.id === activeHeadingId)
@@ -1234,6 +1243,18 @@ function App({ themeMode, onToggleTheme }) {
     if (nextSelection.path === selection.path) {
       setDocumentRevision((current) => current + 1)
     }
+  }
+
+  function handleSearchResultSelect(item) {
+    setExpandedItems((current) => reconcileExpandedItems(current, files, item.path))
+    handleLocalSelect(item.path)
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const target = document.querySelector(`[data-tree-path="${CSS.escape(item.path)}"]`)
+        target?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' })
+      })
+    })
   }
 
   function handleClearRecentDocuments() {
@@ -1515,40 +1536,51 @@ function App({ themeMode, onToggleTheme }) {
       <CardContent
         sx={{ pt: 0, overflowY: 'auto', overflowX: 'hidden', minWidth: 0, flex: 1, minHeight: 0 }}
       >
-        <Box className="sidebar-quick-access">
-          <Box className="sidebar-quick-access-header">
-            <Typography variant="overline" className="sidebar-quick-access-title">
-              Quick Access
-            </Typography>
-            <Typography variant="caption" className="sidebar-quick-access-count">
-              {quickAccessDocuments.length} / {MAX_QUICK_ACCESS_DOCUMENTS}
-            </Typography>
-          </Box>
+        <Box className="sidebar-document-search">
+          <TextField
+            fullWidth
+            size="small"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="搜索文件名或文档标题"
+            aria-label="搜索文件名或 Markdown 标题"
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchRoundedIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
 
-          {quickAccessDocuments.length > 0 ? (
-            <Box className="sidebar-quick-access-list">
-              {quickAccessDocuments.map((item) => (
+          {searchQuery.trim() ? (
+            searchResults.length > 0 ? (
+              <Box className="sidebar-search-results" aria-label="文档搜索结果">
+                {searchResults.map((item) => (
                 <button
                   key={item.path}
                   type="button"
                   className={
                     item.path === selection.path
-                      ? 'sidebar-quick-access-item is-active'
-                      : 'sidebar-quick-access-item'
+                      ? 'sidebar-search-result is-active'
+                      : 'sidebar-search-result'
                   }
-                  onClick={() => handleRecentSelect(item)}
+                  onClick={() => handleSearchResultSelect(item)}
                 >
-                  <span className="sidebar-quick-access-path">
-                    {item.title || item.path.split('/').filter(Boolean).at(-1) || item.path}
+                  <span className="sidebar-search-title">
+                    {item.title || item.fileName}
                   </span>
-                  <span className="sidebar-quick-access-description">{item.path}</span>
+                  <span className="sidebar-search-path">{item.path}</span>
                 </button>
               ))}
-            </Box>
+              </Box>
+            ) : (
+              <Typography className="mui-empty">没有匹配的文件名或文档标题。</Typography>
+            )
           ) : (
-            <Typography className="mui-empty">
-              Open Markdown files to populate Quick Access with your latest 5 documents.
-            </Typography>
+            <Typography className="sidebar-search-hint">输入关键词后，点击结果即可在目录树中展开定位。</Typography>
           )}
         </Box>
 
@@ -1557,7 +1589,7 @@ function App({ themeMode, onToggleTheme }) {
         ) : (
           <SimpleTreeView
             className="doc-tree-view"
-            expandedItems={expandedItems}
+            expandedItems={visibleExpandedItems}
             selectedItems={selection.path || undefined}
             onExpandedItemsChange={(event, itemIds) => setExpandedItems(itemIds)}
             onItemClick={(event, itemId) => {
@@ -1588,7 +1620,7 @@ function App({ themeMode, onToggleTheme }) {
               minWidth: 0,
             }}
           >
-            {renderTreeItems(fileTree, fileMeta)}
+            {renderTreeItems(visibleFileTree, fileMeta)}
           </SimpleTreeView>
         )}
       </CardContent>

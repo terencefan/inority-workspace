@@ -18,7 +18,7 @@ runbook 的职责不是重新定义规范、边界或目标，而是把已经明
 主 `runbook` skill 只保留这些职责：
 
 - 判定当前任务是否属于 runbook workflow
-- 判定主类型：`coding` / `operation` / `migration`
+- 将所有 runbook 统一归类为 `operation`
 - 显式回报本轮已加载信息
 - 在规划态装配 `plan` 子文档
 - 在执行确认后装配 `solo` / `team` 子文档
@@ -31,16 +31,12 @@ runbook 的职责不是重新定义规范、边界或目标，而是把已经明
 只要当前处于 `$runbook` 规划态，就默认加载：
 
 - `references/planning/plan-mode.md`
-- `references/<type>-runbook.md`
+- `references/planning/operation-runbook.md`
 - `$inority-question`
 
 只有在确实需要图时，才额外补 `$draw-dot`。
 
-类型映射：
-
-- `coding` -> `references/planning/coding-runbook.md`
-- `operation` -> `references/planning/operation-runbook.md`
-- `migration` -> `references/planning/migration-runbook.md`
+迁移、切流和状态搬运场景仍归入 `operation`，不再建立独立类型。
 
 ## 已加载信息回报
 
