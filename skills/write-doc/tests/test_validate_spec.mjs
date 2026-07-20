@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
-import { loadJson, loadText, applyReplacements, ASSETS_DIR, ERROR_CODE_CATALOG, SCRIPTS_DIR } from "./helpers.mjs";
+import { loadJson, loadText, applyReplacements, ASSETS_DIR, ERROR_CODE_CATALOG, SCRIPTS_DIR, SKILL_DIR } from "./helpers.mjs";
 import { collectErrors, errorMessage, listErrorCatalogPaths, loadErrorCatalog, main } from "../scripts/commands/validate.mjs";
 
 const REFERENCE_SPEC = path.join(ASSETS_DIR, "reference-spec.md");
@@ -14,6 +14,23 @@ const REFERENCE_REPORT = path.join(ASSETS_DIR, "reference-report.md");
 const REFERENCE_BENCHMARK = path.join(ASSETS_DIR, "reference-benchmark.md");
 const REFERENCE_MODULE_README = path.join(ASSETS_DIR, "folder-readme", "README.md");
 const REFERENCE_PROJECT_README = path.join(ASSETS_DIR, "project-readme", "README.md");
+
+test("write-doc entrypoint fixes every mode document format", () => {
+  const skill = loadText(path.join(SKILL_DIR, "SKILL.md"));
+  for (const mode of ["Spec", "Contract", "README", "Benchmark", "Report", "RCA"]) {
+    assert.match(skill, new RegExp(`^### ${mode}$`, "m"));
+  }
+  for (const templatePath of [
+    "modes/spec/templates/",
+    "modes/contract/templates/",
+    "modes/readme/templates/",
+    "modes/benchmark/templates/benchmark-template.md",
+    "modes/report/templates/report-template.md",
+    "modes/rca/templates/",
+  ]) {
+    assert.ok(skill.includes(templatePath), `missing format template path: ${templatePath}`);
+  }
+});
 
 function fixturePath(name) {
   switch (name) {

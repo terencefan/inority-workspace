@@ -51,25 +51,61 @@ description: 用于编写或整理产品 spec、技术 spec、LLM 节点 spec、
 7. 如果用户在本轮给出可复用的写作偏好，结束前更新主 skill 或对应模式目录下的说明文件。
 8. 文档需要数学、统计或性能计算公式时，完整读取 `references/formulas.md` 并遵循其中的语法选择、符号定义和渲染验收规则；不要把公式截图当作正文公式。
 
-## Benchmark 文档格式
+## 各模式文档格式
 
-本节只定义 benchmark 的呈现契约。实验设计、有效窗口、统计判定、基线晋升、精度门禁和资源回收方法统一读取 `modes/benchmark/MODE.md`，不得在这里另建一套方法论。
+本节固定每个 mode 的稳定呈现契约。各 mode 的方法论、写作规则、template 和 validator 仍内聚在对应目录，主 skill 不重复维护执行方法。
+
+### Spec
+
+- 产品 spec 和技术 spec 文件名以 `-spec.md` 结尾，标题以“设计文档”结尾。
+- H2 固定按 `背景与现状`、`目标与非目标`、`风险与红线`、`边界与契约`、`架构总览`、`架构分层`、`模块划分`、`方案对比`、`验收标准`、`访谈记录`、`参考资料` 排列。
+- `背景与现状` 固定包含 `背景`、`现状` 两个 H3。`风险与红线` 固定包含 `风险`、`红线行为` 两个 H3。
+- LLM 节点 spec 使用专属章节 `Prompt 设计`、`Context 设计`，不强制通用架构章节。
+- Spec 总纲文件名固定为 `README.md`，H2 固定按 `根 spec`、`专题 spec`、`推荐阅读顺序`、`相关文档`、`参考资料` 排列。
+- 模板位于 `modes/spec/templates/`。
+
+### Contract
+
+- Contract 文件名以 `-contract.md` 结尾。
+- H2 固定按 `范围`、`authority 说明`、`稳定契约`、`字段 / 表 / 状态 / 事件定义`、`约束与不变量`、`版本与兼容性`、`参考资料` 排列。
+- Contract 总纲文件名固定为 `README.md`，H2 固定按 `当前 contract`、`推荐阅读顺序`、`相关文档`、`参考资料` 排列。
+- 模板位于 `modes/contract/templates/`。
+
+### README
+
+- Project README 文件名固定为 `README.md`，H2 固定按 `项目简介`、`开发与启动`、`架构设计`、`代码结构`、`部署拓扑`、`文档链接` 排列。
+- Module README 文件名固定为 `README.md`，H2 固定按 `模块简介`、`职责边界`、`入口与公共接口`、`依赖关系`、`扩展方式`、`相关文件`、`参考资料` 排列。
+- 模板位于 `modes/readme/templates/`。
+
+### Benchmark
 
 - 文档类型固定写为 `当前文档类型：benchmark`。
 - 一级标题使用 `<对象> <实验主题> Benchmark`，不添加日期、实验 ID 或批次前缀。
 - 默认路径为 `docs/benchmark/YYYY-MM-DD/<topic>.md`。项目已约定 `docs/report/` 时可以沿用目录，但文档类型仍为 benchmark。
 - H2 固定按 `结论`、`目标`、`范围`、`方法`、`实验基线`、`实验组`、`实验结果`、`排除项`、`未确认项`、`资源回收`、`建议`、`参考资料` 排列。
-- `目标` 下固定使用 `待提升的指标`、`实验约束` 两个 H3。`方法` 下固定使用 `实验设计`、`统计方法` 两个 H3。
-- `实验组` 登记表与 `实验结果` 的实验 ID 必须一一对应、顺序一致。
-- 每个实验结果只使用一个 `### <实验 ID> <名称>`。首个内容块必须是 callout，并写明结论分类。已完成实验同时写相对控制基线的带符号百分比，例如 `显著正向（+12.3%）`。
-- 实验卡片内使用加粗字段、列表和 Markdown 表格组织参数、配置、逐轮数据、精度、决策、资产和资源回收，不再增加 H4、H5 或 H6。
-- `实验结果` 必须保留 Markdown 结果表。未知值写为 `测量中` 或 `未取得（具体原因）`，不能填写推测值。
-- `参考资料` 必须位于最后。公式遵循 `references/formulas.md`。
+- `目标` 固定包含 `待提升的指标`、`实验约束` 两个 H3。`方法` 固定包含 `实验设计`、`统计方法` 两个 H3。
+- `实验组` 与 `实验结果` 的实验 ID 必须一一对应且顺序一致。每个结果只使用一个 `### <实验 ID> <名称>`，首个内容块必须是含结论分类和带符号百分比的 callout。
+- 实验卡片使用加粗字段、列表和 Markdown 表格，不增加 H4、H5 或 H6。未知值写为 `测量中` 或 `未取得（具体原因）`。
+- 模板位于 `modes/benchmark/templates/benchmark-template.md`。
 
-新建文档从 benchmark mode 内聚维护的 `modes/benchmark/templates/benchmark-template.md` 开始，定稿前执行：
+### Report
+
+- 文档类型固定写为 `当前文档类型：调研报告`。
+- 一级标题以 `YYYY-MM-DD` 开头，默认路径为 `docs/report/YYYY-MM-DD/<topic>.md`。
+- H2 固定按 `侦察结论`、`范围`、`方法`、`事实`、`排除项`、`未确认项`、`建议`、`参考资料` 排列。
+- 每个主要侦察结论先写一句 blockquote，并包含 `可复现方法`。
+- 模板位于 `modes/report/templates/report-template.md`。
+
+### RCA
+
+- 文件名以 `-rca.md` 结尾。
+- H2 固定按 `背景`、`现象与影响`、`调查范围与方法`、`侦察结论`、`已排除的故障原因`、`当前结论`、`仍未证实的部分`、`复现步骤`、`建议的下一步`、`参考资料` 排列。
+- 模板位于 `modes/rca/templates/`。
+
+所有模式的 `参考资料` 均放在最后。公式遵循 `references/formulas.md`。定稿前执行：
 
 ```shell
-scripts/docctl validate <benchmark-path>
+scripts/docctl validate <document-path>
 ```
 
 ## Validator 入口回归规则
