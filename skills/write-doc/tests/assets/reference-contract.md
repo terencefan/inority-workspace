@@ -15,7 +15,7 @@
 - 页面视觉与交互表现
 - runtime 内部调度细节
 
-## authority 说明
+## Authority 说明
 
 - authority owner：示例 control plane
 - primary consumers：frontend timeline、history replay

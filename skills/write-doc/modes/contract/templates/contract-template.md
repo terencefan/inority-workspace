@@ -9,7 +9,7 @@
 
 说明这份 contract 覆盖哪些对象，以及明确不覆盖哪些实现细节或方案叙事。
 
-## authority 说明
+## Authority 说明
 
 - authority owner：<谁维护这份 contract>
 - primary consumers：<哪些服务 / 仓 / 模块依赖它>

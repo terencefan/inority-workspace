@@ -7,7 +7,7 @@
       "filenameSuffix": "-contract.md",
       "requiredH2": [
         "范围",
-        "authority 说明",
+        "Authority 说明",
         "稳定契约",
         "字段 / 表 / 状态 / 事件定义",
         "约束与不变量",

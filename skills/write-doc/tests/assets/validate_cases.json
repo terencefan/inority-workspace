@@ -210,7 +210,7 @@
     "template": "contract",
     "replacements": [
       {
-        "old": "## authority 说明\n\n",
+        "old": "## Authority 说明\n\n",
         "new": "## 引言\n\n"
       }
     ],
