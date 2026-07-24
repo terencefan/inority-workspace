@@ -3,14 +3,14 @@ name: checkout
 description: Run either an end-of-day workspace publish flow or an explicitly requested start-of-day sync flow. Use publish mode for "checkout", "checkout 下班", workspace-wide commit/PR requests, or review-link sweeps. Enter sync-only mode exclusively when the user explicitly says "checkin" or "上班"; never infer that mode from generic Git, pull, update, or rebase requests.
 ---
 
-# Checkout / Checkin Workspace Flow
+# Checkout Workspace Flow
 
 ## Overview
 
-Use this skill as the single workspace orchestrator for two distinct modes:
+Use this skill as the single workspace entry point for two distinct modes:
 
 - `checkout` / 下班: discover dirty repositories, commit changes, and open review links.
-- `checkin` / 上班: refresh clean repositories and rebase their current branches without publishing.
+- `checkin` / 上班: route to a separate, sync-only instruction file.
 
 ## Mode Selection
 
@@ -21,14 +21,9 @@ Choose the mode before any repository write:
 - Otherwise, when this skill triggers from `checkout`, “下班”, commit-all, or PR sweep wording, use **checkout mode**.
 - Never mix both modes in one run unless the user explicitly requests both.
 
-Both modes share this Git baseline:
-
-- fetch the latest remote default branch
-- refresh local default-branch context
-- keep the repository on its current working branch
-- rebase the current branch onto the latest default branch tip
-
-Checkout mode continues with commit, push, and PR/MR creation. Checkin mode stops after local synchronization.
+When the request explicitly contains `checkin` or “上班”, read
+[`references/checkin.md`](references/checkin.md) completely and follow it.
+Otherwise, do not load that file; continue directly with checkout mode below.
 
 ## Dependencies
 
@@ -43,56 +38,6 @@ Load these helpers instead of re-inventing their behavior:
   - Prefer for GitHub repositories after scope is confirmed and the repo is ready to publish.
 - The available enterprise-Gitee PR skill
   - Use it for enterprise Gitee repositories when a PR must be created.
-
-## Checkin Mode
-
-Checkin mode is local synchronization only. It must not commit, push, or create review links.
-
-### 1. Discover and Preflight
-
-Use `scripts/checkin-workspace.mjs --table [scan-root]` for deterministic discovery.
-
-For each independent repository, collect:
-
-- path
-- current branch
-- `origin` URL
-- candidate default branch
-- dirty file count
-
-Block repositories with:
-
-- no usable `origin`
-- detached `HEAD`
-- dirty worktree
-- unknown default branch
-- an existing merge or rebase state
-
-### 2. Apply Serially
-
-Use `scripts/checkin-workspace.mjs --apply --table [scan-root]`.
-
-For each ready repository:
-
-1. Fetch `origin` with prune.
-2. Determine the default branch from `origin/HEAD`, `origin/main`, `origin/master`, local `main`, then local `master`.
-3. Refresh the local default-branch ref without checking it out.
-4. Rebase the current branch onto `origin/<default>`.
-5. Keep the original branch checked out.
-
-Stop the whole sync pass on the first rebase conflict. Report the repository, branch, failing command, and whether a rebase remains in progress.
-
-### 3. Report
-
-Return a compact per-repository summary with path, current branch, default branch, action, final status, and blocker reason.
-
-### Checkin Safety
-
-- Never switch away from the starting branch.
-- Never write into a dirty repository unless the user explicitly requests a stash-based workflow.
-- Never commit, push, or open a review artifact.
-- Never auto-resolve a rebase conflict.
-- If a linked worktree prevents updating the local default branch, report it as blocked.
 
 ## Checkout Mode
 
