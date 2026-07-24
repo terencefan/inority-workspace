@@ -4,9 +4,9 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-const backendTarget = process.env.HANDBOOK_DEV_BACKEND || 'http://127.0.0.1:18080'
+const backendTarget = process.env.HANDBOOK_DEV_BACKEND || ''
 const APP_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'src')
-const defaultAllowedHosts = ['handbook.data.pjlab.tefa']
+const defaultAllowedHosts = []
 const allowedHosts = Array.from(
   new Set(
     [
@@ -50,12 +50,14 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    host: '0.0.0.0',
+    host: false,
     allowedHosts,
-    proxy: {
-      '/api': backendTarget,
-      '/assets': backendTarget,
-      '/favicon.svg': backendTarget,
-    },
+    proxy: backendTarget
+      ? {
+          '/api': backendTarget,
+          '/docs': backendTarget,
+          '/healthz': backendTarget,
+        }
+      : undefined,
   },
 })

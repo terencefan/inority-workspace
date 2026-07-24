@@ -26,7 +26,7 @@
 - `lark_doc_xml_tools.mjs inspect --xml doc.xml [--section-heading TEXT] [--next-heading TEXT]`
   - 检查全文或指定章节里的标题列表、`cite`、`whiteboard`、图片、表格等保真对象数量
   - 检查标题是否带人工序号，以及标题后是否存在空段落
-  - 标题参数包含空格时必须用引号，例如 `--next-heading 'H 集群运行方式'`
+  - 标题参数包含空格时必须用引号，例如 `--next-heading '目标环境运行方式'`
 - `lark_doc_xml_tools.mjs inspect --fetch online-fetch.json [--section-heading TEXT] [--next-heading TEXT]`
   - 直接检查 fetch JSON，不需要先导出 XML
   - 适合发布后验证目标章节是否保留了人工 @、whiteboard、图片、source、sheet、bitable 等对象
@@ -34,4 +34,4 @@
   - 把线上 fetch 到的某个章节同步回本地 authority
   - 会移除章节标题后紧跟的空 `<p></p>`，避免线上 XML 抓取噪声污染 authority
   - 用于用户选择“保留线上人工编辑，并把线上状态同步回本地 authority”的合并路径
-  - 查找 authority 中的边界标题时兼容旧式人工序号，例如参数 `--next-heading 'H 集群运行方式'` 可以匹配 `<h1>6. H 集群运行方式</h1>`
+  - 查找 authority 中的边界标题时兼容旧式人工序号，例如参数 `--next-heading '目标环境运行方式'` 可以匹配 `<h1>6. 目标环境运行方式</h1>`

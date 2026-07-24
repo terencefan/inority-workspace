@@ -101,7 +101,7 @@ function parseRemote(url) {
     forge = "github";
   } else if (normalizedHost.includes("gitlab")) {
     forge = "gitlab";
-  } else if (normalizedHost === "gitee.pjlab.org.cn") {
+  } else if (normalizedHost.includes("gitee")) {
     forge = "gitee-enterprise";
   }
 

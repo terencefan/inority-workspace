@@ -124,7 +124,7 @@
     "replacements": [
       {
         "old": "执行分组：<现场冻结分组标题>\n\n```bash\n...\n```",
-        "new": "执行分组：<现场冻结分组标题>\n\n```bash\nscp bundle.tgz dev3:/tmp/\nssh dev3 'tar -xf /tmp/bundle.tgz -C /srv/runbook'\n```"
+        "new": "执行分组：<现场冻结分组标题>\n\n```bash\nscp bundle.tgz target-host:/tmp/\nssh target-host 'tar -xf /tmp/bundle.tgz -C /srv/runbook'\n```"
       }
     ],
     "expected_codes": ["E089"]

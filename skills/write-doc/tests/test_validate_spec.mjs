@@ -99,6 +99,18 @@ test("reference benchmark passes validation", () => {
   assert.deepEqual(collectErrors(loadText(REFERENCE_BENCHMARK), { pathValue: REFERENCE_BENCHMARK }), []);
 });
 
+test("benchmark requires one callout and KaTeX formula per statistical metric", () => {
+  const reference = loadText(REFERENCE_BENCHMARK);
+  const withoutMetricHeading = reference.replace("#### 吞吐量", "吞吐量");
+  assert.ok(new Set(collectErrors(withoutMetricHeading).map((item) => item.code)).has("E070"));
+
+  const withoutCallout = reference.replace("> [!NOTE]\n> 回答单位墙钟时间内成功完成的请求数；越高越好，作为主判定指标。\n", "吞吐量定义如下。\n");
+  assert.ok(new Set(collectErrors(withoutCallout).map((item) => item.code)).has("E071"));
+
+  const withoutFormula = reference.replace("```katex\nR_j=\\frac{N_j}{T_j}\n```", "吞吐量等于成功数除以窗口秒数。");
+  assert.ok(new Set(collectErrors(withoutFormula).map((item) => item.code)).has("E072"));
+});
+
 test("benchmark requires a classified callout for every experiment", () => {
   const mutated = loadText(REFERENCE_BENCHMARK)
     .replace("> [!TIP]\n> 结论分类：显著正向（+100.0%）。吞吐量达到目标且约束通过。\n", "吞吐量达到目标。\n");
@@ -115,7 +127,7 @@ test("benchmark requires a markdown result table for every experiment", () => {
 
 test("benchmark accepts an unrelated experiment callout", () => {
   const mutated = loadText(REFERENCE_BENCHMARK)
-    .replace("> [!TIP]\n> 结论分类：显著正向（+100.0%）。吞吐量达到目标且约束通过。", "> [!IMPORTANT]\n> 结论分类：不相关（排除）（+0.0%）。该变量不影响吞吐量。");
+    .replace("> [!TIP]\n> 结论分类：显著正向（+100.0%）。吞吐量达到目标且约束通过。", "> [!IMPORTANT]\n> 结论分类：不相关（排除）。该实验没有可比较的控制组。");
   assert.deepEqual(collectErrors(mutated, { pathValue: REFERENCE_BENCHMARK }), []);
 });
 

@@ -566,7 +566,7 @@ function validateBenchmarkExperimentCallouts(lines, h2Sections) {
     if (!positive && !directional && !negative && !excluded && !pending) {
       errors.push(err("E067", lines, calloutIdx ?? headingStart));
     }
-    if (!pending && !/（[+-]\d+(?:\.\d+)?%）/.test(body)) {
+    if (!pending && !excluded && !/（[+-]\d+(?:\.\d+)?%）/.test(body)) {
       errors.push(err("E069", lines, bodyIdx ?? headingStart));
     }
     let tableStart = null;
@@ -580,6 +580,41 @@ function validateBenchmarkExperimentCallouts(lines, h2Sections) {
     }
     if (tableStart == null) {
       errors.push(err("E068", lines, headingStart));
+    }
+  }
+  return errors;
+}
+
+function validateBenchmarkMetricFormulas(lines, h2Sections) {
+  const errors = [];
+  const methodSection = sectionSlice(h2Sections, "方法", lines.length);
+  if (methodSection == null) {
+    return errors;
+  }
+  const methodSubsections = parseNestedSections(lines, methodSection[0] + 1, methodSection[1], 3);
+  const statisticsSection = methodSubsections.find(([, title]) => title === "统计方法");
+  if (statisticsSection == null) {
+    return errors;
+  }
+
+  const [statisticsStart, , statisticsEnd] = statisticsSection;
+  const metrics = parseNestedSections(lines, statisticsStart + 1, statisticsEnd, 4);
+  if (metrics.length === 0) {
+    errors.push(err("E070", lines, statisticsStart));
+    return errors;
+  }
+
+  for (const [metricStart, , metricEnd] of metrics) {
+    const calloutIdx = firstNonEmptyLineIdx(lines, metricStart + 1, metricEnd);
+    const callout = calloutIdx == null ? "" : lines[calloutIdx].trim();
+    if (!/^> \[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]$/.test(callout)) {
+      errors.push(err("E071", lines, calloutIdx ?? metricStart));
+    }
+    const hasFormula = lines
+      .slice(metricStart + 1, metricEnd)
+      .some((line) => /^```(?:katex|math)\s*$/.test(line.trim()));
+    if (!hasFormula) {
+      errors.push(err("E072", lines, metricStart));
     }
   }
   return errors;
@@ -779,6 +814,9 @@ export function collectErrors(text, { pathValue = null } = {}) {
     }
     if (flags.has("benchmarkExperimentCallouts")) {
       errors.push(...validateBenchmarkExperimentCallouts(lines, h2Sections));
+    }
+    if (flags.has("benchmarkMetricFormulas")) {
+      errors.push(...validateBenchmarkMetricFormulas(lines, h2Sections));
     }
   }
   errors.push(...collectMarkdownDotErrors(normalized, { allowNoBlocks: true }));
