@@ -517,7 +517,7 @@ function resolveDocumentHref(selectionPath, href) {
   const baseDirectory = getDocumentDirectory(selectionPath)
   const resolvedPathname = new URL(
     hrefPath,
-    `https://handbook.local/${baseDirectory.startsWith('/') ? baseDirectory.slice(1) : baseDirectory}`,
+    `https://handbook.example.com/${baseDirectory.startsWith('/') ? baseDirectory.slice(1) : baseDirectory}`,
   ).pathname
   const normalizedTargetPath = resolvedPathname.startsWith('/') ? resolvedPathname.slice(1) : resolvedPathname
 

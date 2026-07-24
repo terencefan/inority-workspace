@@ -33,9 +33,16 @@ npm install
 ```bash
 npm run codex:install
 npm run codex:uninstall
+npm run install-hooks
+npm run validate:sensitive-content
 npm run handbook:dev
 npm run handbook:build
 ```
+
+`npm run install-hooks` 启用仓库级 pre-commit 门禁。门禁扫描暂存文件，
+阻止内部组织标识、集群或主机标识、内部域名、非文档 IP、私钥、token、
+key 和 credential 等内容进入提交。`npm run validate:sensitive-content`
+对仓库现有文件执行同一套全量审计，报告仅包含文件、行号与规则，不回显命中值。
 
 如果某个安装脚本需要额外参数，用 npm 的 `--` 透传：
 

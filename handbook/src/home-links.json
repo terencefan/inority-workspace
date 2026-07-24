@@ -1,32 +1,3 @@
 {
-  "links": [
-    {
-      "id": "grafana",
-      "title": "Grafana",
-      "category": "Admin",
-      "description": "Metrics, logs, traces, and service dashboards",
-      "url": "http://grafana.data.pjlab.in/dashboards"
-    },
-    {
-      "id": "pgadmin",
-      "title": "pgAdmin",
-      "category": "Database",
-      "description": "PostgreSQL administration console for shared-postgresql",
-      "url": "http://pgadmin.data.pjlab.in/"
-    },
-    {
-      "id": "minio-console",
-      "title": "MinIO Console",
-      "category": "Storage",
-      "description": "S3-compatible object storage console",
-      "url": "http://minio-console.data.pjlab.in/"
-    },
-    {
-      "id": "ceph-dashboard",
-      "title": "Ceph Dashboard",
-      "category": "Storage",
-      "description": "Ceph provider plane dashboard",
-      "url": "http://ceph-dashboard.data.pjlab.in/"
-    }
-  ]
+  "links": []
 }

@@ -6,7 +6,8 @@ import path from 'node:path'
 import process from 'node:process'
 import { execFileSync } from 'node:child_process'
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+const scriptRoot = path.dirname(fileURLToPath(import.meta.url))
+const repoRoot = path.resolve(scriptRoot, '..', '..')
 const hooksDir = path.join(repoRoot, '.githooks')
 
 function main() {
@@ -28,7 +29,7 @@ function main() {
     stdio: 'ignore',
   })
 
-  console.log('[handbook-hooks] configured core.hooksPath=.githooks')
+  console.log('[inority-hooks] configured core.hooksPath=.githooks')
   return 0
 }
 

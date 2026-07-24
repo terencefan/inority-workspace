@@ -4,7 +4,7 @@ set -euo pipefail
 repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
 
-printf '%s\n' '[handbook-pre-commit] validating staged sensitive content'
+printf '%s\n' '[inority-pre-commit] validating staged sensitive content'
 
 mapfile -d '' staged_file_paths < <(git diff --cached --name-only -z --diff-filter=ACMR)
 
@@ -16,21 +16,22 @@ if [ "${#staged_file_paths[@]}" -gt 0 ]; then
     mkdir -p "$(dirname "$temp_path")"
     git show ":$file_path" > "$temp_path"
   done
-  node scripts/validate-sensitive-content.ts --repo-root "$temp_root" "${staged_file_paths[@]}"
+  node handbook/scripts/validate-sensitive-content.ts \
+    --repo-root "$temp_root" \
+    "${staged_file_paths[@]}"
 else
-  printf '%s\n' '[handbook-pre-commit] no staged file changes'
+  printf '%s\n' '[inority-pre-commit] no staged file changes'
 fi
 
-printf '%s\n' '[handbook-pre-commit] validating staged markdown internal links'
+printf '%s\n' '[inority-pre-commit] validating staged markdown internal links'
 
 mapfile -d '' staged_entries < <(git diff --cached --name-status -z --diff-filter=ACMRD -- '*.md' '*.markdown')
 
 if [ "${#staged_entries[@]}" -eq 0 ]; then
-  printf '%s\n' '[handbook-pre-commit] no staged markdown changes'
+  printf '%s\n' '[inority-pre-commit] no staged markdown changes'
   exit 0
 fi
 
-validate_all=0
 declare -a validate_files=()
 
 index=0
@@ -42,13 +43,11 @@ while [ "$index" -lt "${#staged_entries[@]}" ]; do
       old_path="${staged_entries[$index]}"
       new_path="${staged_entries[$((index + 1))]}"
       index=$((index + 2))
-      validate_all=1
       validate_files+=("$new_path")
       ;;
     D*)
       deleted_path="${staged_entries[$index]}"
       index=$((index + 1))
-      validate_all=1
       ;;
     *)
       file_path="${staged_entries[$index]}"
@@ -58,8 +57,10 @@ while [ "$index" -lt "${#staged_entries[@]}" ]; do
   esac
 done
 
-if [ "$validate_all" -eq 1 ]; then
-  node scripts/validate-markdown-links.ts --repo-root "$repo_root"
+if [ "${#validate_files[@]}" -gt 0 ]; then
+  node handbook/scripts/validate-markdown-links.ts \
+    --repo-root "$repo_root" \
+    "${validate_files[@]}"
 else
-  node scripts/validate-markdown-links.ts --repo-root "$repo_root" "${validate_files[@]}"
+  printf '%s\n' '[inority-pre-commit] no added or modified markdown files to validate'
 fi
