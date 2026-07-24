@@ -17,4 +17,10 @@ E067:
 E068:
   message: "benchmark 的每个实验结果必须包含 Markdown 结果表"
 E069:
-  message: "benchmark 的已完成实验 callout 必须包含相对控制基线的带符号百分比"
+  message: "benchmark 的可比较已完成实验 callout 必须包含相对控制基线的带符号百分比"
+E070:
+  message: "benchmark 的‘统计方法’必须按指标使用 H4 子标题拆分"
+E071:
+  message: "benchmark 的每个统计指标必须以 callout 开头"
+E072:
+  message: "benchmark 的每个统计指标必须包含 fenced katex 或 math 公式"
