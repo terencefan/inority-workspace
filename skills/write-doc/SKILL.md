@@ -1,6 +1,6 @@
 ---
 name: write-doc
-description: 用于编写或整理产品 spec、技术 spec、LLM 节点 spec、contract、README、benchmark、调研报告与 RCA，并支持在 Markdown 中编写可渲染的数学或统计公式。用户提到“写 spec”“写 contract”“写 README”“写压测报告”“写 benchmark”“写报告”“写公式”“写统计方法”“写 RCA”“写故障分析”“写排障总结”或需要一份可评审 Markdown 文档时使用。
+description: 用于编写或整理产品 spec、技术 spec、LLM 节点 spec、contract、README、benchmark、调研报告、事实清单、项目内 Markdown 表格与 RCA，并支持在 Markdown 中编写可渲染的数学或统计公式。用户提到“写 spec”“写 contract”“写 README”“写压测报告”“写 benchmark”“写报告”“做个表格放在项目里”“整理成 Markdown”“写事实清单”“写公式”“写统计方法”“写 RCA”“写故障分析”“写排障总结”，或要求把调查结果、地址映射、资源清单、状态表格作为可评审 `.md` 文件持久化到仓库时使用。
 ---
 
 # Write Doc
@@ -26,7 +26,7 @@ description: 用于编写或整理产品 spec、技术 spec、LLM 节点 spec、
 - benchmark：`modes/benchmark/MODE.md`
   适用于性能压测、固定数据集基线、历史基线对比、实验组统计显著性与回退护栏决策。
 - report：`modes/report/MODE.md`
-  适用于调研、侦察、现状分析、非压测型对比结论与排障总结。
+  适用于调研、侦察、现状分析、非压测型对比结论、排障总结，以及需要持久化到仓库的事实清单、资源地址映射和 Markdown 表格。
 - rca：`modes/rca/MODE.md`
   适用于统一的事故分析复盘文档。
 
@@ -50,6 +50,7 @@ description: 用于编写或整理产品 spec、技术 spec、LLM 节点 spec、
 6. 新建、重命名、拆分、合并或废弃 authority spec / contract 后，按对应模式规则同步更新 `docs/spec/README.md` 或 `docs/contract/README.md`；`README` 模式不负责这两类总纲。
 7. 如果用户在本轮给出可复用的写作偏好，结束前更新主 skill 或对应模式目录下的说明文件。
 8. 文档需要数学、统计或性能计算公式时，完整读取 `references/formulas.md` 并遵循其中的语法选择、符号定义和渲染验收规则；不要把公式截图当作正文公式。
+9. 用户要求“放在项目里”的 Markdown 表格、地址映射、资源清单或事实索引属于文档交付物。即使用户没有使用“报告”一词，也先进入 `report` 模式，再创建文件；不要先写任意 `.md` 或 TSV，等用户提醒后才补走文档流程。
 
 ## Benchmark 文档格式
 
