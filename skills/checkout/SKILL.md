@@ -41,7 +41,7 @@ Load these helpers instead of re-inventing their behavior:
 
 ## Checkout Mode
 
-Checkout mode is a controlled end-of-day publish flow. It discovers independent repositories, classifies publishable changes, asks for one explicit confirmation because work leaves the machine, then delegates independent repositories to parallel subagents for commit and review-link publication.
+Checkout mode is a controlled end-of-day publish flow. It discovers independent repositories, classifies publishable changes, then delegates independent repositories to parallel subagents for commit and review-link publication. An explicit checkout, commit, push, or PR request is sufficient authorization for this normal workflow and does not require a separate publish confirmation.
 
 ### 1. Discover Independent Repositories
 
@@ -89,18 +89,11 @@ Stop and mark the repository as `ask` instead of auto-publishing when any of the
 
 Do not split one repository into multiple PRs by default. Keep the currently selected repository scope in a single PR unless the user explicitly asks to split it.
 
-### 3. Ask for One Publish Confirmation
+### 3. Confirm Scope Only When Ambiguous
 
-Because this workflow commits, pushes, and creates external review artifacts, it must pause once before any write leaves the machine.
+An explicit checkout, commit, push, or PR request already authorizes creating a working branch, committing the selected scope, pushing that branch, and creating its review artifact.
 
-Use `$inority-question` to show:
-
-- which repositories will be published
-- which repositories will be skipped
-- which repositories still need a decision
-- one concise confirmation question
-
-If ambiguity is above the workspace threshold, do not proceed until the user answers.
+Use `$inority-question` only when repository scope, branch intent, or another material choice is ambiguous. Do not ask for a redundant publish confirmation.
 
 ### 4. Publish Independent Repositories in Parallel
 
@@ -137,7 +130,7 @@ For each approved repository:
    - In that merged or closed case, create a fresh review branch from the latest default branch tip first, then cherry-pick or squash the intended scope onto it before publishing.
    - If a previous PR was squash-merged and the local branch still contains extra commits, carry forward only the still-unmerged delta onto the fresh branch.
 3. Keep the current working branch checked out only when it is still the intended live review branch.
-   - If the repository is still on `main` or `master`, stop and ask the user before proceeding instead of publishing directly from the default branch.
+   - If the repository is still on `main` or `master`, create a clearly named working branch from the refreshed default branch. Ask only when the branch intent is materially ambiguous.
 4. Rebase the publish branch onto the latest default branch tip before staging or publishing.
    - If the rebase hits conflicts or any other blocker, stop that repository immediately and ask the user before proceeding.
 5. Stage only the intended files.
@@ -187,8 +180,8 @@ If every in-scope repository has been fully processed for this checkout wave, en
   confirmation and conflict decision through the main agent.
 - Never auto-publish a repository whose scope is unclear.
 - Never skip repository-local workflow rules.
-- If the repository is still on its default branch and publishing would require a new branch, stop and ask the user instead of improvising a branch strategy.
+- If the repository is still on its default branch, create a clearly named working branch before publishing. Ask only when the branch intent is materially ambiguous.
 - If rebasing onto the default branch hits any conflict or blocker, stop and ask the user instead of resolving it speculatively.
-- Never treat "all dirty repos" as approval to leave the machine; still perform the single explicit publish confirmation round.
+- Treat an explicit checkout, commit, push, or PR request as authorization for the normal branch, commit, push, and review-artifact workflow.
 - If a repository cannot produce a PR or MR link, say so explicitly instead of pretending the workflow succeeded.
 - After a successful publish, leave the repository on the rebased working branch unless repository-local rules explicitly require otherwise.
