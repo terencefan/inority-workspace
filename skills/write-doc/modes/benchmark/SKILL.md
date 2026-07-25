@@ -14,6 +14,7 @@ description: 编写、维护和校验性能压测、模型吞吐、延迟、资�
 5. 默认由单一主 agent 串行负责代码、镜像、部署、压测、验收、文档和回收；可并行运行隔离的后端服务、客户端和指标脚本，但不把候选拆给多个 agent 并行推进。
 6. 每轮先形成同窗硬件剖面和瓶颈判断，再用 `剖面证据 → 优化机制 → 预期硬件变化与吞吐收益` 预注册下一候选；SGLang/vLLM 等框架替换按架构级候选执行兼容性、契约、配对 TOST、吞吐和硬件门禁。
 7. Ray Serve 动态合批实验必须采集实际 batch size、batch utilization、batch wait、batch execution、batch queue 和 replica ongoing；不得用配置的 `max_batch_size` 代替有效合批证据。
-8. 定稿前从 `write-doc` skill 根目录执行 `scripts/docctl validate <benchmark-path>`。
+8. 用户提到 `profiling`、`profile`、`火焰图`、`热点`、`GIL`、`锁竞争`、`heap`、`系统调用`、`perf`、`py-spy` 或需要用 profiler 区分瓶颈时，必须完整读取并执行 [`modules/profiling.md`](modules/profiling.md)；普通吞吐/延迟 benchmark 不加载该模块。
+9. 定稿前从 `write-doc` skill 根目录执行 `scripts/docctl validate <benchmark-path>`。
 
 本入口不维护另一份 benchmark 规则。格式以主 `write-doc` skill 为准，实验方法以 `MODE.md` 为准。
