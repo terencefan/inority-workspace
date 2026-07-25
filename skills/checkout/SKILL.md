@@ -41,7 +41,7 @@ Load these helpers instead of re-inventing their behavior:
 
 ## Checkout Mode
 
-Checkout mode is a controlled end-of-day publish flow. It discovers independent repositories, classifies publishable changes, asks for one explicit confirmation because work leaves the machine, then commits and opens review links repository by repository.
+Checkout mode is a controlled end-of-day publish flow. It discovers independent repositories, classifies publishable changes, asks for one explicit confirmation because work leaves the machine, then delegates independent repositories to parallel subagents for commit and review-link publication.
 
 ### 1. Discover Independent Repositories
 
@@ -102,9 +102,29 @@ Use `$inority-question` to show:
 
 If ambiguity is above the workspace threshold, do not proceed until the user answers.
 
-### 4. Publish Repository by Repository
+### 4. Publish Independent Repositories in Parallel
 
-Process repositories serially. Do not run concurrent Git write flows in the same workspace wave.
+After the single publish confirmation, assign each approved independent
+repository to one subagent and publish repositories in parallel whenever agent
+capacity permits.
+
+- Give one subagent ownership of one repository for the whole publish flow:
+  refresh, review-state inspection, rebase, commit, verification, push, and PR
+  or MR creation.
+- Never assign two subagents to the same repository or worktree. All writes
+  inside one repository remain serial.
+- Keep all user interaction in the main agent. A subagent that encounters a
+  conflict, missing confirmation, ambiguous scope, expired forge login, closed
+  review branch, or other publish blocker must stop before the unsafe action and
+  report the evidence to the main agent.
+- Let the main agent ask the user through `$inority-question`, then send the
+  answer back to the blocked subagent or resume the repository in a new wave.
+- If available agent slots are fewer than approved repositories, publish in
+  parallel waves. Do not fall back to globally serial processing merely because
+  one repository is blocked.
+- The main agent owns the workspace-wide scan, the single publish confirmation,
+  cross-repository scope decisions, blocker interaction, and the final review
+  bundle. Subagents own only their assigned repository.
 
 For each approved repository:
 
@@ -131,7 +151,9 @@ For each approved repository:
      - If enterprise Gitee token auth does not verify and the browser session is missing or expired, stop and give the user the login URL first; continue only after the browser login is refreshed.
 10. After the PR or MR is created successfully, remain on the current working branch unless a repository-local rule explicitly requires another landing state.
 
-If a repository hits a conflict or publish blocker mid-flight, stop that repository, record the blocker, and continue only with other repositories that are independent and still safe to process.
+If a repository hits a conflict or publish blocker mid-flight, stop only that
+repository, notify the main agent, and allow other independent repository
+subagents to continue.
 
 ### 5. Return a Review Bundle
 
@@ -160,6 +182,9 @@ If every in-scope repository has been fully processed for this checkout wave, en
 - Never report an existing PR or MR as the active review target until its current state has been checked.
 - Never create a duplicate PR for commits that are already represented in the refreshed target branch.
 - Never silently stage unrelated changes.
+- Never run concurrent Git write flows against the same repository or worktree.
+- Never let repository subagents ask the user independently; route every
+  confirmation and conflict decision through the main agent.
 - Never auto-publish a repository whose scope is unclear.
 - Never skip repository-local workflow rules.
 - If the repository is still on its default branch and publishing would require a new branch, stop and ask the user instead of improvising a branch strategy.
