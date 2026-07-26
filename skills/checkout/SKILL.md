@@ -71,6 +71,8 @@ For every dirty repository:
 
 - Read repository-local rules before planning a commit.
 - Inspect `git status --short`, diff summary, current branch, and remote URL.
+- Record the initial HEAD, branch, status, and intended file set as the
+  repository's checkout baseline.
 - Determine the forge:
   - GitHub
   - GitLab
@@ -89,6 +91,27 @@ Stop and mark the repository as `ask` instead of auto-publishing when any of the
 
 Do not split one repository into multiple PRs by default. Keep the currently selected repository scope in a single PR unless the user explicitly asks to split it.
 
+### Concurrent Modification Skip Rule
+
+Skip a repository immediately when evidence shows that another process or
+workflow modified the same repository after its checkout baseline was
+recorded. Evidence includes an unexpected HEAD or branch change, a new reflog
+entry, or new/changed worktree files outside the assigned agent's own actions.
+
+- Mark the repository as `skip`, not `ask` or `blocked`.
+- Do not wait for, coordinate with, or ask the user about the other workflow.
+- Do not stash, restore, reset, clean, cherry-pick, switch branches again, or
+  otherwise rearrange the concurrent workflow's state.
+- Preserve every commit and worktree change exactly as found.
+- Report the observed concurrent-modification evidence and final repository
+  state in the review bundle.
+- Continue publishing other independent repositories.
+
+An already-dirty worktree at initial discovery is not by itself concurrent
+modification. Apply this rule only when repository state changes unexpectedly
+after the checkout baseline or when direct evidence identifies another active
+writer.
+
 ### 3. Confirm Scope Only When Ambiguous
 
 An explicit checkout, commit, push, or PR request already authorizes creating a working branch, committing the selected scope, pushing that branch, and creating its review artifact.
@@ -104,6 +127,8 @@ capacity permits.
 - Give one subagent ownership of one repository for the whole publish flow:
   refresh, review-state inspection, rebase, commit, verification, push, and PR
   or MR creation.
+- Require the subagent to compare HEAD, branch, status, and intended files with
+  its checkout baseline before every Git write and before push.
 - Never assign two subagents to the same repository or worktree. All writes
   inside one repository remain serial.
 - Keep all user interaction in the main agent. A subagent that encounters a
@@ -152,7 +177,9 @@ For each approved repository:
 
 If a repository hits a conflict or publish blocker mid-flight, stop only that
 repository, notify the main agent, and allow other independent repository
-subagents to continue.
+subagents to continue. Apply the concurrent-modification skip rule directly
+when the blocker is another process modifying the same repository; do not ask
+the user for coordination.
 
 ### 5. Return a Review Bundle
 
@@ -183,6 +210,9 @@ If every in-scope repository has been fully processed for this checkout wave, en
 - Never create a duplicate PR for commits that are already represented in the refreshed target branch.
 - Never silently stage unrelated changes.
 - Never run concurrent Git write flows against the same repository or worktree.
+- If another process modifies a repository during checkout, skip that
+  repository immediately and preserve its state; do not turn it into a
+  clarification round.
 - Never let repository subagents ask the user independently; route every
   confirmation and conflict decision through the main agent.
 - Never auto-publish a repository whose scope is unclear.
