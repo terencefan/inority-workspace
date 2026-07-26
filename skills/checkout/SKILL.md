@@ -142,7 +142,13 @@ For each approved repository:
    - GitLab: follow `$git` commit workflow and create the MR in the same pass
   - enterprise Gitee: use the available enterprise-Gitee PR skill
      - If enterprise Gitee token auth does not verify and the browser session is missing or expired, stop and give the user the login URL first; continue only after the browser login is refreshed.
-10. After the PR or MR is created successfully, remain on the current working branch unless a repository-local rule explicitly requires another landing state.
+10. Verify the direct PR or MR detail URL and collect the final review links.
+11. Open every verified direct review link in the user's current browser.
+    - Reuse the current browser process or browser connector when available.
+    - Open one tab per PR or MR so the review bundle is immediately ready.
+    - Do not treat terminal output or a list of links as a substitute for opening
+      the review pages.
+12. After the PR or MR is created successfully, remain on the current working branch unless a repository-local rule explicitly requires another landing state.
 
 If a repository hits a conflict or publish blocker mid-flight, stop only that
 repository, notify the main agent, and allow other independent repository
@@ -165,6 +171,7 @@ Include:
 
 Prefer a flat list or table that the user can open one by one.
 Put every PR or MR URL on its own standalone line, outside tables, so the rendered link is easy to click.
+Confirm that the verified review URLs were also opened in the current browser.
 
 If every in-scope repository has been fully processed for this checkout wave, end with one short celebratory message that includes a fireworks emoji.
 
