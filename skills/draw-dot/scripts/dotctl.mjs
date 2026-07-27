@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -139,23 +140,37 @@ function hasDotBinary() {
     return dotBinaryAvailableCache;
   }
   const probe = spawnSync("dot", ["-V"], { encoding: "utf8", timeout: 1500 });
-  dotBinaryAvailableCache = probe.error == null;
+  dotBinaryAvailableCache = probe.status === 0;
   return dotBinaryAvailableCache;
 }
 
 function smokeRender(dotText) {
   if (!hasDotBinary()) {
-    return { warning: diagnostic("D091") };
+    return { error: diagnostic("D091") };
   }
-  const result = spawnSync("dot", ["-Tsvg"], { input: dotText, encoding: "utf8", timeout: 1500 });
-  if (result.error != null) {
-    return { warning: diagnostic("D091", null, String(result.error)) };
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "draw-dot-render-"));
+  const sourcePath = path.join(tempDir, "diagram.dot");
+  const outputPath = path.join(tempDir, "diagram.svg");
+  try {
+    fs.writeFileSync(sourcePath, dotText, "utf8");
+    const result = spawnSync("dot", ["-Tsvg", sourcePath, "-o", outputPath], {
+      encoding: "utf8",
+      timeout: 10000,
+    });
+    if (result.status === 0 && fs.existsSync(outputPath)) {
+      const rendered = fs.readFileSync(outputPath, "utf8");
+      if (rendered.includes("<svg")) {
+        return { warning: null };
+      }
+    }
+    if (result.error != null) {
+      return { error: diagnostic("D090", null, String(result.error)) };
+    }
+    const details = (result.stderr || result.stdout || "").trim().split(/\r?\n/)[0] || "dot render failed";
+    return { error: diagnostic("D090", null, details) };
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
   }
-  if (result.status === 0) {
-    return { warning: null };
-  }
-  const details = (result.stderr || result.stdout || "").trim().split(/\r?\n/)[0] || "dot render failed";
-  return { error: diagnostic("D090", null, details) };
 }
 
 export function extractMarkdownDotBlocks(markdownText) {

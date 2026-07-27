@@ -5,32 +5,11 @@
 
 > 用一句话说明这个 LLM 节点负责什么判定、生成或路由决策，以及它冻结了哪些 prompt / context / contract 边界。
 
-## 背景与现状
+## 总览
 
 ### 背景
 
 说明为什么这个 LLM 节点需要独立 spec，而不能继续散落在代码、prompt 和测试里。
-
-### 现状
-
-只写当前为什么需要这份 authority spec，不展开实现细节罗列。
-
-```dot
-digraph CurrentNeed {
-  rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
-
-  scattered [label="代码 / prompt / 测试分散", fillcolor="#dbeafe"];
-  drift [label="contract 易漂移", fillcolor="#fecaca"];
-  spec [label="需要目标态 authority spec", fillcolor="#dcfce7"];
-
-  scattered -> drift -> spec;
-}
-```
-
-## 目标与非目标
 
 ### 目标
 

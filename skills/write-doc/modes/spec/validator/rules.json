@@ -7,12 +7,10 @@
       "titleSuffix": "设计文档",
       "filenameSuffix": "-spec.md",
       "requiredH2": [
-        "背景与现状",
-        "目标与非目标",
+        "总览",
         "风险与红线",
         "边界与契约",
         "架构总览",
-        "架构分层",
         "模块划分",
         "方案对比",
         "验收标准",
@@ -21,10 +19,11 @@
       ],
       "exactH3": [
         {
-          "section": "背景与现状",
+          "section": "总览",
           "expected": [
             "背景",
-            "现状"
+            "目标",
+            "非目标"
           ],
           "errorCode": "E011"
         },
@@ -41,7 +40,8 @@
         "redLineCautions",
         "requiredDiagrams",
         "interviewRecords",
-        "comparisonSection"
+        "comparisonSection",
+        "architectureModuleDepth"
       ]
     },
     {
@@ -50,12 +50,10 @@
       "titleSuffix": "设计文档",
       "filenameSuffix": "-spec.md",
       "requiredH2": [
-        "背景与现状",
-        "目标与非目标",
+        "总览",
         "风险与红线",
         "边界与契约",
         "架构总览",
-        "架构分层",
         "模块划分",
         "方案对比",
         "验收标准",
@@ -64,10 +62,11 @@
       ],
       "exactH3": [
         {
-          "section": "背景与现状",
+          "section": "总览",
           "expected": [
             "背景",
-            "现状"
+            "目标",
+            "非目标"
           ],
           "errorCode": "E011"
         },
@@ -84,7 +83,8 @@
         "redLineCautions",
         "requiredDiagrams",
         "interviewRecords",
-        "comparisonSection"
+        "comparisonSection",
+        "architectureModuleDepth"
       ]
     },
     {
@@ -93,8 +93,7 @@
       "titleSuffix": "设计文档",
       "filenameSuffix": "-spec.md",
       "requiredH2": [
-        "背景与现状",
-        "目标与非目标",
+        "总览",
         "风险与红线",
         "Prompt 设计",
         "Context 设计",
@@ -105,10 +104,11 @@
       ],
       "exactH3": [
         {
-          "section": "背景与现状",
+          "section": "总览",
           "expected": [
             "背景",
-            "现状"
+            "目标",
+            "非目标"
           ],
           "errorCode": "E011"
         },
@@ -126,7 +126,8 @@
         "requiredDiagrams",
         "interviewRecords",
         "llmPromptSections",
-        "llmUserPromptDiagram"
+        "llmUserPromptDiagram",
+        "architectureModuleDepth"
       ]
     },
     {

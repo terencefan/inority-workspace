@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { existsSync } from "node:fs";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
 import { walkRepos } from "../../inority/scripts/scan-git-repos.mjs";
@@ -10,6 +10,8 @@ function parseArgs(argv) {
   let scanRoot = process.cwd();
   let format = "json";
   let apply = false;
+  let groupWorker = false;
+  const repoPaths = [];
 
   for (const arg of argv) {
     if (arg === "--json") {
@@ -24,13 +26,21 @@ function parseArgs(argv) {
       apply = true;
       continue;
     }
+    if (arg === "--group-worker") {
+      groupWorker = true;
+      continue;
+    }
+    if (arg.startsWith("--repo=")) {
+      repoPaths.push(resolve(arg.slice("--repo=".length)));
+      continue;
+    }
     if (arg.startsWith("--")) {
       throw new Error(`unknown flag: ${arg}`);
     }
     scanRoot = resolve(arg);
   }
 
-  return { scanRoot: resolve(scanRoot), format, apply };
+  return { scanRoot: resolve(scanRoot), format, apply, groupWorker, repoPaths };
 }
 
 function runGit(repoPath, args) {
@@ -109,6 +119,24 @@ function detectDefaultBranch(repoPath) {
     }
   }
 
+  return "";
+}
+
+function commonGitDir(repoPath) {
+  const gitDir = gitOutput(repoPath, ["rev-parse", "--git-common-dir"]);
+  return gitDir ? resolve(repoPath, gitDir) : repoPath;
+}
+
+function checkedOutBranchWorktree(repoPath, branchName) {
+  const output = gitOutput(repoPath, ["worktree", "list", "--porcelain"]);
+  let worktreePath = "";
+  for (const line of output.split("\n")) {
+    if (line.startsWith("worktree ")) {
+      worktreePath = line.slice("worktree ".length);
+    } else if (line === `branch refs/heads/${branchName}`) {
+      return worktreePath;
+    }
+  }
   return "";
 }
 
@@ -229,13 +257,46 @@ function applyRepo(record) {
     return updated;
   }
 
-  if (updated.currentBranch !== updated.defaultBranch) {
-    const branchResult = runGit(updated.path, [
-      "branch",
-      "-f",
+  if (branchExists(updated.path, updated.defaultBranch, false)) {
+    const localOnlyCount = Number.parseInt(
+      gitOutput(updated.path, [
+        "rev-list",
+        "--count",
+        `${remoteRef}..${updated.defaultBranch}`,
+      ]) || "0",
+      10,
+    );
+    const defaultWorktree = checkedOutBranchWorktree(
+      updated.path,
       updated.defaultBranch,
-      remoteRef,
-    ]);
+    );
+    const defaultDirty = defaultWorktree
+      ? gitOutput(defaultWorktree, ["status", "--porcelain"])
+      : "";
+
+    if (localOnlyCount > 0 || defaultDirty) {
+      updated.status = "needs-checkout";
+      updated.result = "skipped";
+      updated.reason = localOnlyCount > 0
+        ? `local ${updated.defaultBranch} has ${localOnlyCount} commit(s) not in ${remoteRef}`
+        : `local ${updated.defaultBranch} worktree is dirty: ${defaultWorktree}`;
+      return updated;
+    }
+  }
+
+  if (updated.currentBranch !== updated.defaultBranch) {
+    const defaultWorktree = checkedOutBranchWorktree(
+      updated.path,
+      updated.defaultBranch,
+    );
+    const branchResult = defaultWorktree
+      ? runGit(defaultWorktree, ["merge", "--ff-only", remoteRef])
+      : runGit(updated.path, [
+          "branch",
+          "-f",
+          updated.defaultBranch,
+          remoteRef,
+        ]);
     if (branchResult.status !== 0) {
       updated.status = "failed";
       updated.result = "halted";
@@ -257,19 +318,84 @@ function applyRepo(record) {
   return updated;
 }
 
-async function main() {
-  const { scanRoot, format, apply } = parseArgs(process.argv.slice(2));
-  const repoPaths = await walkRepos(scanRoot);
+function applyGroup(repoPaths) {
   const records = repoPaths.map(repoRecord);
+  for (let index = 0; index < records.length; index += 1) {
+    const updated = applyRepo(records[index]);
+    records[index] = updated;
+    if (updated.result === "halted") {
+      break;
+    }
+  }
+  return records;
+}
+
+function runGroupWorker(repoPaths) {
+  return new Promise((resolvePromise, rejectPromise) => {
+    const child = spawn(process.execPath, [
+      process.argv[1],
+      "--apply",
+      "--group-worker",
+      "--json",
+      ...repoPaths.map((repoPath) => `--repo=${repoPath}`),
+    ], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk;
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
+    });
+    child.on("error", rejectPromise);
+    child.on("close", (code) => {
+      if (code !== 0) {
+        rejectPromise(new Error(stderr.trim() || `sync worker exited ${code}`));
+        return;
+      }
+      try {
+        resolvePromise(JSON.parse(stdout).repositories);
+      } catch (error) {
+        rejectPromise(new Error(`invalid sync worker output: ${error.message}`));
+      }
+    });
+  });
+}
+
+async function main() {
+  const {
+    scanRoot,
+    format,
+    apply,
+    groupWorker,
+    repoPaths: requestedRepoPaths,
+  } = parseArgs(process.argv.slice(2));
+  const repoPaths = requestedRepoPaths.length > 0
+    ? requestedRepoPaths
+    : await walkRepos(scanRoot);
+  let records = repoPaths.map(repoRecord);
 
   if (apply) {
-    for (let index = 0; index < records.length; index += 1) {
-      const current = records[index];
-      const updated = applyRepo(current);
-      records[index] = updated;
-      if (updated.result === "halted") {
-        break;
+    if (groupWorker) {
+      records = applyGroup(repoPaths);
+    } else {
+      const groups = new Map();
+      for (const repoPath of repoPaths) {
+        const key = commonGitDir(repoPath);
+        const group = groups.get(key) || [];
+        group.push(repoPath);
+        groups.set(key, group);
       }
+      const groupResults = await Promise.all(
+        [...groups.values()].map(runGroupWorker),
+      );
+      const byPath = new Map(
+        groupResults.flat().map((record) => [record.path, record]),
+      );
+      records = repoPaths.map((repoPath) => byPath.get(repoPath));
     }
   }
 

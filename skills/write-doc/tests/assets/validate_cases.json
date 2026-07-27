@@ -48,11 +48,11 @@
     ]
   },
   {
-    "name": "background-extra-subheading",
+    "name": "overview-extra-subheading",
     "replacements": [
       {
-        "old": "### 现状\n\n说明当前系统结构、实现限制或运行痛点。\n",
-        "new": "### 现状\n\n说明当前系统结构、实现限制或运行痛点。\n\n### 问题\n\n这里不允许新增问题小节。\n"
+        "old": "### 非目标\n\n明确不打算解决的技术问题。\n",
+        "new": "### 非目标\n\n明确不打算解决的技术问题。\n\n### 现状\n\nspec 总览不允许新增现状小节。\n"
       }
     ],
     "expected_codes": [
@@ -69,18 +69,6 @@
     ],
     "expected_codes": [
       "E014"
-    ]
-  },
-  {
-    "name": "missing-current-dot",
-    "replacements": [
-      {
-        "old": "```dot\n",
-        "new": "```txt\n"
-      }
-    ],
-    "expected_codes": [
-      "E020"
     ]
   },
   {

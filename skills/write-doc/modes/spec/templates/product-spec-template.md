@@ -5,32 +5,11 @@
 
 > 用一句话说明用户问题、目标读者和期望结果。
 
-## 背景与现状
+## 总览
 
 ### 背景
 
 说明为什么这个用户问题或业务问题现在值得处理。
-
-### 现状
-
-说明当前用户流程、业务问题或策略限制。
-
-```dot
-digraph CurrentState {
-  rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
-
-  current_user [label="当前用户入口", fillcolor="#dbeafe"];
-  current_flow [label="当前流程", fillcolor="#fef3c7"];
-  current_result [label="当前结果", fillcolor="#dcfce7"];
-
-  current_user -> current_flow -> current_result;
-}
-```
-
-## 目标与非目标
 
 ### 目标
 
@@ -80,7 +59,7 @@ digraph TargetState {
 
 即使是产品 spec，这里默认也要放一张 fenced `dot` 图，并且这张图要同时体现：
 
-- `架构分层` 的南北向结构
+- 架构组件的南北向层次
 - `模块划分` 的东西向结构
 
 ```dot
@@ -91,7 +70,7 @@ digraph ArchitectureOverview {
   edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
 
   subgraph cluster_ns {
-    label="架构分层（南北向）";
+    label="架构组件（南北向）";
     color="#94a3b8";
     fontcolor="#475569";
     user [label="用户入口层", fillcolor="#dbeafe"];
@@ -115,8 +94,6 @@ digraph ArchitectureOverview {
   support -> moduleC [style=dashed];
 }
 ```
-
-## 架构分层
 
 ### 方案设计
 
@@ -200,5 +177,5 @@ digraph ArchitectureOverview {
 
 ## 参考资料
 
-- [原始需求](./requirement.md)
-- [相关说明](../README.md)
+- 原始需求：`<path-to-requirement>`
+- 相关说明：`<path-to-related-document>`

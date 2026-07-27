@@ -342,17 +342,7 @@ function validateRedLineCautions(lines, h2Sections) {
 function validateRequiredDiagrams(lines, h2Sections) {
   const errors = [];
 
-  const background = sectionSlice(h2Sections, "背景与现状", lines.length);
-  if (background != null) {
-    const [start, end] = background;
-    const h3 = parseNestedSections(lines, start + 1, end, 3);
-    const current = h3.find(([, title]) => title === "现状");
-    if (current == null || !hasDotFence(lines, current[0], current[2])) {
-      errors.push(err("E020", lines, current == null ? start : current[0]));
-    }
-  }
-
-  const targetSection = sectionSlice(h2Sections, "目标与非目标", lines.length);
+  const targetSection = sectionSlice(h2Sections, "总览", lines.length);
   if (targetSection != null) {
     const [start, end] = targetSection;
     const h3 = parseNestedSections(lines, start + 1, end, 3);
@@ -367,6 +357,56 @@ function validateRequiredDiagrams(lines, h2Sections) {
     const [start, end] = overview;
     if (!hasDotFence(lines, start, end)) {
       errors.push(err("E022", lines, start));
+    }
+  }
+
+  return errors;
+}
+
+function validateArchitectureModuleDepth(lines, h2Sections) {
+  const errors = [];
+  const targetSections = ["架构总览", "模块划分"];
+
+  for (const sectionName of targetSections) {
+    const section = sectionSlice(h2Sections, sectionName, lines.length);
+    if (section == null) {
+      continue;
+    }
+    const [start, end] = section;
+
+    for (let idx = start + 1; idx < end; idx += 1) {
+      if (/^#{5,6}\s+/.test(lines[idx])) {
+        errors.push(err("E015", lines, idx));
+      }
+    }
+
+    const h3Sections = parseNestedSections(lines, start + 1, end, 3);
+    for (const [h3Start, h3Title, h3End] of h3Sections) {
+      if (h3Title !== "控制面" && h3Title !== "数据面") {
+        continue;
+      }
+      const h4Sections = parseNestedSections(lines, h3Start + 1, h3End, 4);
+      for (const [h4Start, , h4End] of h4Sections) {
+        const calloutIdx = firstNonEmptyLineIdx(lines, h4Start + 1, h4End);
+        if (calloutIdx == null || !/^> \[!(?:NOTE|IMPORTANT|TIP|WARNING|CAUTION)\]$/.test(lines[calloutIdx].trim())) {
+          errors.push(err("E016", lines, calloutIdx ?? h4Start));
+          continue;
+        }
+        let calloutBody = "";
+        for (let idx = calloutIdx + 1; idx < h4End; idx += 1) {
+          const trimmed = lines[idx].trim();
+          if (!trimmed) {
+            continue;
+          }
+          if (!trimmed.startsWith(">")) {
+            break;
+          }
+          calloutBody += `${trimmed}\n`;
+        }
+        if (!calloutBody.includes("职责：") || !calloutBody.includes("具体组件：")) {
+          errors.push(err("E016", lines, calloutIdx));
+        }
+      }
     }
   }
 
@@ -793,6 +833,9 @@ export function collectErrors(text, { pathValue = null } = {}) {
     }
     if (flags.has("comparisonSection")) {
       errors.push(...validateComparisonSection(lines, h2Sections));
+    }
+    if (flags.has("architectureModuleDepth")) {
+      errors.push(...validateArchitectureModuleDepth(lines, h2Sections));
     }
     if (flags.has("llmPromptSections")) {
       errors.push(...validateLlmPromptSections(lines, h2Sections));

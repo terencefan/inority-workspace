@@ -71,6 +71,21 @@ test("reference spec passes validation", () => {
   assert.deepEqual(collectErrors(loadText(REFERENCE_SPEC), { pathValue: REFERENCE_SPEC }), []);
 });
 
+test("spec architecture and module sections enforce three-level depth and control/data callouts", () => {
+  const reference = loadText(REFERENCE_SPEC);
+  const tooDeep = reference.replace(
+    "### 外部入口层\n\n说明这一层负责什么，与上下游如何连接。",
+    "### 外部入口层\n\n#### 入口模块\n\n##### 过深实现\n\n说明。",
+  );
+  assert.ok(new Set(collectErrors(tooDeep, { pathValue: REFERENCE_SPEC }).map((item) => item.code)).has("E015"));
+
+  const missingMappingCallout = reference.replace(
+    "### 外部入口层\n\n说明这一层负责什么，与上下游如何连接。",
+    "### 控制面\n\n#### 网关控制层\n\n说明这一层负责什么。",
+  );
+  assert.ok(new Set(collectErrors(missingMappingCallout, { pathValue: REFERENCE_SPEC }).map((item) => item.code)).has("E016"));
+});
+
 test("reference llm spec passes validation", () => {
   assert.deepEqual(collectErrors(loadText(REFERENCE_LLM_SPEC), { pathValue: REFERENCE_LLM_SPEC }), []);
 });

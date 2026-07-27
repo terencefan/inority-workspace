@@ -1,0 +1,4 @@
+interface:
+  display_name: "Grafana Dashboard"
+  short_description: "Create, import, verify, and clean up Grafana dashboards"
+  default_prompt: "Use $grafana-dashboard to work on Grafana dashboard JSON, import dashboards into Grafana so they persist in PostgreSQL, and verify or clean them up."

@@ -1,4 +1,4 @@
 interface:
-  display_name: "Checkout / Checkin"
-  short_description: "Publish repos in parallel; sync only on explicit checkin."
-  default_prompt: "Use $checkout for an end-of-day publish sweep with one subagent per independent repository, or explicitly say checkin / 上班 to run its sync-only workspace mode."
+  display_name: "Checkout / Sync"
+  short_description: "Publish repositories or safely sync main in parallel."
+  default_prompt: "Use $checkout for an end-of-day publish sweep, or use $checkout sync / 上班 to fetch each repository's latest main branch and rebase current branches concurrently while serializing worktrees of the same repository."
