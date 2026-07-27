@@ -20,7 +20,7 @@ This skill is not a user-facing workflow by default. Its main job is to hold reu
 - `scripts/scan-git-repos.mjs`
   - canonical workspace Git repository scanner
   - used by `checkout` for deterministic workspace discovery
-  - should be reused by `checkin` and future workspace Git orchestration skills
+  - reused by the `checkout` skill's `sync` mode and future workspace Git orchestration skills
 
 ## Rules
 

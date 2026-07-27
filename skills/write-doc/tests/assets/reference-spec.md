@@ -5,32 +5,11 @@
 
 > 用一句话说明技术变更内容，以及它会影响哪些系统边界。
 
-## 背景与现状
+## 总览
 
 ### 背景
 
-说明为什么当前系统状态或外部约束要求现在做这次变更。
-
-### 现状
-
-说明当前系统结构、实现限制或运行痛点。
-
-```dot
-digraph CurrentState {
-  rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
-
-  current_a [label="当前组件 A", fillcolor="#dbeafe"];
-  current_b [label="当前组件 B", fillcolor="#fef3c7"];
-  current_c [label="当前组件 C", fillcolor="#dcfce7"];
-
-  current_a -> current_b -> current_c;
-}
-```
-
-## 目标与非目标
+说明为什么需要这次变更，以及相关外部约束。
 
 ### 目标
 
@@ -87,7 +66,7 @@ digraph ArchitectureOverview {
   edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
 
   subgraph cluster_ns {
-    label="架构分层（南北向）";
+    label="架构组件（南北向）";
     color="#94a3b8";
     fontcolor="#475569";
     external [label="外部入口层", fillcolor="#dbeafe"];
@@ -111,8 +90,6 @@ digraph ArchitectureOverview {
   data -> moduleC [style=dashed];
 }
 ```
-
-## 架构分层
 
 ### 外部入口层
 
@@ -199,5 +176,5 @@ digraph ArchitectureOverview {
 
 ## 参考资料
 
-- [接口定义](./api.md)
-- [运维文档](../README.md)
+- 接口定义：`<path-to-api-contract>`
+- 运维文档：`<path-to-runbook>`

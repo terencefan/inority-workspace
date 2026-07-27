@@ -5,32 +5,11 @@
 
 > 用一句话说明技术变更内容，以及它会影响哪些系统边界。
 
-## 背景与现状
+## 总览
 
 ### 背景
 
-说明为什么当前系统状态或外部约束要求现在做这次变更。
-
-### 现状
-
-说明当前系统结构、实现限制或运行痛点。
-
-```dot
-digraph CurrentState {
-  rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
-
-  current_a [label="当前组件 A", fillcolor="#dbeafe"];
-  current_b [label="当前组件 B", fillcolor="#fef3c7"];
-  current_c [label="当前组件 C", fillcolor="#dcfce7"];
-
-  current_a -> current_b -> current_c;
-}
-```
-
-## 目标与非目标
+说明为什么需要这次变更，以及相关外部约束。
 
 ### 目标
 
@@ -80,7 +59,7 @@ digraph TargetState {
 
 必须放一张 fenced `dot` 图，并且这张图要同时体现：
 
-- `架构分层` 的南北向结构
+- 架构组件的南北向层次
 - `模块划分` 的东西向结构
 
 ```dot
@@ -91,7 +70,7 @@ digraph ArchitectureOverview {
   edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
 
   subgraph cluster_ns {
-    label="架构分层（南北向）";
+    label="架构组件（南北向）";
     color="#94a3b8";
     fontcolor="#475569";
     external [label="外部入口层", fillcolor="#dbeafe"];
@@ -116,17 +95,29 @@ digraph ArchitectureOverview {
 }
 ```
 
-## 架构分层
+> 当系统同时包含控制面和数据面时，优先按以下两个责任平面组织；不适用时再按真实层级替换。
 
-> 按层解释请求路径、运行边界或职责拆分。
+### 控制面
 
-### <层级一>
+#### <控制面逻辑层>
 
-说明这一层负责什么，与上下游如何连接。
+> [!NOTE]
+> 职责：说明声明、协调、生命周期或策略职责。
+>
+> 具体组件：列出对应代码模块、API 资源、进程、Deployment、Service 或控制器。
 
-### <层级二>
+说明控制面如何管理状态，以及它明确不处理哪些请求数据。
 
-说明这一层负责什么，与上下游如何连接。
+### 数据面
+
+#### <数据面逻辑层>
+
+> [!NOTE]
+> 职责：说明请求、事件或数据的实际处理职责。
+>
+> 具体组件：列出对应代码模块、进程、Deployment、Service、Pod 或 Runtime。
+
+说明数据路径、上下游连接和错误 ownership。同一组件兼具两个平面职责时，仅在这里描述其数据面部分。
 
 ## 模块划分
 
@@ -216,5 +207,5 @@ digraph ArchitectureOverview {
 
 ## 参考资料
 
-- [接口定义](./api.md)
-- [运维文档](../README.md)
+- 接口定义：`<path-to-api-contract>`
+- 运维文档：`<path-to-runbook>`

@@ -31,4 +31,4 @@ D040:
 D090:
   message: "Graphviz render smoke check 失败"
 D091:
-  message: "本地未检测到 Graphviz `dot` 命令，跳过 render smoke check"
+  message: "本地未检测到 Graphviz `dot` 命令；必须安装 Graphviz 后重新执行 render smoke check"

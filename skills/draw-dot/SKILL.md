@@ -81,6 +81,12 @@ This skill is the style authority for DOT snippets used by `runbook`, `write-doc
 
 ## Validation
 
+- Graphviz render smoke check is mandatory for every new or modified diagram; syntax-only validation is not sufficient.
+- Before validation, run `dot -V`. If `dot` is unavailable, install the Graphviz package with the
+  operating system package manager (for example `apt-get install graphviz`, `dnf install graphviz`,
+  or `brew install graphviz`), then rerun validation. Request the required installation approval
+  when the environment requires it.
+- Do not claim a diagram is complete when Graphviz is missing or rendering was skipped.
 - Before finalizing, do a quick syntax pass mentally:
   - balanced braces
   - semicolons or newline-separated statements are coherent
@@ -93,7 +99,8 @@ This skill is the style authority for DOT snippets used by `runbook`, `write-doc
   - `dotctl validate <file>`: auto-detect Markdown vs raw DOT
   - `dotctl validate-markdown <file>`: extract fenced `dot` / `graphviz` blocks and validate them
   - `dotctl validate-dot <file>`: validate a raw `.dot` / `.gv` file
-- If `dot` is available locally and the diagram is non-trivial, run a render smoke check.
+- `dotctl` must return success only after every extracted DOT block passes `dot -Tsvg` rendering.
+  Missing Graphviz is a validation error, not a warning.
 
 ## References
 

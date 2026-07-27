@@ -5,30 +5,11 @@
 
 > 用一句话说明这个 LLM 节点负责什么判定，以及它冻结了哪些 prompt、context 与状态边界。
 
-## 背景与现状
+## 总览
 
 ### 背景
 
 说明为什么这个节点需要独立 spec。
-
-### 现状
-
-说明当前需要一份目标态 authority spec 来冻结 llm contract。
-
-```dot
-digraph CurrentNeed {
-  rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
-  a [label="代码 / prompt / 测试分散", fillcolor="#dbeafe"];
-  b [label="contract 易漂移", fillcolor="#fecaca"];
-  c [label="需要目标态 authority spec", fillcolor="#dcfce7"];
-  a -> b -> c;
-}
-```
-
-## 目标与非目标
 
 ### 目标
 

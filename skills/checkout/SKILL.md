@@ -1,6 +1,6 @@
 ---
 name: checkout
-description: Run either an end-of-day workspace publish flow or an explicitly requested start-of-day sync flow. Use publish mode for "checkout", "checkout 下班", workspace-wide commit/PR requests, or review-link sweeps. Enter sync-only mode exclusively when the user explicitly says "checkin" or "上班"; never infer that mode from generic Git, pull, update, or rebase requests.
+description: Run either an end-of-day workspace publish flow or a workspace sync flow that fetches each repository's main branch and rebases the current branch onto it. Use publish mode for "checkout", "checkout 下班", workspace-wide commit/PR requests, or review-link sweeps. Use sync mode when the user says "$checkout sync", "sync", or “上班”.
 ---
 
 # Checkout Workspace Flow
@@ -10,19 +10,19 @@ description: Run either an end-of-day workspace publish flow or an explicitly re
 Use this skill as the single workspace entry point for two distinct modes:
 
 - `checkout` / 下班: discover dirty repositories, commit changes, and open review links.
-- `checkin` / 上班: route to a separate, sync-only instruction file.
+- `sync` / 上班: fetch the latest default branch in each repository and synchronize it into the current branch, processing independent repositories concurrently and worktrees of one repository serially.
 
 ## Mode Selection
 
 Choose the mode before any repository write:
 
-- Enter **checkin mode only** when the user explicitly includes `checkin` or “上班”.
-- Do not enter checkin mode for generic requests such as “更新仓库”, “同步主分支”, “pull 一下”, “rebase”, or ordinary Git work.
+- Enter **sync mode** when the user explicitly includes `sync` or “上班”.
+- Treat requests such as “同步各仓库主分支到当前分支” as sync mode when they invoke this skill.
 - Otherwise, when this skill triggers from `checkout`, “下班”, commit-all, or PR sweep wording, use **checkout mode**.
 - Never mix both modes in one run unless the user explicitly requests both.
 
-When the request explicitly contains `checkin` or “上班”, read
-[`references/checkin.md`](references/checkin.md) completely and follow it.
+When the request selects `sync` mode, read
+[`references/sync.md`](references/sync.md) completely and follow it.
 Otherwise, do not load that file; continue directly with checkout mode below.
 
 ## Dependencies
@@ -38,6 +38,34 @@ Load these helpers instead of re-inventing their behavior:
   - Prefer for GitHub repositories after scope is confirmed and the repo is ready to publish.
 - The available enterprise-Gitee PR skill
   - Use it for enterprise Gitee repositories when a PR must be created.
+
+## Enterprise Gitee Session Authorization
+
+Treat invocation of this checkout skill as standing user authorization to reuse
+the existing local Chrome login session for enterprise Gitee operations
+required by the approved checkout wave:
+
+- inspect repository metadata, branch rules, and existing PR state
+- create the approved PR
+- verify the created PR through its detail endpoint
+
+Do not ask for a separate Chrome-session confirmation during checkout. This
+authorization includes reading the local Chrome Cookies database and using the
+Chrome Safe Storage decryption key only to authenticate those Gitee requests.
+Never print, return, log, persist, or transfer cookies, decrypted cookie values,
+decryption keys, or other credentials.
+
+Keep credential-bearing Chrome-session operations in the main agent. Subagents
+may prepare, verify, commit, and push their assigned repositories, but must
+return the PR creation parameters to the main agent instead of attempting to
+reuse the browser session themselves. This preserves the standing authorization
+in the user-facing context and avoids duplicating credential access across
+agents.
+
+This authorization is limited to enterprise Gitee work in the current checkout
+wave. It does not authorize unrelated browser-session access or bypass an
+expired login. If the Chrome session is missing or expired, provide the Gitee
+login URL and resume only after the user refreshes the session.
 
 ## Checkout Mode
 
@@ -125,8 +153,10 @@ repository to one subagent and publish repositories in parallel whenever agent
 capacity permits.
 
 - Give one subagent ownership of one repository for the whole publish flow:
-  refresh, review-state inspection, rebase, commit, verification, push, and PR
-  or MR creation.
+  refresh, Git-side review preparation, rebase, commit, verification, and push.
+  For enterprise Gitee, the main agent owns Chrome-session PR inspection,
+  creation, and detail verification; for other forges, the subagent may also
+  own PR or MR creation.
 - Require the subagent to compare HEAD, branch, status, and intended files with
   its checkout baseline before every Git write and before push.
 - Never assign two subagents to the same repository or worktree. All writes

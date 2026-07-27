@@ -23,9 +23,9 @@
 
 | 路径 | 说明 |
 |------|------|
-| `checkin/` | 工作区级 Git 主分支刷新与当前分支 rebase |
-| `checkout/` | 工作区级 Git 扫描、提交与 PR/MR 汇总发布 |
+| `checkout/` | 工作区级 Git 发布，以及 `sync` 模式下的主分支刷新与当前分支 rebase |
 | `draw-dot/` | Graphviz / DOT 图生成与收敛 |
+| `grafana-dashboard/` | Grafana dashboard 编写、保留 folder/权限继承的安全发布与渲染验收 |
 | `inority/` | inority workspace 的通用资产与共享脚本 |
 | `inority-question/` | 统一提问、澄清、路线确认与访谈问答协议 |
 | `inority-slides/` | slides / deck / H5 演示稿规划与交付 |
@@ -127,7 +127,7 @@ digraph skills_topology {
 - 文档类：`write-doc/`
 - 飞书文档类：`write-doc-lark/`
 - 工作区收尾类：`checkout/`
-- Git 同步类：`checkin/`
+- Git 同步类：`checkout` 的 `sync` 模式
 - 通用基座类：`inority/`
 - 运维类：`runbook/`
 - 演示类：`inority-slides/`、`draw-dot/`

@@ -17,13 +17,15 @@ E007:
 E010:
   message: "内容级二级标题必须严格按当前文档类型的默认顺序收敛为：{expected}"
 E011:
-  message: "“背景与现状”下的三级标题必须且只能是：背景 / 现状"
+  message: "“总览”下的三级标题必须且只能是：背景 / 目标 / 非目标"
 E013:
   message: "“风险与红线”下的三级标题必须且只能是：风险 / 红线行为"
 E014:
   message: "“红线行为”下的具体条目必须使用 GitHub 风格的 `> [!CAUTION]` callout"
-E020:
-  message: "“现状”三级小节必须包含 fenced `dot` 或 `graphviz` 图"
+E015:
+  message: "“架构总览 / 模块划分”最多允许 H2 → H3 → H4，不得继续使用 H5/H6"
+E016:
+  message: "“控制面 / 数据面”下的每个 H4 具体逻辑层必须以 callout 开头，并包含“职责：”和“具体组件：”"
 E021:
   message: "“目标”三级小节必须包含 fenced `dot` 或 `graphviz` 图"
 E022:
