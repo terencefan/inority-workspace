@@ -77,8 +77,16 @@ failing command, and whether a rebase remains in progress.
 
 ## 4. Report
 
-Return a compact per-repository summary with path, current branch, default
-branch, action, final status, and blocker reason.
+Return a compact per-repository summary split into two explicit groups:
+
+- **Passed / 已通过**: repositories whose sync action completed successfully.
+- **Not Passed / 未通过**: repositories that were skipped, blocked, or failed.
+
+For each passed repository, include path, current branch, default branch,
+action, and final status. For each not-passed repository, include path, current
+branch, default branch, final status, and blocker reason.
+
+Do not mix passed and not-passed repositories in one undifferentiated table.
 
 ## Safety
 
