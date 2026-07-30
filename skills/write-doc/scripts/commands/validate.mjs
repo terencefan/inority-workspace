@@ -116,6 +116,56 @@ function parseSections(lines, level) {
   return sections;
 }
 
+function h2MatchesRule(actualH2, requiredH2, optionalH2 = []) {
+  const optionalTitles = new Set(optionalH2.map((entry) => entry.title));
+  const actualRequiredOnly = actualH2.filter((title) => !optionalTitles.has(title));
+  if (JSON.stringify(actualRequiredOnly) !== JSON.stringify(requiredH2)) {
+    return false;
+  }
+  for (const title of actualH2) {
+    if (!requiredH2.includes(title) && !optionalTitles.has(title)) {
+      return false;
+    }
+  }
+  for (const optional of optionalH2) {
+    const foundIndexes = actualH2
+      .map((title, index) => [title, index])
+      .filter(([title]) => title === optional.title)
+      .map(([, index]) => index);
+    if (foundIndexes.length > 1) {
+      return false;
+    }
+    if (foundIndexes.length === 0) {
+      continue;
+    }
+    const index = foundIndexes[0];
+    if (optional.after && !(actualH2.indexOf(optional.after) < index)) {
+      return false;
+    }
+    if (optional.before && !(index < actualH2.indexOf(optional.before))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function h2ExpectedLabel(requiredH2, optionalH2 = []) {
+  let titles = [...requiredH2];
+  for (const optional of optionalH2) {
+    const insertAfter = optional.after == null ? -1 : titles.indexOf(optional.after);
+    const insertBefore = optional.before == null ? -1 : titles.indexOf(optional.before);
+    const label = `${optional.title}(可选)`;
+    if (insertAfter >= 0) {
+      titles.splice(insertAfter + 1, 0, label);
+    } else if (insertBefore >= 0) {
+      titles.splice(insertBefore, 0, label);
+    } else {
+      titles.push(label);
+    }
+  }
+  return titles.join(" / ");
+}
+
 function sectionSlice(sections, title, linesLen) {
   for (let i = 0; i < sections.length; i += 1) {
     const [start, name] = sections[i];
@@ -255,9 +305,10 @@ function validateHeadingStructure(lines, pathValue) {
   const h2Sections = parseSections(lines, 2);
   const h2Titles = h2Sections.map(([, sectionTitle]) => sectionTitle);
   const expectedH2 = rule.requiredH2 ?? null;
-  if (expectedH2 != null && JSON.stringify(h2Titles) !== JSON.stringify(expectedH2)) {
+  const optionalH2 = rule.optionalH2 ?? [];
+  if (expectedH2 != null && !h2MatchesRule(h2Titles, expectedH2, optionalH2)) {
     const lineIdx = h2Sections.length > 0 ? h2Sections[0][0] : 0;
-    errors.push(err("E010", lines, lineIdx, h2Titles.join(" / "), { expected: expectedH2.join(" / ") }));
+    errors.push(err("E010", lines, lineIdx, h2Titles.join(" / "), { expected: h2ExpectedLabel(expectedH2, optionalH2) }));
   }
 
   return errors;

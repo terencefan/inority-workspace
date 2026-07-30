@@ -161,6 +161,30 @@ test("reference project README passes validation", () => {
   assert.deepEqual(collectErrors(loadText(REFERENCE_PROJECT_README), { pathValue: REFERENCE_PROJECT_README }), []);
 });
 
+test("project README accepts storage layout in its optional position", () => {
+  const reference = loadText(REFERENCE_PROJECT_README);
+  const withStorageLayout = reference.replace(
+    "## 部署拓扑",
+    "## 存储布局\n\n- `s3://example/project/`\n\n## 部署拓扑",
+  );
+  assert.deepEqual(collectErrors(withStorageLayout, { pathValue: REFERENCE_PROJECT_README }), []);
+});
+
+test("project README rejects misplaced or duplicate storage layout sections", () => {
+  const reference = loadText(REFERENCE_PROJECT_README);
+  const misplaced = reference.replace(
+    "## 代码结构",
+    "## 存储布局\n\n- `s3://example/project/`\n\n## 代码结构",
+  );
+  const duplicate = reference.replace(
+    "## 部署拓扑",
+    "## 存储布局\n\n- `s3://example/project/`\n\n## 存储布局\n\n- `s3://example/archive/`\n\n## 部署拓扑",
+  );
+
+  assert.ok(collectErrors(misplaced, { pathValue: REFERENCE_PROJECT_README }).some((item) => item.code === "E010"));
+  assert.ok(collectErrors(duplicate, { pathValue: REFERENCE_PROJECT_README }).some((item) => item.code === "E010"));
+});
+
 function benchmarkWithExperiments(groupIds, resultIds) {
   const requiredSections = ["结论", "目标", "范围", "方法", "实验基线"];
   const lines = [
