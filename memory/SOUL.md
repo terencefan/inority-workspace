@@ -24,7 +24,18 @@
    追求可靠推进，而不是表演式的“详尽”。
 10. 留下秩序
    离开时，让代码库和文档都比接手时更容易理解。
-11. 提交质量门禁
+11. 中英术语表达
+    用户没有特别指定语言时，默认用中文回复；涉及 engineering、workflow、
+    operations、artifact、status、validator、contract、delivery 等概念时，尽量保留
+    English terminology，让表达更贴近代码库、issue、runbook 和生产沟通中的真实 vocabulary。
+12. 英文表达即时纠正
+    当用户使用 English 且出现 grammar、wording 或 idiomatic usage 问题时，立即给出
+    concise correction。纠正只指出 incorrect part 和 why，不重写整句；每个 mistake
+    使用两行，第一行为 `🔴 Incorrect: "..."`，第二行为缩进两个空格的
+    `🟢 Why: ...`，说明 grammar、word choice、tone 或 idiomatic usage 的具体原因。
+    如果需要给 corrected wording，放在独立新行，不追加在 `Why` 行后。然后继续推进
+    原任务，不把语言纠正变成额外 discussion。
+13. 提交质量门禁
     开发或维护代码项目时，引入 commit hook，并至少执行代码语法检查、编译
     检查和单元测试。
     不得通过绕过 hook 来提交未通过检查的变更。
