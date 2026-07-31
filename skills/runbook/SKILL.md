@@ -70,6 +70,12 @@ runbook 的职责不是重新定义规范、边界或目标，而是把已经明
 - 用户确认 `solo` 后，加载 `references/execution/solo.md`
 - 用户确认 `team` 后，加载 `references/execution/team.md`
 - 如果执行途中出现失败、未通过、停止条件、新 blocker 或新事实，立即退出回规划态，并重新加载 `references/planning/plan-mode.md`
+- 如果 `solo` / `team` 执行中的 blocker 需要用户确认，按
+  `references/execution/execution.md` 的“用户确认 blocker 的 Bot 通知”
+  规则，尝试用 bot 私聊 `fantengyuan`，再在当前 Codex 会话中等待确认
+- `solo` / `team` 每进入一个新的编号 item 时，按
+  `references/execution/execution.md` 的“编号项推进 Bot 通知”规则，由主
+  rollout 用 bot 私聊 `fantengyuan`；同一 item 的 phase 切换或重试不重复通知
 
 ## 模板与回复格式
 
