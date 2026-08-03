@@ -83,7 +83,8 @@ memory runtime 位于目标 workspace 的 `.codex/memory/`；`credential.md` 只
 npm run codex:uninstall
 ```
 
-插件 hook 由 Codex plugin runtime 从 `plugins/codex-inority/hooks.json` 自动发现。
+插件 hook 由 Codex plugin runtime 从默认路径
+`plugins/codex-inority/hooks/hooks.json` 自动发现。
 
 ### 3. 启动本地 handbook
 

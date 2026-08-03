@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ./scripts/inority-context.mjs",
+            "command": "node \"$PLUGIN_ROOT/scripts/inority-context.mjs\"",
             "statusMessage": "Loading Codex Inority memory and reply context"
           }
         ]
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ./scripts/inority-context.mjs",
+            "command": "node \"$PLUGIN_ROOT/scripts/inority-context.mjs\"",
             "statusMessage": "Refreshing Codex Inority reply contract"
           }
         ]

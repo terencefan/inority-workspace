@@ -28,12 +28,12 @@ Follow workspace reply-format rules from `.codex/memory/USER.md`. Do not duplica
 
 ## Activation Rule
 
-The plugin root `hooks.json` owns activation. Verify the plugin is installed and
+The plugin's default `hooks/hooks.json` owns activation. Verify the plugin is installed and
 start a new thread before relying on newly changed hook behavior.
 
 ## Plugin Surface
 
-- `../../hooks.json`: SessionStart and UserPromptSubmit registration.
+- `../../hooks/hooks.json`: SessionStart and UserPromptSubmit registration.
 - `../../scripts/inority-context.mjs`: memory and reply-context injection.
 - `references/`: CLI and Markdown reply-format templates.
 
