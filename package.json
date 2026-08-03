@@ -13,6 +13,7 @@
     "codex:uninstall:plugin": "codex plugin remove codex-inority",
     "codex:install": "npm run codex:install:memory && npm run codex:install:plugin",
     "codex:uninstall": "npm run codex:uninstall:plugin && npm run codex:uninstall:memory",
+    "codex:test:plugin": "node ./plugins/codex-inority/tests/run.mjs",
     "install-hooks": "node ./handbook/scripts/install-git-hooks.ts",
     "validate:sensitive-content": "node ./handbook/scripts/validate-sensitive-content.ts --all",
     "handbook:dev": "npm run dev --workspace handbook",

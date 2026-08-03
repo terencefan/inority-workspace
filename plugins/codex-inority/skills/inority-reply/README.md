@@ -5,7 +5,7 @@ This plugin-internal skill documents the host-aware reply contract used by
 
 The plugin root owns runtime activation:
 
-- `hooks.json` registers `SessionStart` and `UserPromptSubmit`.
+- `hooks/hooks.json` registers `SessionStart` and `UserPromptSubmit`.
 - `scripts/inority-context.mjs` injects memory and reply context.
 - `references/` stores the CLI and Markdown templates.
 

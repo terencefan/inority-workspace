@@ -3,6 +3,9 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { dirname, join, parse, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const pluginRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 
 async function readStdin() {
   const chunks = [];
@@ -104,7 +107,7 @@ function detectHost(payload) {
 
 function replyTemplate(host) {
   const name = host === "cli" ? "reply-format-cli.md" : "reply-format-md.md";
-  return readText(join(process.cwd(), "skills", "inority-reply", "references", name));
+  return readText(join(pluginRoot, "skills", "inority-reply", "references", name));
 }
 
 function memoryContext(payload) {
