@@ -55,6 +55,7 @@ description: 用于编写、重写或持续维护飞书文档，尤其适合“�
    - 架构、流程、时序、能力分工等结构信息，优先用图表达；在 Feishu 文档里画这类关系图时，默认先引用 `$draw-dot` 生成或维护 DOT 源稿。
    - 发布前扫描纯文本 code block。主要通过箭头、缩进、边界线或步骤串联表达调用链、处理链、状态流、分层关系的 code block，应优先改成流程图或时序图，不把 ASCII 流程图当作最终排版。
    - 命令、配置、HTTP 请求、JSON/XML payload、schema、日志和必须逐字符保真的协议样例继续使用 code block，不为了统一视觉而转换成图。
+   - 所有 code block 必须显式标注代码类型。Markdown 使用围栏语言标识（例如 ` ```python`、` ```go`、` ```bash`、` ```yaml`、` ```json`），XML 使用 `<pre lang="python|go|bash|yaml|json|...">`。禁止使用无语言标识的裸 code block。无法确定类型时先按内容选择最具体的语言，纯文本才使用 `text`。
    - 当图最终要落在飞书文档里的 whiteboard 中时，默认继续加载 `$lark-whiteboard`：由本 skill 决定插入位置和文档结构，由 `lark-whiteboard` 负责把 Mermaid / PlantUML / raw whiteboard 内容写进对应 board token。
    - 图下的文字只负责解释“怎么看这张图”，不要重复图中全部元素。
    - 需要在飞书中可继续编辑的图，优先用 whiteboard / svg 方式维护。
@@ -62,6 +63,7 @@ description: 用于编写、重写或持续维护飞书文档，尤其适合“�
    - 修改时先更新本地镜像。
    - 发布时优先使用本地 `lark-cli` / Feishu CLI 对既有文档执行更新，而不是重新创建。
    - 发布前必须基于 manifest 做线上漂移校验：重新 fetch 线上 XML，使用 `node skills/write-doc-lark/scripts/lark_doc_manifest.mjs verify --fetch <current-online.json> --manifest <doc.manifest.json>` 确认线上 revision 和内容 hash 仍等于编辑前 baseline；校验失败时先生成 diff，再用 `$inority-question` 询问用户选择合并路径。
+   - 用户明确选择“基于线上最新内容继续修改”后，以本轮 fetch 到的线上正文刷新本地 authority 和 manifest，再继续编辑与发布。该选择在当前任务内持续有效，不因后续 revision 变化重复询问同一合并路径，除非检测到选择之后产生的新正文改动。
    - 需要检查线上章节是否保留 @、whiteboard、图片、source、sheet、bitable 等保真对象时，使用 `node skills/write-doc-lark/scripts/lark_doc_xml_tools.mjs inspect --fetch <online.json> --section-heading <heading> --next-heading <next-heading>`，不要临时拼 Node 脚本。
    - 如果用户选择“保留线上人工编辑，并把线上状态同步回本地 authority”，使用 `node skills/write-doc-lark/scripts/lark_doc_xml_tools.mjs sync-section --authority <authority.xml> --section-fetch <section-fetch.json> --out <authority.xml> --section-heading <heading> --next-heading <next-heading>`，不要手工复制 XML 片段。
    - 更新后核对返回链接，确认仍然是预期的同一份文档。
@@ -83,6 +85,7 @@ description: 用于编写、重写或持续维护飞书文档，尤其适合“�
 - manifest 校验失败代表线上版本在本轮编辑期间发生漂移；先运行：
   `node skills/write-doc-lark/scripts/lark_doc_manifest.mjs diff --baseline-fetch <baseline-online.json> --current-fetch <current-online.json> --authority <authority.xml> --out-dir <tmp-diff-dir>`。
 - 生成 diff 后必须使用 `$inority-question` 只问一个“合并路径”问题，让用户在“保留线上改动并合并本地草稿 / 用本地 authority 覆盖目标区段 / 暂停发布并人工处理”等互斥路径中选择；不要在未询问用户的情况下自行覆盖线上变化。
+- 如果用户选择“保留线上改动并基于线上继续修改”，必须先把当前线上正文同步为本地 authority，刷新 manifest 基线，再应用本地草稿。当前任务内不得重复询问已经确认的合并路径。只有该选择之后线上正文再次发生实质变化时，才重新进入 diff 与合并确认流程。
 - 线上更新完成后的验证也适用同一规则：若发布后 fetch 发现线上与本地 authority 存在非预期差异，尤其是线上新增了本地没有的保真对象，必须先生成 diff，再用 `$inority-question` 询问合并路径；不要把差异直接归因为飞书自动行为并覆盖。
 - 发布后检查指定章节时，默认使用：
   `node skills/write-doc-lark/scripts/lark_doc_xml_tools.mjs inspect --fetch <current-online.json> --section-heading <heading> --next-heading <next-heading>`。

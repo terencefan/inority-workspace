@@ -1,6 +1,6 @@
 {
   "name": "codex-inority",
-  "version": "0.1.0+codex.20260803151912",
+  "version": "0.1.0+codex.20260804141142",
   "description": "Workspace memory loading and host-aware reply contracts for Codex.",
   "author": {
     "name": "Terence Fan"
