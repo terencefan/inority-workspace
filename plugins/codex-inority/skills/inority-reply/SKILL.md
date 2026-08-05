@@ -41,8 +41,10 @@ start a new thread before relying on newly changed hook behavior.
 
 At runtime:
 
-- `SessionStart` prepends loaded memory, host-aware reply rules, and the selected template
-- `UserPromptSubmit` prepends a lightweight reminder pointing back to the rules file
+- `SessionStart` runs for `startup`, `resume`, and `compact`, then prepends loaded
+  memory, host-aware reply rules, and the selected template
+- `UserPromptSubmit` rereads and prepends the complete core-memory payload and
+  selected reply template on every prompt
 - rules lookup follows the memory root discovered by the plugin
 - template lookup is relative to the plugin root
 - Codex Desktop and editor hosts resolve to the Markdown template

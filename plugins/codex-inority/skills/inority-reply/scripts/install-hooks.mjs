@@ -75,7 +75,7 @@ function stripManagedHooks(entries) {
 
 function buildSessionStartEntry(command) {
   return {
-    matcher: "startup|resume",
+    matcher: "startup|resume|compact",
     hooks: [
       {
         type: "command",

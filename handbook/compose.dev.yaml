@@ -1,0 +1,57 @@
+services:
+  handbook:
+    image: node:22-bookworm-slim
+    container_name: handbook-dev
+    working_dir: /workspace/inority-workspace/handbook
+    command: npm run dev
+    environment:
+      HANDBOOK_DEV_BACKEND: http://127.0.0.1:18081
+      HANDBOOK_GRAPHVIZ_COMMAND: /nonexistent-dot
+      HANDBOOK_HOST: 127.0.0.1
+      HANDBOOK_PORT: 18081
+      HANDBOOK_RG_COMMAND: /usr/local/bin/rg
+      HANDBOOK_WORKSPACE_DIR: /workspace
+      NODE_ENV: development
+      NODE_OPTIONS: --experimental-strip-types
+    restart: unless-stopped
+    volumes:
+      - /home/fantengyuan/workspace:/workspace
+      - /home/fantengyuan/.npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/codex-path/rg:/usr/local/bin/rg:ro
+      - type: volume
+        source: handbook_vite_cache
+        target: /workspace/inority-workspace/handbook/node_modules/.vite
+        volume:
+          nocopy: true
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:5173/healthz').then(r=>{if(!r.ok)throw Error(r.status)})
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 20s
+
+  edge:
+    image: nginx:1.27-alpine
+    container_name: handbook-edge
+    depends_on:
+      handbook:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+    volumes:
+      - ./nginx.dev.conf:/etc/nginx/conf.d/default.conf:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -qO- http://127.0.0.1:8081/healthz >/dev/null
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 10s
+
+volumes:
+  handbook_vite_cache:
