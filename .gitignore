@@ -12,6 +12,9 @@ build/
 *.log
 .handbook-*.log
 
+# Local generated artifacts
+tmp/
+
 # Local environment files
 .env
 .env.*
