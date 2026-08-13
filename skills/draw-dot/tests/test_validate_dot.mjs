@@ -7,7 +7,7 @@ import {
   errorMessage,
   loadErrorCatalog,
   main,
-} from "../scripts/dotctl.mjs";
+} from "../scripts/dotctl.ts";
 
 function mutate(text, oldValue, newValue) {
   assert.ok(text.includes(oldValue), `mutation target not found: ${oldValue}`);
@@ -44,6 +44,18 @@ runCase("missing node fillcolor is rejected", () => {
   assert.ok(codes.has("D015"));
 });
 
+runCase("white node text on white fill is rejected", () => {
+  const mutated = mutate(referenceDot, 'fontcolor="#0f172a"', 'fontcolor="#ffffff"');
+  const codes = new Set(collectDotDiagnostics(mutated, { render: false }).errors.map((item) => item.code));
+  assert.ok(codes.has("D016"));
+});
+
+runCase("per-node low contrast override is rejected", () => {
+  const mutated = mutate(referenceDot, 'gateway [label="API Gateway", fillcolor="#fef3c7"]', 'gateway [label="API Gateway", fillcolor="#ffffff", fontcolor="#ffffff"]');
+  const codes = new Set(collectDotDiagnostics(mutated, { render: false }).errors.map((item) => item.code));
+  assert.ok(codes.has("D017"));
+});
+
 runCase("cluster without fontcolor is rejected", () => {
   const mutated = mutate(referenceDot, '    fontcolor="#475569";\n', "");
   const codes = new Set(collectDotDiagnostics(mutated, { render: false }).errors.map((item) => item.code));
@@ -64,7 +76,7 @@ runCase("missing markdown block is rejected by markdown mode", () => {
 
 runCase("catalog covers runtime codes", () => {
   const catalog = loadErrorCatalog();
-  const runtimeCodes = new Set((loadText(path.join(SCRIPTS_DIR, "dotctl.mjs")).match(/"(D\d{3})"/g) ?? []).map((item) => item.slice(1, -1)));
+  const runtimeCodes = new Set((loadText(path.join(SCRIPTS_DIR, "dotctl.ts")).match(/"(D\d{3})"/g) ?? []).map((item) => item.slice(1, -1)));
   assert.ok([...runtimeCodes].every((code) => code in catalog));
   assert.equal(errorMessage("D010"), 'Markdown 内嵌 DOT 图必须显式设置透明背景 `bgcolor="transparent"`');
 });

@@ -18,6 +18,10 @@ D014:
   message: "DOT 图的 node 默认属性必须显式设置文字颜色 `fontcolor`"
 D015:
   message: "DOT 图的 node 默认属性必须显式设置填充色 `fillcolor`"
+D016:
+  message: "DOT 图 node 默认文字色与填充色对比度不足 4.5:1，当前为 {ratio}:1"
+D017:
+  message: "DOT 节点 {node} 的文字色与填充色对比度不足 4.5:1，当前为 {ratio}:1"
 D020:
   message: "DOT 图的 edge 默认属性必须显式设置线条颜色 `color`"
 D021:

@@ -6,6 +6,22 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
+type Attributes = Record<string, string>;
+
+export type Diagnostic = {
+  code: string;
+  message: string;
+  line: number | null;
+  content: string | null;
+};
+
+export type Diagnostics = {
+  errors: Diagnostic[];
+  warnings: Diagnostic[];
+};
+
+type Color = { red: number; green: number; blue: number };
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ERROR_CODE_CATALOG_PATH = path.resolve(__dirname, "..", "references", "validator-error-codes.yaml");
@@ -63,7 +79,7 @@ function diagnostic(code, line = null, content = null, params = {}) {
   };
 }
 
-function normalizeColor(value) {
+function normalizeColor(value: unknown): string | null {
   if (typeof value !== "string") {
     return null;
   }
@@ -74,8 +90,8 @@ function normalizeColor(value) {
   return trimmed;
 }
 
-function parseAttributes(raw) {
-  const attrs = {};
+function parseAttributes(raw: string): Attributes {
+  const attrs: Attributes = {};
   const matches = raw.matchAll(/([A-Za-z_][A-Za-z0-9_]*)\s*=\s*("(?:[^"\\]|\\.)*"|[^,\]\n;]+)/g);
   for (const match of matches) {
     attrs[match[1]] = match[2].trim().replace(/^"(.*)"$/s, "$1");
@@ -133,6 +149,54 @@ function isTransparentColor(value) {
 function hasExplicitColor(value) {
   const color = normalizeColor(value);
   return color !== null && color !== "" && !isTransparentColor(color);
+}
+
+function parseHexColor(value: unknown): Color | null {
+  const normalized = normalizeColor(value);
+  if (normalized == null || !HEX_COLOR_RE.test(normalized)) {
+    return null;
+  }
+  const hex = normalized.slice(1);
+  const expanded = hex.length === 3 ? hex.split("").map((part) => `${part}${part}`).join("") : hex;
+  return {
+    red: Number.parseInt(expanded.slice(0, 2), 16),
+    green: Number.parseInt(expanded.slice(2, 4), 16),
+    blue: Number.parseInt(expanded.slice(4, 6), 16),
+  };
+}
+
+function relativeLuminance(color: Color): number {
+  const channel = (value: number): number => {
+    const normalized = value / 255;
+    return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * channel(color.red) + 0.7152 * channel(color.green) + 0.0722 * channel(color.blue);
+}
+
+function contrastRatio(foreground: unknown, background: unknown): number | null {
+  const foregroundColor = parseHexColor(foreground);
+  const backgroundColor = parseHexColor(background);
+  if (foregroundColor == null || backgroundColor == null) {
+    return null;
+  }
+  const foregroundLuminance = relativeLuminance(foregroundColor);
+  const backgroundLuminance = relativeLuminance(backgroundColor);
+  const lighter = Math.max(foregroundLuminance, backgroundLuminance);
+  const darker = Math.min(foregroundLuminance, backgroundLuminance);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function extractNodeStatements(dotText: string): Array<{ id: string; attrs: Attributes; raw: string }> {
+  const nodes: Array<{ id: string; attrs: Attributes; raw: string }> = [];
+  const regex = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*\[([^\]]*)\]\s*;?\s*$/gm;
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(dotText)) !== null) {
+    if (["graph", "node", "edge"].includes(match[1])) {
+      continue;
+    }
+    nodes.push({ id: match[1], attrs: parseAttributes(match[2]), raw: match[0] });
+  }
+  return nodes;
 }
 
 function hasDotBinary() {
@@ -207,6 +271,7 @@ export function collectDotDiagnostics(dotText, { lineOffset = 0, render = true }
   const nodeDefaults = extractDefaultStatement(dotText, "node");
   const edgeDefaults = extractDefaultStatement(dotText, "edge");
   const clusters = extractClusterBlocks(dotText);
+  const nodes = extractNodeStatements(dotText);
 
   if (!dotText.includes('fontname="Noto Sans CJK SC"')) {
     if (graphDefaults == null) {
@@ -254,6 +319,25 @@ export function collectDotDiagnostics(dotText, { lineOffset = 0, render = true }
   }
   if (!hasExplicitColor(nodeDefaults?.attrs.fillcolor)) {
     errors.push(diagnostic("D015", lineNumberForRegex(lines, /^\s*node\s*\[/, lineOffset)));
+  }
+
+  const defaultContrast = contrastRatio(nodeDefaults?.attrs.fontcolor, nodeDefaults?.attrs.fillcolor);
+  if (defaultContrast !== null && defaultContrast < 4.5) {
+    errors.push(diagnostic("D016", lineNumberForRegex(lines, /^\s*node\s*\[/, lineOffset), null, {
+      ratio: defaultContrast.toFixed(2),
+    }));
+  }
+
+  for (const node of nodes) {
+    const fontcolor = node.attrs.fontcolor ?? nodeDefaults?.attrs.fontcolor;
+    const fillcolor = node.attrs.fillcolor ?? nodeDefaults?.attrs.fillcolor;
+    const ratio = contrastRatio(fontcolor, fillcolor);
+    if (ratio !== null && ratio < 4.5) {
+      errors.push(diagnostic("D017", lineNumberForRegex(lines, new RegExp(`^\\s*${node.id}\\s*\\[`), lineOffset), node.raw.trim(), {
+        node: node.id,
+        ratio: ratio.toFixed(2),
+      }));
+    }
   }
 
   if (!hasExplicitColor(edgeDefaults?.attrs.color)) {
@@ -373,6 +457,6 @@ export function main(argv = process.argv.slice(2), { stdout = process.stdout, st
   return 1;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] != null && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   process.exitCode = main();
 }

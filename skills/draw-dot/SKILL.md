@@ -95,7 +95,8 @@ This skill is the style authority for DOT snippets used by `runbook`, `write-doc
   - node fill, border, and text all have explicit contrast
   - edge labels are readable against the likely page background
   - cluster labels do not fall back to unreadable default black on transparent dark canvases
-- When the workspace needs an executable check, use `scripts/dotctl`:
+- Always use the TypeScript validator entrypoint `scripts/dotctl` for every new or modified diagram; prose review alone is not sufficient. The wrapper executes `scripts/dotctl.ts` and enforces explicit colors plus a minimum 4.5:1 node text/fill contrast ratio.
+- Use `scripts/dotctl` with one of these commands:
   - `dotctl validate <file>`: auto-detect Markdown vs raw DOT
   - `dotctl validate-markdown <file>`: extract fenced `dot` / `graphviz` blocks and validate them
   - `dotctl validate-dot <file>`: validate a raw `.dot` / `.gv` file
