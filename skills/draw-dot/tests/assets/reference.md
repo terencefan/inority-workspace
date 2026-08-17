@@ -2,9 +2,9 @@
 
 ```dot
 digraph G {
-  graph [fontname="Noto Sans CJK SC", rankdir=LR, bgcolor="transparent"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [rankdir=LR, bgcolor="transparent"];
+  node [shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [color="#94a3b8", fontcolor="#94a3b8"];
 
   subgraph cluster_current {
     label="现状";

@@ -28,10 +28,9 @@ This skill is the style authority for DOT snippets used by `runbook`, `write-doc
 3. Prefer the smallest diagram that answers the question. Do not overdraw.
 4. Use stable ASCII node ids and put Chinese or long text in `label`.
 5. Quote labels consistently.
-6. Default font stack for Chinese content:
-   - `graph [fontname="Noto Sans CJK SC"]`
-   - `node [fontname="Noto Sans CJK SC"]`
-   - `edge [fontname="Noto Sans CJK SC"]`
+6. Do not hardcode a font family by default. Let the target Markdown or Graphviz renderer select an installed font so text metrics and glyph fallback stay internally consistent. Only set `fontname` when the target environment is known and the selected font has been verified as installed there.
+   - Never name a font merely because the diagram contains Chinese text.
+   - If a font is explicitly requested, verify it with the target renderer or local font discovery before using it.
    - embedded Markdown diagrams should not rely on renderer defaults for node contrast; give nodes explicit `style`, `fillcolor`, `color`, and `fontcolor`
    - default to `style="rounded,filled"` for box-like nodes unless another shape semantic is more important
    - when the rendering context is unknown, prefer cross-theme fills with explicit borders so nodes stay readable on both light and dark canvases
@@ -46,7 +45,6 @@ This skill is the style authority for DOT snippets used by `runbook`, `write-doc
 8. Choose direction deliberately:
    - `rankdir=TB` for hierarchies, steps, trees
    - `rankdir=LR` for pipelines, data paths, layered architecture
-   - default to elbow / orthogonal connectors with `graph [splines=ortho]`; do not use curved splines unless a loop, free-form relationship, or explicit user request makes curvature meaningful
 9. Use `subgraph cluster_*` only when grouping materially improves readability.
 10. Avoid decorative noise:
    - too many colors

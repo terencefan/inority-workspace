@@ -36,6 +36,10 @@ runbook 的职责不是重新定义规范、边界或目标，而是把已经明
 
 只有在确实需要图时，才额外补 `$draw-dot`。
 
+当用户允许通过飞书向范腾远确认，或持续 goal / runbook 需要异步选择、安全审批时，按需加载
+`../lark-message/references/feishu-direct-confirmation.md`，并同时使用 `$lark-message`。不要把 goal
+持续性误当作后台回调 listener 永久存活。
+
 迁移、切流和状态搬运场景仍归入 `operation`，不再建立独立类型。
 
 ## 已加载信息回报

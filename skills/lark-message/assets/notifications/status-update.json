@@ -1,0 +1,65 @@
+{
+  "template": {
+    "name": "status-update",
+    "required": ["mention_open_id", "subject", "status", "summary", "details", "next_action"]
+  },
+  "card": {
+    "schema": "2.0",
+    "config": {
+      "update_multi": true,
+      "width_mode": "default",
+      "summary": { "content": "{{subject}}：{{status}}" }
+    },
+    "header": {
+      "title": { "tag": "plain_text", "content": "{{subject}}" },
+      "subtitle": { "tag": "plain_text", "content": "{{status}}" },
+      "template": "blue",
+      "icon": { "tag": "standard_icon", "token": "lark-logo_colorful" },
+      "text_tag_list": [
+        { "tag": "text_tag", "text": { "tag": "plain_text", "content": "进度同步" }, "color": "blue" }
+      ]
+    },
+    "body": {
+      "direction": "vertical",
+      "padding": "12px 12px 20px 12px",
+      "vertical_spacing": "12px",
+      "elements": [
+        {
+          "tag": "column_set",
+          "flex_mode": "none",
+          "background_style": "blue-50",
+          "columns": [
+            {
+              "tag": "column",
+              "width": "weighted",
+              "weight": 1,
+              "padding": "12px",
+              "vertical_spacing": "4px",
+              "elements": [
+                { "tag": "markdown", "content": "<at id={{mention_open_id}}></at>，**<font color='blue'>{{summary}}</font>**" }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "column_set",
+          "flex_mode": "none",
+          "columns": [
+            {
+              "tag": "column",
+              "width": "weighted",
+              "weight": 1,
+              "background_style": "grey-50",
+              "padding": "12px",
+              "vertical_spacing": "4px",
+              "elements": [
+                { "tag": "markdown", "content": "**当前情况**\n{{details}}" },
+                { "tag": "markdown", "content": "<font color='grey'>下一步：{{next_action}}</font>", "text_size": "notation" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

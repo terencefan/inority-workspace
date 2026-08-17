@@ -50,12 +50,6 @@ runCase("cluster without fontcolor is rejected", () => {
   assert.ok(codes.has("D031"));
 });
 
-runCase("arial is rejected", () => {
-  const mutated = mutate(referenceDot, 'fontname="Noto Sans CJK SC"', 'fontname="Arial"');
-  const codes = new Set(collectDotDiagnostics(mutated, { render: false }).errors.map((item) => item.code));
-  assert.ok(codes.has("D004"));
-});
-
 runCase("missing markdown block is rejected by markdown mode", () => {
   const diagnostics = collectMarkdownDotDiagnostics("# empty\n", { render: false });
   const codes = new Set(diagnostics.errors.map((item) => item.code));

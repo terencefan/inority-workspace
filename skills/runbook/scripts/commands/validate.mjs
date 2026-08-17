@@ -67,7 +67,6 @@ const HOST_LOW_LEVEL_MUTATION_RE = /^\s*(?:sudo\s+)?(?:ip\s+(?:link|addr|route|r
 const INCREMENTAL_DRAFT_IGNORED_CODES = new Set([
   "E001",
   "E020",
-  "E021",
   "E030",
   "E040",
   "E050",
@@ -264,9 +263,6 @@ function validateCurrentAndTarget(lines, h2Sections) {
     if (!body.includes("```dot")) {
       errors.push(err("E020", lines, absStart, null, { title }));
     }
-    if (!body.includes('fontname="Noto Sans CJK SC"')) {
-      errors.push(err("E021", lines, absStart, null, { title }));
-    }
     if (body.includes("Arial")) {
       errors.push(err("E022", lines, absStart, null, { title }));
     }
@@ -285,9 +281,6 @@ function validateCurrentAndTarget(lines, h2Sections) {
     const body = lines.slice(absStart, absEnd).join("\n");
     if (!body.includes("```dot")) {
       errors.push(err("E020", lines, absStart, null, { title: "目标" }));
-    }
-    if (!body.includes('fontname="Noto Sans CJK SC"')) {
-      errors.push(err("E021", lines, absStart, null, { title: "目标" }));
     }
     if (body.includes("Arial")) {
       errors.push(err("E022", lines, absStart, null, { title: "目标" }));
@@ -398,9 +391,6 @@ function validateMindmap(lines, h2Sections) {
   }
   const [blockStart, _blockEnd, dotLines] = dotBlock;
   const dotText = dotLines.join("\n");
-  if (!dotText.includes('fontname="Noto Sans CJK SC"')) {
-    return [err("E047", lines, blockStart)];
-  }
   if (dotText.includes("Arial")) {
     return [err("E048", lines, blockStart)];
   }

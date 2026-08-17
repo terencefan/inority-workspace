@@ -35,7 +35,7 @@
 - 模式目录：`modes/spec/`、`modes/contract/`、`modes/readme/`、`modes/report/`、`modes/rca/`
 - validator CLI：`scripts/docctl validate <path>`（`validate` 可省略）
 - validator 实现：`scripts/commands/validate.mjs`
-- DOT 专项校验：`../draw-dot/scripts/dotctl.mjs validate-markdown <path>`
+- DOT 专项校验：`../draw-dot/scripts/dotctl validate-markdown <path>`
 
 ## 依赖关系 | Dependencies
 

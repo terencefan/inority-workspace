@@ -25,4 +25,4 @@ if [[ "${1-}" == "validate" ]]; then
   shift
 fi
 
-exec node "$SCRIPT_DIR/commands/validate.mjs" "$@"
+exec node --no-warnings --experimental-strip-types "$SCRIPT_DIR/commands/validate.mjs" "$@"

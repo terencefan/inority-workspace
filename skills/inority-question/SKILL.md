@@ -38,6 +38,7 @@ This skill standardizes how the question is framed once the parent skill has dec
 4. After each option, add one short recommendation line explaining the tradeoff or why that option exists.
 5. If none of the prepared options fully fit, allow the user to answer with a custom variant.
 6. If the key boundary is still unresolved after the answer, ask the next round instead of pretending the artifact is frozen.
+7. When options are delivered as a Feishu card, render one option per row with a full-width button by default so the choice remains readable and tappable on mobile.
 
 ## Style Constraints
 
@@ -78,3 +79,8 @@ When the parent artifact requires interview history, record each round in this s
 - `$inority-slides` still owns deck QA density, section/slide confirmation coverage, and delivery shape.
 
 This skill only standardizes the question surface.
+
+When the user authorizes Feishu confirmation with 范腾远, the parent `$runbook` or `$write-doc`
+may deliver this question through
+`../lark-message/references/feishu-direct-confirmation.md`. Preserve this skill's
+one-question-per-round and durable-answer rules across the callback boundary.

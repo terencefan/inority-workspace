@@ -1,0 +1,4 @@
+interface:
+  display_name: "Progress Status"
+  short_description: "Structured progress updates with completion statistics"
+  default_prompt: "Use $progress-status to report current task progress with checkboxes, statistics, and a progress bar."

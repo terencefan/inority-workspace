@@ -5,13 +5,8 @@
 - Prefer `digraph` unless the relationship is truly undirected.
 - Use ASCII ids such as `api_gateway`, `worker_pool`, `target_db`.
 - Put human-readable text in `label`.
-- For Chinese documents, set:
-
-```dot
-graph [fontname="Noto Sans CJK SC"];
-node [fontname="Noto Sans CJK SC"];
-edge [fontname="Noto Sans CJK SC"];
-```
+- Do not set `fontname` by default, including for Chinese documents. Renderer-local font fallback is safer than naming a font that may not exist in the final environment.
+- Only set a font after confirming that the exact family is installed in the target rendering environment.
 
 ## Theme Presets
 
@@ -20,9 +15,8 @@ edge [fontname="Noto Sans CJK SC"];
 Use this when the graph is embedded in Markdown and the final viewer theme is unknown or mixed across tools. The key rule is: transparent background is fine, but nodes must not remain visually transparent.
 
 ```dot
-graph [fontname="Noto Sans CJK SC", bgcolor="transparent"];
+graph [bgcolor="transparent"];
 node [
-  fontname="Noto Sans CJK SC",
   shape=box,
   style="rounded,filled",
   color="#64748b",
@@ -30,7 +24,6 @@ node [
   fillcolor="#f8fafc"
 ];
 edge [
-  fontname="Noto Sans CJK SC",
   color="#94a3b8",
   fontcolor="#94a3b8"
 ];
@@ -45,16 +38,15 @@ edge [
 If the output is meant for dark mode with transparent background, contrast rules apply to the whole graph. A strong default is:
 
 ```dot
-graph [fontname="Noto Sans CJK SC", bgcolor="transparent"];
+graph [bgcolor="transparent"];
 node [
-  fontname="Noto Sans CJK SC",
   shape=box,
   style="rounded,filled",
   color="#cbd5e1",
   fontcolor="#e5e7eb",
   fillcolor="#0f172a"
 ];
-edge [fontname="Noto Sans CJK SC", fontcolor="#e5e7eb", color="#cbd5e1"];
+edge [fontcolor="#e5e7eb", color="#cbd5e1"];
 ```
 
 - In that dark-mode transparent case, prioritize edge-label readability over strict color minimalism. Edge text disappearing into the page background is a correctness issue, not a styling nit.

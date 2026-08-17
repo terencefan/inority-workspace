@@ -18,9 +18,9 @@
 ```dot
 digraph TargetLlmNode {
   rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="transparent"];
+  node [shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [color="#94a3b8", fontcolor="#94a3b8"];
 
   prompts [label="冻结 prompt", fillcolor="#fef3c7"];
   context [label="冻结 context", fillcolor="#dbeafe"];
@@ -68,9 +68,9 @@ digraph TargetLlmNode {
 ```dot
 digraph UserPromptProduction {
   rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="transparent"];
+  node [shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [color="#94a3b8", fontcolor="#94a3b8"];
 
   upstream [label="上游 state", fillcolor="#dbeafe"];
   compact [label="压缩 / 过滤 / 映射", fillcolor="#fef3c7"];

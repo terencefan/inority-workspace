@@ -1,11 +1,3 @@
-D001:
-  message: "DOT 图必须在 graph 默认属性里显式使用 Noto Sans CJK SC"
-D002:
-  message: "DOT 图必须在 node 默认属性里显式使用 Noto Sans CJK SC"
-D003:
-  message: "DOT 图必须在 edge 默认属性里显式使用 Noto Sans CJK SC"
-D004:
-  message: "DOT 图不允许继续使用 Arial"
 D010:
   message: "Markdown 内嵌 DOT 图必须显式设置透明背景 `bgcolor=\"transparent\"`"
 D011:

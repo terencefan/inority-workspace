@@ -88,6 +88,10 @@
 
 命中这些情况时，使用规划态默认已加载的 `$inority-question`。
 
+如果用户已允许通过飞书向范腾远本人确认，可按
+`../../../lark-message/references/feishu-direct-confirmation.md` 发送 Card 2.0 并监听回调。收到回调后仍需
+把完整答案写入 authority 的真实访谈记录；卡片点击不是跳过 10% gate 或安全门禁的捷径。
+
 ## 何时必须侦察
 
 只要规划依赖这些信息，就必须加载 `references/recon/recon.md`：

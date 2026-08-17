@@ -12,8 +12,6 @@ E011:
   message: "## {h2_title} 下的三级标题必须严格为: {expected_order}"
 E020:
   message: "### {title} 必须包含一个 dot 代码块"
-E021:
-  message: "### {title} 的 dot 代码块必须显式使用 Noto Sans CJK SC"
 E022:
   message: "### {title} 的 dot 代码块不允许继续使用 Arial"
 E030:
@@ -58,8 +56,6 @@ E045:
   message: "每个边界/选型问题最多保留 3 个叶子结论"
 E046:
   message: "叶子结论不能继续向下发散"
-E047:
-  message: "## 思维脑图 的 dot 代码块必须显式使用 Noto Sans CJK SC"
 E048:
   message: "## 思维脑图 的 dot 代码块不允许继续使用 Arial"
 E049:
