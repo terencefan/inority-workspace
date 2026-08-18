@@ -18,9 +18,9 @@
 ```graphviz
 digraph TargetState {
   rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="transparent", fontname="sans-serif"];
+  node [fontname="sans-serif", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [fontname="sans-serif", color="#94a3b8", fontcolor="#94a3b8"];
 
   target_a [label="目标组件 A", fillcolor="#dbeafe"];
   target_b [label="目标组件 B", fillcolor="#fef3c7"];
@@ -61,9 +61,9 @@ digraph TargetState {
 ```dot
 digraph ArchitectureOverview {
   rankdir=TB;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="transparent", fontname="sans-serif"];
+  node [fontname="sans-serif", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [fontname="sans-serif", color="#94a3b8", fontcolor="#94a3b8"];
 
   subgraph cluster_ns {
     label="架构组件（南北向）";

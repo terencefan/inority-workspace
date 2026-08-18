@@ -5,8 +5,10 @@
 - Prefer `digraph` unless the relationship is truly undirected.
 - Use ASCII ids such as `api_gateway`, `worker_pool`, `target_db`.
 - Put human-readable text in `label`.
-- Do not set `fontname` by default, including for Chinese documents. Renderer-local font fallback is safer than naming a font that may not exist in the final environment.
-- Only set a font after confirming that the exact family is installed in the target rendering environment.
+- Use one font family for graph labels, nodes, and edges.
+- For portable Markdown containing CJK, explicitly set `fontname="sans-serif"` on `graph`, `node`, and `edge`. This prevents `Times,serif` while allowing each browser to select its native Chinese sans-serif font.
+- For Viz.js-compatible Markdown, use a box-node minimum such as `width=1.8`; widen longer CJK labels per node. CJK text must keep its natural glyph aspect ratio and must not be force-fitted with `lengthAdjust="spacingAndGlyphs"`.
+- Use a concrete font family only for a controlled publishing environment. Verify it there and embed the font in SVG, or publish PNG, when pixel-identical output matters.
 
 ## Theme Presets
 
@@ -15,15 +17,18 @@
 Use this when the graph is embedded in Markdown and the final viewer theme is unknown or mixed across tools. The key rule is: transparent background is fine, but nodes must not remain visually transparent.
 
 ```dot
-graph [bgcolor="transparent"];
+graph [bgcolor="transparent", fontname="sans-serif"];
 node [
+  fontname="sans-serif",
   shape=box,
   style="rounded,filled",
   color="#64748b",
   fontcolor="#0f172a",
   fillcolor="#f8fafc"
+  width=1.8
 ];
 edge [
+  fontname="sans-serif",
   color="#94a3b8",
   fontcolor="#94a3b8"
 ];
@@ -38,15 +43,17 @@ edge [
 If the output is meant for dark mode with transparent background, contrast rules apply to the whole graph. A strong default is:
 
 ```dot
-graph [bgcolor="transparent"];
+graph [bgcolor="transparent", fontname="sans-serif"];
 node [
+  fontname="sans-serif",
   shape=box,
   style="rounded,filled",
   color="#cbd5e1",
   fontcolor="#e5e7eb",
   fillcolor="#0f172a"
+  width=1.8
 ];
-edge [fontcolor="#e5e7eb", color="#cbd5e1"];
+edge [fontname="sans-serif", fontcolor="#e5e7eb", color="#cbd5e1"];
 ```
 
 - In that dark-mode transparent case, prioritize edge-label readability over strict color minimalism. Edge text disappearing into the page background is a correctness issue, not a styling nit.
@@ -133,5 +140,6 @@ Before handing off a diagram, verify:
 - grouping improves readability
 - no obviously redundant nodes remain
 - node fill, border, and text colors are explicit enough for the target theme
+- CJK labels use one verified installed sans-serif font across graph, node, and edge
 - dark-mode transparent diagrams do not leave labels at unreadable default black
 - the diagram can plausibly render without syntax errors

@@ -15,7 +15,8 @@
         "参考资料"
       ],
       "flags": [
-        "referenceSection"
+        "referenceSection",
+        "moduleMindmap"
       ]
     }
   ]

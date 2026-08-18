@@ -10,7 +10,7 @@
     "install-hooks": "node scripts/install-git-hooks.ts",
     "lint": "eslint --config eslint.config.js src",
     "start": "node src/index.ts",
-    "test": "node --test test/**/*.test.ts",
+    "test": "node --experimental-strip-types --test test/**/*.test.ts",
     "validate:markdown-links": "node scripts/validate-markdown-links.ts",
     "validate:sensitive-content": "node scripts/validate-sensitive-content.ts"
   },

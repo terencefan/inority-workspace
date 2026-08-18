@@ -521,7 +521,7 @@ test('graphviz render endpoint keeps explicit dot colors when theme defaults are
   assert.match(payload.svg, /rgb\(0%\, 100%\, 0%\)/i)
 })
 
-test('graphviz render endpoint falls back to viz.js text fitting when native dot is unavailable', async (t) => {
+test('graphviz fallback does not force text width onto CJK glyphs', async (t) => {
   const server = await startServer(t, { graphvizCommandPath: '/nonexistent-dot-binary' })
   if (!server) {
     return
@@ -540,6 +540,6 @@ test('graphviz render endpoint falls back to viz.js text fitting when native dot
 
   assert.equal(response.status, 200)
   const payload = await response.json()
-  assert.match(payload.svg, /textLength="/)
-  assert.match(payload.svg, /lengthAdjust="spacingAndGlyphs"/)
+  assert.doesNotMatch(payload.svg, /textLength="/)
+  assert.doesNotMatch(payload.svg, /lengthAdjust=/)
 })

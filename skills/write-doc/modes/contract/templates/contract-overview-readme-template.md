@@ -19,9 +19,9 @@
 ```dot
 digraph ContractReadOrder {
   rankdir=LR;
-  graph [bgcolor="transparent"];
-  node [shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="transparent", fontname="sans-serif"];
+  node [fontname="sans-serif", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [fontname="sans-serif", color="#94a3b8", fontcolor="#94a3b8"];
 
   contract [label="event contract", fillcolor="#dbeafe"];
   ui [label="timeline ui spec", fillcolor="#fef3c7"];

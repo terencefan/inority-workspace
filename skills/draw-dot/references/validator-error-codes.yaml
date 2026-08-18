@@ -14,6 +14,8 @@ D020:
   message: "DOT 图的 edge 默认属性必须显式设置线条颜色 `color`"
 D021:
   message: "DOT 图的 edge 默认属性必须显式设置文字颜色 `fontcolor`"
+D022:
+  message: "包含中日韩文字的可移植 DOT 图必须在 graph、node 和 edge 上统一设置 `fontname=\"sans-serif\"`，禁止默认 Times 或仅生成端可用的字体"
 D030:
   message: "透明背景下的 cluster 必须显式设置边框颜色 `color`"
 D031:

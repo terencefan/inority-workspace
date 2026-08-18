@@ -414,6 +414,25 @@ function validateRequiredDiagrams(lines, h2Sections) {
   return errors;
 }
 
+function validateModuleMindmap(lines, h2Sections) {
+  const section = sectionSlice(h2Sections, "模块简介", lines.length);
+  if (section == null) return [];
+  const [start, end] = section;
+  const body = lines.slice(start + 1, end).join("\n");
+  const edges = [];
+  for (const statement of body.matchAll(/\b[A-Za-z_][A-Za-z0-9_]*(?:\s*->\s*[A-Za-z_][A-Za-z0-9_]*)+/gu)) {
+    const nodes = statement[0].split(/\s*->\s*/u);
+    for (let index = 0; index < nodes.length - 1; index += 1) edges.push([nodes[index], nodes[index + 1]]);
+  }
+  const hasTwoLevelPath = edges.some(([parent, category]) =>
+    edges.some(([source, leaf]) => source === category && leaf !== parent),
+  );
+  if (!hasDotFence(lines, start, end) || !/rankdir\s*=\s*TB\b/u.test(body) || !hasTwoLevelPath) {
+    return [err("E073", lines, start)];
+  }
+  return [];
+}
+
 function validateArchitectureModuleDepth(lines, h2Sections) {
   const errors = [];
   const targetSections = ["架构总览", "模块划分"];
@@ -902,6 +921,9 @@ export function collectErrors(text, { pathValue = null } = {}) {
     }
     if (flags.has("projectReadmeLinks")) {
       errors.push(...validateProjectReadmeLinks(lines, h2Sections));
+    }
+    if (flags.has("moduleMindmap")) {
+      errors.push(...validateModuleMindmap(lines, h2Sections));
     }
     if (flags.has("experimentResultMapping")) {
       errors.push(...validateBenchmarkExperimentMapping(lines, h2Sections));

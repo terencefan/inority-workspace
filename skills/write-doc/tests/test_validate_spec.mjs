@@ -157,6 +157,17 @@ test("reference module README passes validation", () => {
   assert.deepEqual(collectErrors(loadText(REFERENCE_MODULE_README), { pathValue: REFERENCE_MODULE_README }), []);
 });
 
+test("module README requires a top-down mindmap in the module introduction", () => {
+  const withoutMindmap = loadText(REFERENCE_MODULE_README).replace(/```dot[\s\S]*?```\n/u, "");
+  assert.ok(collectErrors(withoutMindmap, { pathValue: REFERENCE_MODULE_README }).some((item) => item.code === "E073"));
+  const wrongDirection = loadText(REFERENCE_MODULE_README).replace("rankdir=TB", "rankdir=LR");
+  assert.ok(collectErrors(wrongDirection, { pathValue: REFERENCE_MODULE_README }).some((item) => item.code === "E073"));
+  const shallowMindmap = loadText(REFERENCE_MODULE_README)
+    .replace("  storage -> s3_client;\n", "")
+    .replace("  prompt -> parser;\n", "");
+  assert.ok(collectErrors(shallowMindmap, { pathValue: REFERENCE_MODULE_README }).some((item) => item.code === "E073"));
+});
+
 test("reference project README passes validation", () => {
   assert.deepEqual(collectErrors(loadText(REFERENCE_PROJECT_README), { pathValue: REFERENCE_PROJECT_README }), []);
 });

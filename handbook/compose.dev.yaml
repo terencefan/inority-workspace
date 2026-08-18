@@ -1,12 +1,15 @@
 services:
   handbook:
-    image: node:22-bookworm-slim
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: handbook-dev:local
     container_name: handbook-dev
     working_dir: /workspace/inority-workspace/handbook
     command: npm run dev
     environment:
       HANDBOOK_DEV_BACKEND: http://127.0.0.1:18081
-      HANDBOOK_GRAPHVIZ_COMMAND: /nonexistent-dot
+      HANDBOOK_GRAPHVIZ_COMMAND: dot
       HANDBOOK_HOST: 127.0.0.1
       HANDBOOK_PORT: 18081
       HANDBOOK_RG_COMMAND: /usr/local/bin/rg

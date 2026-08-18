@@ -6,9 +6,9 @@ Use these as starting points. Adapt labels and grouping to the real subject.
 
 ```dot
 digraph G {
-  graph [rankdir=LR, bgcolor="transparent"];
-  node [shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [color="#94a3b8", fontcolor="#94a3b8"];
+  graph [rankdir=LR, bgcolor="transparent", fontname="sans-serif"];
+  node [fontname="sans-serif", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [fontname="sans-serif", color="#94a3b8", fontcolor="#94a3b8"];
 
   user [label="用户 / 调用方", fillcolor="#dbeafe"];
 
@@ -51,9 +51,9 @@ digraph G {
 
 ```dot
 digraph G {
-  graph [rankdir=LR, bgcolor="transparent"];
-  node [shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#dbeafe"];
-  edge [color="#94a3b8", fontcolor="#94a3b8"];
+  graph [rankdir=LR, bgcolor="transparent", fontname="sans-serif"];
+  node [fontname="sans-serif", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#dbeafe"];
+  edge [fontname="sans-serif", color="#94a3b8", fontcolor="#94a3b8"];
 
   step_1 [label="接收请求"];
   step_2 [label="校验参数"];
@@ -69,9 +69,9 @@ digraph G {
 
 ```dot
 digraph G {
-  graph [rankdir=LR, bgcolor="transparent"];
-  node [shape=ellipse, style="filled", color="#64748b", fontcolor="#0f172a", fillcolor="#fef3c7"];
-  edge [color="#94a3b8", fontcolor="#94a3b8"];
+  graph [rankdir=LR, bgcolor="transparent", fontname="sans-serif"];
+  node [fontname="sans-serif", shape=ellipse, style="filled", color="#64748b", fontcolor="#0f172a", fillcolor="#fef3c7"];
+  edge [fontname="sans-serif", color="#94a3b8", fontcolor="#94a3b8"];
 
   pending [label="待处理"];
   running [label="执行中"];
@@ -89,9 +89,9 @@ digraph G {
 
 ```dot
 digraph G {
-  graph [rankdir=LR, bgcolor="transparent"];
-  node [shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [color="#94a3b8", fontcolor="#94a3b8"];
+  graph [rankdir=LR, bgcolor="transparent", fontname="sans-serif"];
+  node [fontname="sans-serif", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [fontname="sans-serif", color="#94a3b8", fontcolor="#94a3b8"];
 
   subgraph cluster_current {
     label="现状";
@@ -125,9 +125,9 @@ digraph G {
 
 ```dot
 digraph G {
-  graph [rankdir=TB, bgcolor="transparent"];
-  node [shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [color="#94a3b8", fontcolor="#94a3b8"];
+  graph [rankdir=TB, bgcolor="transparent", fontname="sans-serif"];
+  node [fontname="sans-serif", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [fontname="sans-serif", color="#94a3b8", fontcolor="#94a3b8"];
 
   root [label="主题", fillcolor="#dbeafe"];
   area_1 [label="维度一", fillcolor="#fef3c7"];

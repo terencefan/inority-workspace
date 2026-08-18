@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Scaffold"
+  short_description: "Create a governed repository skeleton with clear doc boundaries"
+  default_prompt: "Use $project-scaffold to initialize a repository skeleton with README, DEVELOP, and AGENTS boundaries."

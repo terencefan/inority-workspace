@@ -207,6 +207,7 @@ export function collectDotDiagnostics(dotText, { lineOffset = 0, render = true }
   const nodeDefaults = extractDefaultStatement(dotText, "node");
   const edgeDefaults = extractDefaultStatement(dotText, "edge");
   const clusters = extractClusterBlocks(dotText);
+  const containsCjk = /[\u3400-\u9fff\uf900-\ufaff\u3040-\u30ff\uac00-\ud7af]/u.test(dotText);
 
   if (graphDefaults == null || graphDefaults.attrs.bgcolor !== "transparent") {
     errors.push(diagnostic("D010", lineNumberForRegex(lines, /^\s*graph\s*\[/, lineOffset)));
@@ -235,6 +236,14 @@ export function collectDotDiagnostics(dotText, { lineOffset = 0, render = true }
   }
   if (!hasExplicitColor(edgeDefaults?.attrs.fontcolor)) {
     errors.push(diagnostic("D021", lineNumberForRegex(lines, /^\s*edge\s*\[/, lineOffset)));
+  }
+
+  if (containsCjk) {
+    const fonts = [graphDefaults?.attrs.fontname, nodeDefaults?.attrs.fontname, edgeDefaults?.attrs.fontname];
+    const normalizedFonts = fonts.map((font) => font?.trim().toLowerCase() ?? "");
+    if (normalizedFonts.some((font) => font !== "sans-serif")) {
+      errors.push(diagnostic("D022", firstLine));
+    }
   }
 
   for (const cluster of clusters) {

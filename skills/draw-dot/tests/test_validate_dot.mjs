@@ -56,6 +56,15 @@ runCase("missing markdown block is rejected by markdown mode", () => {
   assert.ok(codes.has("D040"));
 });
 
+runCase("CJK diagram without one explicit shared font is rejected", () => {
+  const withoutFont = referenceDot.replaceAll(', fontname="sans-serif"', "").replaceAll('fontname="sans-serif", ', "");
+  const codes = new Set(collectDotDiagnostics(withoutFont, { render: false }).errors.map((item) => item.code));
+  assert.ok(codes.has("D022"));
+  const mixedFont = referenceDot.replace('edge [fontname="sans-serif"', 'edge [fontname="Times"');
+  const mixedCodes = new Set(collectDotDiagnostics(mixedFont, { render: false }).errors.map((item) => item.code));
+  assert.ok(mixedCodes.has("D022"));
+});
+
 runCase("catalog covers runtime codes", () => {
   const catalog = loadErrorCatalog();
   const runtimeCodes = new Set((loadText(path.join(SCRIPTS_DIR, "dotctl.mjs")).match(/"(D\d{3})"/g) ?? []).map((item) => item.slice(1, -1)));
