@@ -38,6 +38,8 @@ Load these helpers instead of re-inventing their behavior:
   - Prefer for GitHub repositories after scope is confirmed and the repo is ready to publish.
 - The available enterprise-Gitee PR skill
   - Use it for enterprise Gitee repositories when a PR must be created.
+- `$lark-message`
+  - After each PR or MR is created and verified, notify 范腾远 by direct message using the trusted recipient route.
 
 ## Enterprise Gitee Session Authorization
 
@@ -198,12 +200,18 @@ For each approved repository:
   - enterprise Gitee: use the available enterprise-Gitee PR skill
      - If enterprise Gitee token auth does not verify and the browser session is missing or expired, stop and give the user the login URL first; continue only after the browser login is refreshed.
 10. Verify the direct PR or MR detail URL and collect the final review links.
-11. Open every verified direct review link in the user's current browser.
+11. After verification succeeds, send 范腾远 one direct Feishu message for that PR or MR through `$lark-message`.
+    - Send only after the direct detail check confirms the review artifact exists and is open.
+    - Include the repository, source and target branches, commit ID and message, direct review URL, verification result, and any material caveat.
+    - Use the trusted direct recipient `ou_cad2666d2b4ab2173ad2d33f969b107b`; follow `$lark-message` Card 2.0, mention, dry-run, idempotency, and delivery rules without asking for another confirmation.
+    - Send one message per verified PR or MR so each review item remains independently actionable.
+    - If notification delivery fails, preserve the successful PR or MR, report the notification failure explicitly, and do not claim the checkout wave is fully complete.
+12. Open every verified direct review link in the user's current browser.
     - Reuse the current browser process or browser connector when available.
     - Open one tab per PR or MR so the review bundle is immediately ready.
     - Do not treat terminal output or a list of links as a substitute for opening
       the review pages.
-12. After the PR or MR is created successfully, remain on the current working branch unless a repository-local rule explicitly requires another landing state.
+13. After the PR or MR is created successfully, remain on the current working branch unless a repository-local rule explicitly requires another landing state.
 
 If a repository hits a conflict or publish blocker mid-flight, stop only that
 repository, notify the main agent, and allow other independent repository
@@ -222,6 +230,7 @@ Include:
 - branch
 - commit id and message
 - PR or MR link
+- 范腾远 notification delivery result
 - verification run
 - final worktree state
 - skipped or blocked repositories and exact reasons
@@ -251,4 +260,5 @@ If every in-scope repository has been fully processed for this checkout wave, en
 - If rebasing onto the default branch hits any conflict or blocker, stop and ask the user instead of resolving it speculatively.
 - Treat an explicit checkout, commit, push, or PR request as authorization for the normal branch, commit, push, and review-artifact workflow.
 - If a repository cannot produce a PR or MR link, say so explicitly instead of pretending the workflow succeeded.
+- Do not mark a successfully created PR or MR as fully published until the required direct notification to 范腾远 has also been delivered; report notification failures separately from forge failures.
 - After a successful publish, leave the repository on the rebased working branch unless repository-local rules explicitly require otherwise.
