@@ -4,15 +4,15 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  import_dashboard_via_api.sh \
+  import-dashboard-via-api.sh \
     --namespace observability \
     --pod grafana-xxxx \
     --username admin \
-    --password secret \
+    --password-stdin \
     --json /abs/path/dashboard.json \
     --folder-uid existing-folder-uid
 
-Imports a Grafana dashboard JSON into the running Grafana pod through
+Imports a Grafana dashboard JSON through the selected Grafana pod using
 POST /api/dashboards/db so the dashboard is persisted in Grafana's database.
 
 Pass the dashboard's existing folder uid on updates. Use --allow-general only
@@ -23,7 +23,7 @@ EOF
 namespace=""
 pod=""
 username=""
-password=""
+password_stdin="false"
 json_path=""
 folder_uid=""
 allow_general="false"
@@ -42,9 +42,9 @@ while [[ $# -gt 0 ]]; do
       username="${2:-}"
       shift 2
       ;;
-    --password)
-      password="${2:-}"
-      shift 2
+    --password-stdin)
+      password_stdin="true"
+      shift
       ;;
     --json)
       json_path="${2:-}"
@@ -70,8 +70,14 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ -z "$namespace" || -z "$pod" || -z "$username" || -z "$password" || -z "$json_path" ]]; then
+if [[ -z "$namespace" || -z "$pod" || -z "$username" || -z "$json_path" || "$password_stdin" != "true" ]]; then
   usage >&2
+  exit 2
+fi
+
+IFS= read -r password
+if [[ -z "$password" ]]; then
+  echo "Password stdin is empty" >&2
   exit 2
 fi
 
@@ -90,9 +96,13 @@ if [[ -z "$folder_uid" && "$allow_general" != "true" ]]; then
   exit 2
 fi
 
-tmp_payload="$(mktemp /tmp/grafana-dashboard-import.XXXXXX.json)"
+tmp_payload="$(mktemp /tmp/create-dashboard-grafana-import.XXXXXX.json)"
+tmp_auth="$(mktemp /tmp/create-dashboard-grafana-auth.XXXXXX.conf)"
+remote_suffix="${RANDOM}-$$"
+remote_payload="/tmp/create-dashboard-grafana-import.${remote_suffix}.json"
+remote_auth="/tmp/create-dashboard-grafana-auth.${remote_suffix}.conf"
 cleanup() {
-  rm -f "$tmp_payload"
+  rm -f "$tmp_payload" "$tmp_auth"
 }
 trap cleanup EXIT
 
@@ -115,8 +125,16 @@ with open(dst, "w", encoding="utf-8") as f:
     json.dump(payload, f, ensure_ascii=False)
 PY
 
-kubectl cp "$tmp_payload" "${namespace}/${pod}:/tmp/grafana-dashboard-import.json"
+auth_header="$(printf '%s' "${username}:${password}" | base64 | tr -d '\n')"
+umask 077
+printf 'header = "Authorization: Basic %s"\n' "$auth_header" > "$tmp_auth"
+unset password auth_header
+
+kubectl cp "$tmp_payload" "${namespace}/${pod}:${remote_payload}"
+kubectl cp "$tmp_auth" "${namespace}/${pod}:${remote_auth}"
 
 kubectl exec -n "$namespace" "$pod" -- sh -lc \
-  "curl -sS -u ${username}:${password} -H 'Content-Type: application/json' \
-  --data @/tmp/grafana-dashboard-import.json http://127.0.0.1:3000/api/dashboards/db"
+  "status=0; chmod 600 '${remote_auth}' && curl -sS --config '${remote_auth}' \
+  -H 'Content-Type: application/json' --data @'${remote_payload}' \
+  http://127.0.0.1:3000/api/dashboards/db || status=\$?; \
+  rm -f '${remote_auth}' '${remote_payload}'; exit \$status"

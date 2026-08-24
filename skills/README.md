@@ -25,7 +25,7 @@
 |------|------|
 | `checkout/` | 工作区级 Git 发布，以及 `sync` 模式下的主分支刷新与当前分支 rebase |
 | `draw-dot/` | Graphviz / DOT 图生成与收敛 |
-| `grafana-dashboard/` | Grafana dashboard 编写、保留 folder/权限继承的安全发布与渲染验收 |
+| `create-dashboard/` | Dashboard 统一入口，按 Grafana / Superset backend 路由编写、发布、权限与渲染验收 |
 | `inority/` | inority workspace 的通用资产与共享脚本 |
 | `inority-question/` | 统一提问、澄清、路线确认与访谈问答协议 |
 | `inority-slides/` | slides / deck / H5 演示稿规划与交付 |

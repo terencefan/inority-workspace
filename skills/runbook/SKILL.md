@@ -21,6 +21,7 @@ runbook 的职责不是重新定义规范、边界或目标，而是把已经明
 - 将所有 runbook 统一归类为 `operation`
 - 显式回报本轮已加载信息
 - 在规划态装配 `plan` 子文档
+- 确保 runbook 依赖的脚本、manifest、模板、校验器和回滚辅助资产与 authority 同批落盘
 - 在执行确认后装配 `solo` / `team` 子文档
 - 在执行遇阻时把流程拉回规划态
 
@@ -34,11 +35,20 @@ runbook 的职责不是重新定义规范、边界或目标，而是把已经明
 - `references/planning/operation-runbook.md`
 - `$inority-question`
 
+规划态不得只交付 Markdown：凡执行步骤引用或隐含依赖的脚本、配置、manifest、Secret 模板、校验器和回滚辅助文件，都必须在 authority 定稿前落到 runbook 相邻 `assets/`（或项目既有的明确资源目录），被 `## 参考资料` 直接链接，并通过对应静态校验。纯单行、无复用价值且无需模板化的只读命令可以保留内联。
+
+脚本落盘不等于前置制品已准备。runbook 依赖的容器镜像、离线安装包、Helm chart、模型、固件或其他外部 artifact，必须在定稿前实际下载/镜像/上传到目标可达的正式存储，冻结 digest 或 checksum，并从目标消费路径验证可读取。若客观权限阻塞，runbook 必须保持不可执行状态并明确记录缺失制品，不能用“已有准备脚本”宣称完成。
+
 只有在确实需要图时，才额外补 `$draw-dot`。
 
 当用户允许通过飞书向范腾远确认，或持续 goal / runbook 需要异步选择、安全审批时，按需加载
 `../lark-message/references/feishu-direct-confirmation.md`，并同时使用 `$lark-message`。不要把 goal
 持续性误当作后台回调 listener 永久存活。
+
+当用户要求把执行内容修订同步给范腾远时，这是一条跨规划态与执行态的强制恢复门禁：每次修订
+会改变待执行命令、参数、顺序、目标、scope、停止条件、回滚或验收语义，都必须先用
+`$lark-message` 向范腾远发送 Card 2.0，取得并写回送达凭证后才能恢复执行。纯排版、错别字、
+链接修复或不改变执行语义的表述调整不触发通知。
 
 迁移、切流和状态搬运场景仍归入 `operation`，不再建立独立类型。
 
@@ -73,6 +83,7 @@ runbook 的职责不是重新定义规范、边界或目标，而是把已经明
 - 主 rollout 先向用户确认进入 `solo` 还是 `team`
 - 用户确认 `solo` 后，加载 `references/execution/solo.md`
 - 用户确认 `team` 后，加载 `references/execution/team.md`
+- 用户对 `solo` / `team` 的确认同时授权主 rollout 按所选模式编排该 runbook 明确要求的 phase 子代理；全部编号项通过后，必须直接启动强制的独立只读最终 recon，不得仅因需要新开 subagent 再向用户请求一次授权。该授权不扩大现场变更范围，也不能替代破坏性动作、外部写入或新增执行路径本身所需的确认。
 - 如果执行途中出现失败、未通过、停止条件、新 blocker 或新事实，立即退出回规划态，并重新加载 `references/planning/plan-mode.md`
 
 ## 模板与回复格式

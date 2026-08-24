@@ -1,11 +1,8 @@
----
-name: grafana-dashboard
-description: Use when working on Grafana dashboards in the local observability stack or Kubernetes cluster. This skill covers creating or updating dashboard JSON, importing dashboards through the Grafana API so they persist in PostgreSQL, verifying visibility through Grafana search, and cleaning up dashboards whose titles match a naming rule such as a Galaxy Library prefix.
----
+# Grafana Backend
 
-# Grafana Dashboard
-
-Use this skill when the task is about Grafana dashboards rather than generic metrics collection.
+Use this reference after `$create-dashboard` routes the task to Grafana. It owns
+Grafana-specific authoring, persistence, API, folder, permission, datasource,
+PromQL, and rendering rules.
 
 ## When To Use
 
@@ -170,14 +167,17 @@ Notes:
 ## Standard Import
 
 ```bash
-bash ~/.codex/skills/grafana-dashboard/scripts/import_dashboard_via_api.sh \
+bash ~/.codex/skills/create-dashboard/scripts/grafana/import-dashboard-via-api.sh \
   --namespace <grafana-namespace> \
   --pod <grafana-pod> \
   --username <verified-user> \
-  --password <verified-password> \
+  --password-stdin \
   --json /abs/path/dashboard.json \
   --folder-uid <recorded-existing-folder-uid>
 ```
+
+Pipe the password from the approved Secret reader into stdin. Do not place it
+in the shell history or process arguments.
 
 The script:
 
