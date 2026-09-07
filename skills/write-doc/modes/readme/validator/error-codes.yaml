@@ -1,2 +1,4 @@
 E058:
   message: "readme 文件名必须是 README.md"
+E073:
+  message: "Module README 的模块简介必须包含 rankdir=TB 且至少具有 root -> category -> leaf 路径的 fenced DOT/Graphviz 脑图"

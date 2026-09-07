@@ -1,0 +1,20 @@
+# {{PROJECT_NAME}} Coding-Agent Instructions
+
+This file is only for coding agents working in this repository. Human setup, testing, commit, and pull-request workflows live in [`DEVELOP.md`](./DEVELOP.md); project usage and navigation live in [`README.md`](./README.md).
+
+## Authority
+
+- Inspect repository-local contracts, schemas, tests, and instructions before editing.
+- Keep stable interfaces in contracts or schemas, mechanically enforceable rules in validators, and workflow guidance in the appropriate agent instruction or skill.
+- Update coupled implementation, tests, samples, and documentation in the same change.
+
+## Safety
+
+- Preserve unrelated user changes.
+- Do not commit secrets, generated run artifacts, or environment-specific credentials.
+- Do not bypass repository hooks or validators.
+
+## Verification
+
+- Run focused tests while iterating and the repository-defined full gate before completion.
+- Report any environment-dependent validation that was not executed.

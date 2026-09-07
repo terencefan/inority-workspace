@@ -50,16 +50,19 @@ runCase("cluster without fontcolor is rejected", () => {
   assert.ok(codes.has("D031"));
 });
 
-runCase("arial is rejected", () => {
-  const mutated = mutate(referenceDot, 'fontname="Noto Sans CJK SC"', 'fontname="Arial"');
-  const codes = new Set(collectDotDiagnostics(mutated, { render: false }).errors.map((item) => item.code));
-  assert.ok(codes.has("D004"));
-});
-
 runCase("missing markdown block is rejected by markdown mode", () => {
   const diagnostics = collectMarkdownDotDiagnostics("# empty\n", { render: false });
   const codes = new Set(diagnostics.errors.map((item) => item.code));
   assert.ok(codes.has("D040"));
+});
+
+runCase("CJK diagram without one explicit shared font is rejected", () => {
+  const withoutFont = referenceDot.replaceAll(', fontname="sans-serif"', "").replaceAll('fontname="sans-serif", ', "");
+  const codes = new Set(collectDotDiagnostics(withoutFont, { render: false }).errors.map((item) => item.code));
+  assert.ok(codes.has("D022"));
+  const mixedFont = referenceDot.replace('edge [fontname="sans-serif"', 'edge [fontname="Times"');
+  const mixedCodes = new Set(collectDotDiagnostics(mixedFont, { render: false }).errors.map((item) => item.code));
+  assert.ok(mixedCodes.has("D022"));
 });
 
 runCase("catalog covers runtime codes", () => {

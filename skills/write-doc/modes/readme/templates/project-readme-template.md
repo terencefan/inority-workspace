@@ -21,9 +21,9 @@
 
 ```dot
 digraph ProjectOverview {
-  graph [bgcolor="transparent"];
-  node [shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="transparent", fontname="sans-serif"];
+  node [fontname="sans-serif", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [fontname="sans-serif", color="#94a3b8", fontcolor="#94a3b8"];
 
   client [label="client", fillcolor="#dbeafe"];
   service [label="service", fillcolor="#fef3c7"];

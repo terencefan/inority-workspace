@@ -1136,6 +1136,9 @@ function injectGraphvizTextLengths(svg: string, textOps: GraphvizTextOp[]): stri
     }
 
     const normalizedTextContent = decodeXmlEntities(stripTags(textContent)).replace(/\s+/gu, ' ').trim()
+    if (/[\u3400-\u9fff\uf900-\ufaff\u3040-\u30ff\uac00-\ud7af]/u.test(normalizedTextContent)) {
+      return match
+    }
     if (normalizedTextContent !== textOp.text.replace(/\s+/gu, ' ').trim()) {
       const fallbackOp = textOps.find((candidate, index) => {
         if (index < textIndex) {
@@ -1165,7 +1168,7 @@ function appendTextLength(textNode: string, width: number): string {
 
   return textNode.replace(
     /<text\b/iu,
-    `<text textLength="${normalizedWidth}" lengthAdjust="spacingAndGlyphs"`,
+    `<text textLength="${normalizedWidth}" lengthAdjust="spacing"`,
   )
 }
 

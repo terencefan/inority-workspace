@@ -1,0 +1,66 @@
+{
+  "template": {
+    "name": "stage-complete",
+    "required": ["mention_open_id", "project", "stage", "summary", "validation", "next_stage"]
+  },
+  "card": {
+    "schema": "2.0",
+    "config": {
+      "update_multi": true,
+      "width_mode": "default",
+      "summary": { "content": "{{project}}：{{stage}}已完成" }
+    },
+    "header": {
+      "title": { "tag": "plain_text", "content": "{{project}} · 阶段完成" },
+      "subtitle": { "tag": "plain_text", "content": "{{stage}}" },
+      "template": "green",
+      "icon": { "tag": "standard_icon", "token": "todo_colorful" },
+      "text_tag_list": [
+        { "tag": "text_tag", "text": { "tag": "plain_text", "content": "已验证" }, "color": "green" }
+      ]
+    },
+    "body": {
+      "direction": "vertical",
+      "padding": "12px 12px 20px 12px",
+      "vertical_spacing": "12px",
+      "elements": [
+        {
+          "tag": "column_set",
+          "flex_mode": "none",
+          "background_style": "green-50",
+          "columns": [
+            {
+              "tag": "column",
+              "width": "weighted",
+              "weight": 1,
+              "padding": "12px",
+              "vertical_spacing": "4px",
+              "elements": [
+                { "tag": "markdown", "content": "<at id={{mention_open_id}}></at>，**<font color='green'>{{stage}}已完成并通过验证。</font>**" },
+                { "tag": "markdown", "content": "{{summary}}" }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "column_set",
+          "flex_mode": "none",
+          "columns": [
+            {
+              "tag": "column",
+              "width": "weighted",
+              "weight": 1,
+              "background_style": "grey-50",
+              "padding": "12px",
+              "vertical_spacing": "4px",
+              "elements": [
+                { "tag": "markdown", "content": "**验证结果**\n{{validation}}" },
+                { "tag": "markdown", "content": "<font color='grey'>下一阶段：{{next_stage}}</font>", "text_size": "notation" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

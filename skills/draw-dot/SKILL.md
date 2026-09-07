@@ -28,10 +28,11 @@ This skill is the style authority for DOT snippets used by `runbook`, `write-doc
 3. Prefer the smallest diagram that answers the question. Do not overdraw.
 4. Use stable ASCII node ids and put Chinese or long text in `label`.
 5. Quote labels consistently.
-6. Default font stack for Chinese content:
-   - `graph [fontname="Noto Sans CJK SC"]`
-   - `node [fontname="Noto Sans CJK SC"]`
-   - `edge [fontname="Noto Sans CJK SC"]`
+6. Keep one portable font family across the whole diagram.
+   - A diagram containing CJK text must explicitly set `fontname="sans-serif"` on `graph`, `node`, and `edge`; never leave Graphviz to emit its `Times,serif` default. The generic family lets each Markdown browser select its installed Chinese sans-serif font instead of depending on a render-host-only family.
+   - When a Markdown preview may use Viz.js instead of native Graphviz, give box nodes a safe explicit minimum `width` (normally at least `1.8`) and widen long CJK labels individually. Do not use SVG `lengthAdjust="spacingAndGlyphs"` to force-fit CJK text because it distorts square glyphs.
+   - When pixel-identical output is required, discover the publishing environment's fonts with `fc-list :lang=zh family` (or the platform equivalent), render there, and embed the selected font in the final SVG or publish a PNG.
+   - Do not put a render-host-only concrete font name in portable Markdown DOT.
    - embedded Markdown diagrams should not rely on renderer defaults for node contrast; give nodes explicit `style`, `fillcolor`, `color`, and `fontcolor`
    - default to `style="rounded,filled"` for box-like nodes unless another shape semantic is more important
    - when the rendering context is unknown, prefer cross-theme fills with explicit borders so nodes stay readable on both light and dark canvases
@@ -46,7 +47,6 @@ This skill is the style authority for DOT snippets used by `runbook`, `write-doc
 8. Choose direction deliberately:
    - `rankdir=TB` for hierarchies, steps, trees
    - `rankdir=LR` for pipelines, data paths, layered architecture
-   - default to elbow / orthogonal connectors with `graph [splines=ortho]`; do not use curved splines unless a loop, free-form relationship, or explicit user request makes curvature meaningful
 9. Use `subgraph cluster_*` only when grouping materially improves readability.
 10. Avoid decorative noise:
    - too many colors
@@ -82,6 +82,7 @@ This skill is the style authority for DOT snippets used by `runbook`, `write-doc
 ## Validation
 
 - Graphviz render smoke check is mandatory for every new or modified diagram; syntax-only validation is not sufficient.
+- For diagrams containing CJK text, inspect the rendered SVG and reject `font-family="Times,serif"` or any other unintended fallback.
 - Before validation, run `dot -V`. If `dot` is unavailable, install the Graphviz package with the
   operating system package manager (for example `apt-get install graphviz`, `dnf install graphviz`,
   or `brew install graphviz`), then rerun validation. Request the required installation approval

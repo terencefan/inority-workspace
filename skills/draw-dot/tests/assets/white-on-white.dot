@@ -1,0 +1,6 @@
+digraph invalid_contrast {
+  graph [rankdir=LR, bgcolor="transparent"];
+  node [shape=box, style="rounded,filled", color="#64748b", fontcolor="#ffffff", fillcolor="#ffffff"];
+  edge [color="#94a3b8", fontcolor="#94a3b8"];
+  broken [label="白底白字"];
+}

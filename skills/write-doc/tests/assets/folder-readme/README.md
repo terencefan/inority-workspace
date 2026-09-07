@@ -9,6 +9,23 @@
 
 说明这个目录覆盖什么边界。
 
+```dot
+digraph ModuleMindmap {
+  graph [rankdir=TB, bgcolor="transparent", fontname="sans-serif"];
+  node [fontname="sans-serif", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc", width=1.8];
+  edge [fontname="sans-serif", color="#94a3b8", fontcolor="#475569"];
+  root [label="classifier/utils", fillcolor="#dbeafe"];
+  storage [label="S3 helper", fillcolor="#fef3c7"];
+  prompt [label="Prompt helper", fillcolor="#dcfce7"];
+  s3_client [label="S3 client", fillcolor="#f8fafc"];
+  parser [label="Prompt parser", fillcolor="#f8fafc"];
+  root -> storage;
+  root -> prompt;
+  storage -> s3_client;
+  prompt -> parser;
+}
+```
+
 ## 职责边界
 
 - 负责工具函数与辅助模块

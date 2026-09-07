@@ -290,7 +290,7 @@ await runCase("validate cli help and pass output", async () => {
 await runCase("runctl wrapper forwards to mjs cli", async () => {
   const wrapper = loadText(RUNCTL_WRAPPER);
   assert.match(wrapper, /^#!\/usr\/bin\/env bash/m);
-  assert.match(wrapper, /exec node "\$SCRIPT_DIR\/runctl\.mjs" "\$@"/);
+  assert.match(wrapper, /exec node --no-warnings --experimental-strip-types "\$SCRIPT_DIR\/runctl\.mjs" "\$@"/);
 });
 
 await runCase("normalize and validate commands rewrite files", async () => {

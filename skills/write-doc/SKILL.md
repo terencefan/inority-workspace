@@ -40,6 +40,11 @@ description: 用于编写或整理产品 spec、技术 spec、LLM 节点 spec、
 
 只有确实需要结构图、关系图、架构图或 Graphviz 片段时，额外使用 `$draw-dot`。DOT 的布局、节点配色、cluster 样式和 dark-mode 适配由 `$draw-dot` 统一负责，`$write-doc` 只定义图里必须表达什么。
 
+当用户允许通过飞书向范腾远确认，或持续 goal 中的文档需要异步收敛选项、命名、定稿或
+安全审批时，加载 `$runbook` 的
+`../lark-message/references/feishu-direct-confirmation.md` 并使用 `$lark-message`。飞书回调得到的
+答案仍必须按 `$inority-question` 规则展开为完整语义并写入真实访谈记录；不得只写按钮值。
+
 ## 跨模式共通规则
 
 1. 先判定模式，再读取对应模式目录里的 `MODE.md`、template 和 validator 规则。主 skill 只保留跨模式规则和需要稳定复用的文档格式契约，实验方法等领域细节由对应 mode 维护。

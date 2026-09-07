@@ -207,32 +207,7 @@ export function collectDotDiagnostics(dotText, { lineOffset = 0, render = true }
   const nodeDefaults = extractDefaultStatement(dotText, "node");
   const edgeDefaults = extractDefaultStatement(dotText, "edge");
   const clusters = extractClusterBlocks(dotText);
-
-  if (!dotText.includes('fontname="Noto Sans CJK SC"')) {
-    if (graphDefaults == null) {
-      errors.push(diagnostic("D001", firstLine));
-    }
-    if (nodeDefaults == null) {
-      errors.push(diagnostic("D002", firstLine));
-    }
-    if (edgeDefaults == null) {
-      errors.push(diagnostic("D003", firstLine));
-    }
-  } else {
-    if (graphDefaults == null || graphDefaults.attrs.fontname !== "Noto Sans CJK SC") {
-      errors.push(diagnostic("D001", lineNumberForRegex(lines, /^\s*graph\s*\[/, lineOffset)));
-    }
-    if (nodeDefaults == null || nodeDefaults.attrs.fontname !== "Noto Sans CJK SC") {
-      errors.push(diagnostic("D002", lineNumberForRegex(lines, /^\s*node\s*\[/, lineOffset)));
-    }
-    if (edgeDefaults == null || edgeDefaults.attrs.fontname !== "Noto Sans CJK SC") {
-      errors.push(diagnostic("D003", lineNumberForRegex(lines, /^\s*edge\s*\[/, lineOffset)));
-    }
-  }
-
-  if (dotText.includes("Arial")) {
-    errors.push(diagnostic("D004", lineNumberForRegex(lines, /Arial/, lineOffset)));
-  }
+  const containsCjk = /[\u3400-\u9fff\uf900-\ufaff\u3040-\u30ff\uac00-\ud7af]/u.test(dotText);
 
   if (graphDefaults == null || graphDefaults.attrs.bgcolor !== "transparent") {
     errors.push(diagnostic("D010", lineNumberForRegex(lines, /^\s*graph\s*\[/, lineOffset)));
@@ -261,6 +236,14 @@ export function collectDotDiagnostics(dotText, { lineOffset = 0, render = true }
   }
   if (!hasExplicitColor(edgeDefaults?.attrs.fontcolor)) {
     errors.push(diagnostic("D021", lineNumberForRegex(lines, /^\s*edge\s*\[/, lineOffset)));
+  }
+
+  if (containsCjk) {
+    const fonts = [graphDefaults?.attrs.fontname, nodeDefaults?.attrs.fontname, edgeDefaults?.attrs.fontname];
+    const normalizedFonts = fonts.map((font) => font?.trim().toLowerCase() ?? "");
+    if (normalizedFonts.some((font) => font !== "sans-serif")) {
+      errors.push(diagnostic("D022", firstLine));
+    }
   }
 
   for (const cluster of clusters) {

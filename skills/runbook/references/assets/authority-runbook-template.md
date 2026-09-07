@@ -18,9 +18,9 @@
 
 ```dot
 digraph current {
-  graph [rankdir=LR, bgcolor="transparent", pad="0.45", nodesep="0.7", ranksep="0.95", fontname="Noto Sans CJK SC"];
-  node [shape=box, style="rounded,filled", margin="0.18,0.12", width="2.2", fontname="Noto Sans CJK SC", fontsize=10.5, color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8", arrowsize="0.7"];
+  graph [rankdir=LR, bgcolor="transparent", pad="0.45", nodesep="0.7", ranksep="0.95", fontname="sans-serif"];
+  node [shape=box, style="rounded,filled", margin="0.18,0.12", width="2.2", fontsize=10.5, color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc", fontname="sans-serif"];
+  edge [color="#94a3b8", fontcolor="#94a3b8", arrowsize="0.7", fontname="sans-serif"];
 
   node_a [label="当前组件 A", fillcolor="#dbeafe"];
   node_b [label="当前组件 B", fillcolor="#fef3c7"];
@@ -37,13 +37,13 @@ digraph current {
 
 - <目标状态>
 - <成功定义 / handoff 边界>
-- authority source： [<spec 设计文档>.md](./<spec-设计文档>.md)
+- authority source：`<spec-设计文档>.md`
 
 ```dot
 digraph target {
-  graph [rankdir=LR, bgcolor="transparent", pad="0.45", nodesep="0.7", ranksep="0.95", fontname="Noto Sans CJK SC"];
-  node [shape=box, style="rounded,filled", margin="0.18,0.12", width="2.2", fontname="Noto Sans CJK SC", fontsize=10.5, color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8", arrowsize="0.7"];
+  graph [rankdir=LR, bgcolor="transparent", pad="0.45", nodesep="0.7", ranksep="0.95", fontname="sans-serif"];
+  node [shape=box, style="rounded,filled", margin="0.18,0.12", width="2.2", fontsize=10.5, color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc", fontname="sans-serif"];
+  edge [color="#94a3b8", fontcolor="#94a3b8", arrowsize="0.7", fontname="sans-serif"];
 
   node_a [label="目标组件 A", fillcolor="#dbeafe"];
   node_b [label="目标组件 B", fillcolor="#fef3c7"];
@@ -86,9 +86,9 @@ digraph target {
 
 ```dot
 digraph runbook_mindmap {
-  graph [rankdir=LR, bgcolor="transparent", pad="0.45", nodesep="0.7", ranksep="0.95", fontname="Noto Sans CJK SC"];
-  node [shape=box, style="rounded,filled", margin="0.18,0.12", width="2.2", fontname="Noto Sans CJK SC", fontsize=10.5, color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8", arrowsize="0.7"];
+  graph [rankdir=LR, bgcolor="transparent", pad="0.45", nodesep="0.7", ranksep="0.95", fontname="sans-serif"];
+  node [shape=box, style="rounded,filled", margin="0.18,0.12", width="2.2", fontsize=10.5, color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc", fontname="sans-serif"];
+  edge [color="#94a3b8", fontcolor="#94a3b8", arrowsize="0.7", fontname="sans-serif"];
 
   root [label="用户原始需求\n<一句话原始需求，\n必要时拆成 2-3 行>", fillcolor="#dbeafe"];
 
@@ -351,6 +351,8 @@ digraph runbook_mindmap {
 
 ## 最终验收
 
+- [ ] runbook 引用的脚本、manifest、模板、校验器和回滚辅助 assets 已同批落盘，引用路径有效且静态校验通过
+- [ ] runbook 依赖的镜像、离线包、chart、模型、固件等外部 artifacts 已进入目标正式存储，digest/checksum 已冻结且真实消费路径验证通过
 - [ ] 第 1 项验收通过并有 `#### 验收记录 @...` 证据
 - [ ] 第 2 项验收通过并有 `#### 验收记录 @...` 证据
 - [ ] 已新开一个独立上下文的 `references/recon/recon.md` 对应的只读 recon 子上下文执行最终终态侦察
@@ -430,7 +432,7 @@ digraph runbook_mindmap {
 
 | name | type | link | desc |
 | --- | --- | --- | --- |
-| <authority spec / 上游 authority> | 文档 | [<path>-spec.md](./<path>-spec.md) | 如果本 runbook 派生自 spec，这里放唯一 authority source。 |
-| <上游 authority / 前置文档> | 文档 | [<path>.md](./<path>.md) | 说明该文档的直接作用。 |
-| <Ansible playbook / Python 脚本 / 模板文件> | 资源 | [<path>](./<path>) | 说明该资源在执行中的作用。 |
-| <旁路参考 / 相关设计文档> | 文档 | [<path>.md](./<path>.md) | 说明该参考如何约束边界。 |
+| <authority spec / 上游 authority> | 文档 | `<path>-spec.md` | 如果本 runbook 派生自 spec，这里放唯一 authority source。 |
+| <上游 authority / 前置文档> | 文档 | `<path>.md` | 说明该文档的直接作用。 |
+| <Ansible playbook / Python 脚本 / 模板文件> | 资源 | `<path>` | 说明该资源在执行中的作用。 |
+| <旁路参考 / 相关设计文档> | 文档 | `<path>.md` | 说明该参考如何约束边界。 |

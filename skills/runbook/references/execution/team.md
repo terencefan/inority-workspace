@@ -45,6 +45,7 @@
 ## 最终验收
 
 - 所有 item 的 execution / acceptance 完成后，必须额外新开独立上下文的只读 recon
+- 主 rollout 在进入该门禁时直接 dispatch，不为启动最终 recon subagent 再询问用户；先前对 `team` 的确认已覆盖 runbook 内强制 phase 编排
 - dispatch 只能给 authority 路径、最终验收侦察问题、只读边界和返回格式
 - 不要把既有 `#### 执行记录` / `#### 验收记录` 当作已证明事实塞给最终 recon
 - 最终验收 checkbox 与结论只能基于该 recon 本轮重新采集的证据写回

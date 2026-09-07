@@ -1,0 +1,36 @@
+# {{PROJECT_NAME}} Developer Guide
+
+This document is the single human-development entry point. Keep setup, change routing, tests, hooks, submission workflow, and completion criteria here.
+
+## Document boundaries
+
+- `README.md` serves project users and provides project and documentation navigation.
+- `DEVELOP.md` serves human developers and owns the development workflow.
+- `AGENTS.md` serves coding agents and owns mandatory execution constraints.
+
+## Local setup
+
+Document supported platforms, required tool versions, dependency installation, and hook installation.
+
+## Change routing
+
+| Change | Authority and coupled files | Required validation |
+| --- | --- | --- |
+| Source behavior | Source, tests, and directly affected documentation | Project unit tests |
+| Stable interface | Contract or schema, implementation, tests, and samples | Contract and integration tests |
+
+## Development commands
+
+List exact formatting, unit, integration, and full-test commands.
+
+## Submission workflow
+
+Describe branch, commit, pre-commit, pre-push, and pull-request expectations.
+
+## Completion criteria
+
+- The requested behavior and its authority agree.
+- Unit and boundary-level integration tests cover the change.
+- Directly affected documentation is current.
+- Project tests and commit hooks pass.
+- Any unexecuted environment-dependent validation is explicitly disclosed.

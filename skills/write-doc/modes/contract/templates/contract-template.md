@@ -32,9 +32,9 @@
 ```dot
 digraph ContractUsage {
   rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="transparent", fontname="sans-serif"];
+  node [fontname="sans-serif", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [fontname="sans-serif", color="#94a3b8", fontcolor="#94a3b8"];
 
   contract [label="authority contract", fillcolor="#dbeafe"];
   spec [label="referencing spec", fillcolor="#fef3c7"];
@@ -95,9 +95,9 @@ digraph ContractUsage {
 ```dot
 digraph StateMachine {
   rankdir=LR;
-  graph [bgcolor="transparent", fontname="Noto Sans CJK SC"];
-  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
-  edge [fontname="Noto Sans CJK SC", color="#94a3b8", fontcolor="#94a3b8"];
+  graph [bgcolor="transparent", fontname="sans-serif"];
+  node [fontname="sans-serif", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
+  edge [fontname="sans-serif", color="#94a3b8", fontcolor="#94a3b8"];
 
   queued [label="queued", fillcolor="#dbeafe"];
   running [label="running", fillcolor="#fef3c7"];

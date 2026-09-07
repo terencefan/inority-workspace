@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Dashboard"
+  short_description: "Build and validate Grafana and Superset dashboards"
+  default_prompt: "Use $create-dashboard to create or update a dashboard and verify its data queries, permissions, persistence, and browser rendering."
