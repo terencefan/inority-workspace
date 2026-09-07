@@ -8,7 +8,7 @@
 ARG BASE_IMAGE_PREFIX=
 ARG NODE_BASE_IMAGE=library/node:22-bookworm-slim
 
-FROM ${BASE_IMAGE_PREFIX}${NODE_BASE_IMAGE} AS site-builder
+FROM --platform=$BUILDPLATFORM ${BASE_IMAGE_PREFIX}${NODE_BASE_IMAGE} AS site-builder
 
 WORKDIR /src/handbook
 ENV NODE_ENV=development
@@ -24,7 +24,7 @@ COPY inority-workspace/handbook/src ./src
 RUN npm run build
 
 
-FROM ${BASE_IMAGE_PREFIX}${NODE_BASE_IMAGE} AS markdown-packager
+FROM --platform=$BUILDPLATFORM ${BASE_IMAGE_PREFIX}${NODE_BASE_IMAGE} AS markdown-packager
 
 WORKDIR /src/workspace
 
