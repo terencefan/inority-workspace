@@ -494,8 +494,10 @@ test('graphviz render endpoint applies dark theme defaults when dot source omits
 
   assert.equal(response.status, 200)
   const payload = await response.json()
-  assert.match(payload.svg, /rgb\(88\.627451%\, 90\.980392%\, 94\.117647%\)/i)
-  assert.match(payload.svg, /rgb\(58\.039216%\, 63\.921569%\, 72\.156863%\)/i)
+  // Ubuntu and Debian graphviz builds format cairo rgb() values with and
+  // without spaces after commas; accept both.
+  assert.match(payload.svg, /rgb\(88\.627451%,\s*90\.980392%,\s*94\.117647%\)/i)
+  assert.match(payload.svg, /rgb\(58\.039216%,\s*63\.921569%,\s*72\.156863%\)/i)
 })
 
 test('graphviz render endpoint keeps explicit dot colors when theme defaults are injected', async (t) => {
@@ -517,8 +519,8 @@ test('graphviz render endpoint keeps explicit dot colors when theme defaults are
 
   assert.equal(response.status, 200)
   const payload = await response.json()
-  assert.match(payload.svg, /rgb\(100%\, 0%\, 0%\)/i)
-  assert.match(payload.svg, /rgb\(0%\, 100%\, 0%\)/i)
+  assert.match(payload.svg, /rgb\(100%,\s*0%,\s*0%\)/i)
+  assert.match(payload.svg, /rgb\(0%,\s*100%,\s*0%\)/i)
 })
 
 test('graphviz fallback does not force text width onto CJK glyphs', async (t) => {

@@ -6,7 +6,18 @@ services:
     image: handbook-dev:local
     container_name: handbook-dev
     working_dir: /workspace/inority-workspace/handbook
-    command: npm run dev
+    # node_modules lives in named volumes so host-side `npm ci`/`npm prune`
+    # (handbook-deploy) cannot break the running dev stack. The bootstrap
+    # install runs offline against the host npm cache (mounted below);
+    # container egress cannot reach npm registries.
+    command:
+      - sh
+      - -c
+      - |
+        if [ ! -x /workspace/inority-workspace/node_modules/.bin/vite ]; then
+          npm ci --no-audit --no-fund --prefer-offline --cache /npm-cache
+        fi
+        exec npm run dev
     environment:
       HANDBOOK_DEV_BACKEND: http://127.0.0.1:18081
       HANDBOOK_GRAPHVIZ_COMMAND: dot
@@ -19,12 +30,10 @@ services:
     restart: unless-stopped
     volumes:
       - /home/fantengyuan/workspace:/workspace
+      - /home/fantengyuan/.npm:/npm-cache
+      - handbook_workspace_modules:/workspace/inority-workspace/node_modules
+      - handbook_modules:/workspace/inority-workspace/handbook/node_modules
       - /home/fantengyuan/.npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/codex-path/rg:/usr/local/bin/rg:ro
-      - type: volume
-        source: handbook_vite_cache
-        target: /workspace/inority-workspace/handbook/node_modules/.vite
-        volume:
-          nocopy: true
     healthcheck:
       test:
         - CMD
@@ -57,4 +66,5 @@ services:
       start_period: 10s
 
 volumes:
-  handbook_vite_cache:
+  handbook_workspace_modules:
+  handbook_modules:

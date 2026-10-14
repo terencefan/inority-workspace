@@ -1047,7 +1047,14 @@ function App({ themeMode, onToggleTheme }) {
 
       try {
         const response = await fetch(buildDocumentEndpoint(selection), API_FETCH_OPTIONS)
-        const payload = await response.json()
+        let payload
+        try {
+          payload = await response.json()
+        } catch {
+          // Non-JSON body (e.g. empty proxy error response): fall through to
+          // the status-based error below instead of a JSON parse message.
+          payload = {}
+        }
         if (!response.ok) {
           throw new Error(payload.detail || `Document request failed with ${response.status}`)
         }
