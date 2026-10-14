@@ -1,28 +1,13 @@
 # Build from the workspace root:
 # docker build -f inority-workspace/handbook/Dockerfile -t handbook:latest .
 #
-# This image is self-contained: it installs site dependencies, builds the
-# React app, packages Markdown sources, and serves everything from one Node
-# process.
+# The image packages host-built artifacts: run `npm run build` and
+# `npm ci --omit=dev` in inority-workspace/handbook first (the canary
+# Makefile handbook-deploy target does both), then build. The image build
+# itself performs no network access.
 
 ARG BASE_IMAGE_PREFIX=
 ARG NODE_BASE_IMAGE=library/node:22-bookworm-slim
-
-FROM --platform=$BUILDPLATFORM ${BASE_IMAGE_PREFIX}${NODE_BASE_IMAGE} AS site-builder
-
-WORKDIR /src/handbook
-ENV NODE_ENV=development
-
-COPY inority-workspace/handbook/package.json ./package.json
-COPY inority-workspace/handbook/package-lock.json ./package-lock.json
-
-RUN npm ci
-
-COPY inority-workspace/handbook/vite.config.ts ./vite.config.ts
-COPY inority-workspace/handbook/src ./src
-
-RUN npm run build
-
 
 FROM --platform=$BUILDPLATFORM ${BASE_IMAGE_PREFIX}${NODE_BASE_IMAGE} AS markdown-packager
 
@@ -53,13 +38,16 @@ RUN mkdir -p /out/workspace \
 
 FROM ${BASE_IMAGE_PREFIX}${NODE_BASE_IMAGE} AS runtime
 
+ARG DEBIAN_MIRROR=http://mirrors.tuna.tsinghua.edu.cn
+
 WORKDIR /workspace/handbook
 
 ENV NODE_ENV=production
 ENV HANDBOOK_HOST=0.0.0.0
 ENV HANDBOOK_PORT=18080
 
-RUN apt-get update \
+RUN sed -i "s|https\?://deb.debian.org|${DEBIAN_MIRROR}|g" /etc/apt/sources.list.d/debian.sources \
+    && apt-get update \
     && apt-get install -y --no-install-recommends \
         fontconfig \
         fonts-noto-cjk \
@@ -69,8 +57,8 @@ RUN apt-get update \
 
 COPY inority-workspace/handbook/package.json ./package.json
 COPY inority-workspace/handbook/src ./src
-COPY --from=site-builder /src/handbook/src/dist ./src/dist
-COPY --from=site-builder /src/handbook/node_modules/@viz-js ./node_modules/@viz-js
+COPY inority-workspace/handbook/src/dist ./src/dist
+COPY inority-workspace/handbook/node_modules/@viz-js ./node_modules/@viz-js
 COPY --from=markdown-packager /out/workspace /workspace
 
 EXPOSE 18080
