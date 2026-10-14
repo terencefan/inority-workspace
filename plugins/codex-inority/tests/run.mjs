@@ -44,6 +44,10 @@ try {
     throw new Error("hook output did not include the plugin-relative CLI template");
   }
 
+  if (!context.includes("| Goal |") || context.includes("\x1b") || context.includes("<ANSI-yellow")) {
+    throw new Error("CLI hook must inject Markdown without ANSI control sequences");
+  }
+
   console.log("codex-inority hook test passed");
 } finally {
   rmSync(fixtureRoot, { recursive: true, force: true });

@@ -125,7 +125,7 @@ digraph G {
 
 ```dot
 digraph G {
-  graph [rankdir=TB, bgcolor="transparent", fontname="sans-serif"];
+  graph [rankdir=LR, bgcolor="transparent", fontname="sans-serif"];
   node [fontname="sans-serif", shape=box, style="rounded,filled", color="#64748b", fontcolor="#0f172a", fillcolor="#f8fafc"];
   edge [fontname="sans-serif", color="#94a3b8", fontcolor="#94a3b8"];
 

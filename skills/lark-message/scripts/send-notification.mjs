@@ -101,6 +101,7 @@ export function renderTemplate(name, suppliedVars) {
 
 function selfTest() {
   const fixtures = {
+    "failure-rca": { subject: "故障 RCA", summary: "已定位。", problem: "问题。", root_cause: "根因。", solution: "方案。", next_action: "重试。" },
     "stage-complete": { project: "Edge", stage: "阶段 1", summary: "已完成。", validation: "探针通过。", next_stage: "阶段 2" },
     "status-update": { subject: "Edge 进度", status: "进行中", summary: "正在执行。", details: "现状已核对。", next_action: "继续验证" },
     "action-required": { subject: "Edge 审批", summary: "需要确认。", action: "请选择发布窗口。", deadline: "今天 18:00" }

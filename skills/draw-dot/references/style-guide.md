@@ -8,6 +8,7 @@
 - Use one font family for graph labels, nodes, and edges.
 - For portable Markdown containing CJK, explicitly set `fontname="sans-serif"` on `graph`, `node`, and `edge`. This prevents `Times,serif` while allowing each browser to select its native Chinese sans-serif font.
 - For Viz.js-compatible Markdown, use a box-node minimum such as `width=1.8`; widen longer CJK labels per node. CJK text must keep its natural glyph aspect ratio and must not be force-fitted with `lengthAdjust="spacingAndGlyphs"`.
+- CJK labels are never left to implicit wrapping. Insert semantic `\\n` breaks in quoted labels (or `<BR/>` in HTML-like labels), keeping each line at most 8 CJK characters and the node at no more than 3 lines by default. Use `margin="0.12,0.08"` and avoid fixed heights so wrapped text cannot clip.
 - Use a concrete font family only for a controlled publishing environment. Verify it there and embed the font in SVG, or publish PNG, when pixel-identical output matters.
 
 ## Theme Presets
@@ -124,13 +125,24 @@ Keep one primary semantic mapping per diagram.
 - `rankdir=TB`:
   - hierarchies
   - trees
+- `rankdir=LR`:
   - mindmaps
+
+## Edge Routing
+
+- Process-flow and request/data-flow diagrams default to curved edges:
+  `splines=curved`.
+- Architecture-layer, dependency, and resource-relationship diagrams default
+  to orthogonal edges: `splines=ortho`.
+- Do not apply one routing style globally. Choose it from the diagram's semantic
+  type, and override it only when crossing or readability requires a local change.
 
 ## Labeling
 
 - Prefer short labels.
 - Keep one node focused on one concept.
 - If a label gets too long, split the concept into multiple nodes instead of turning the node into a paragraph.
+- Before rendering, scan CJK labels for long unbroken runs. Any run over 8 CJK characters must be explicitly wrapped or split into multiple nodes.
 
 ## Final Check
 

@@ -25,6 +25,46 @@ lark-cli im +messages-send --help
 
 Treat those resources as the authority for authentication, API parameters, mentions, identity, and safety. This skill owns only message composition and preview quality.
 
+## Network Preflight
+
+Run `lark-cli whoami` before target resolution. If the first Feishu API call fails with a local proxy
+error, `EOF`, or token-endpoint timeout, diagnose the local mihomo path before changing app credentials.
+
+The retained workspace route for this host is:
+
+```yaml
+  - DOMAIN-SUFFIX,feishu.cn,UPSTREAM-HTTP
+```
+
+This lives in `~/.config/mihomo/config.yaml` and was explicitly retained by the user on 2026-10-10.
+Do not restore this rule to `DIRECT` after sending a message. The user service starts:
+
+```bash
+~/.local/bin/mihomo -d ~/.local/share/mihomo -f ~/.config/mihomo/config.yaml
+```
+
+When changing this route, keep the change scoped to the single Feishu rule:
+
+1. Back up the config under `~/.config/mihomo/`.
+2. Replace only the exact `DOMAIN-SUFFIX,feishu.cn` rule.
+3. Validate with `mihomo -t -d ~/.local/share/mihomo -f ~/.config/mihomo/config.yaml`.
+4. Ensure only one mihomo instance is running. A stale `mihomo -d ~/.config/mihomo` process can own
+   `7890/9090` and make a correctly updated service appear not to reload. Stop the user service, SIGTERM
+   stale user-owned mihomo processes, then start the service again.
+5. Restart with `systemctl --user restart mihomo`.
+
+Verify all of the following before retrying delivery:
+
+```bash
+systemctl --user is-active mihomo
+curl -sS http://127.0.0.1:9090/rules | jq '.rules[] | select(.payload == "feishu.cn")'
+curl -sS --connect-timeout 5 --max-time 20 -o /dev/null -w '%{http_code}\n' https://www.feishu.cn/
+lark-cli whoami
+```
+
+The active rule must report `UPSTREAM-HTTP`. Treat listener bind address or `allow-lan` changes as a
+separate authorized change; never broaden mihomo exposure as a side effect of repairing Feishu delivery.
+
 ## Resolve The Target
 
 1. Resolve the exact group with `lark-cli im +chat-search`.

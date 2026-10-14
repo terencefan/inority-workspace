@@ -33,6 +33,8 @@ This skill is the style authority for DOT snippets used by `runbook`, `write-doc
    - When a Markdown preview may use Viz.js instead of native Graphviz, give box nodes a safe explicit minimum `width` (normally at least `1.8`) and widen long CJK labels individually. Do not use SVG `lengthAdjust="spacingAndGlyphs"` to force-fit CJK text because it distorts square glyphs.
    - When pixel-identical output is required, discover the publishing environment's fonts with `fc-list :lang=zh family` (or the platform equivalent), render there, and embed the selected font in the final SVG or publish a PNG.
    - Do not put a render-host-only concrete font name in portable Markdown DOT.
+   - Treat every CJK-containing label as wrap-sensitive. Graphviz does not reliably auto-wrap quoted CJK labels, so long Chinese labels must use explicit `\\n` line breaks (or an HTML-like label with `<BR/>`) at semantic boundaries. As a default, keep each line to at most 8 CJK characters, use no more than 3 lines per node, and split a concept into multiple nodes when it still does not fit. Never depend on clipping, ellipses, or renderer-specific wrapping.
+   - For CJK box nodes, set `margin="0.12,0.08"` and `width=1.8` (widen the node when needed). Do not set a fixed height that can clip a wrapped label.
    - embedded Markdown diagrams should not rely on renderer defaults for node contrast; give nodes explicit `style`, `fillcolor`, `color`, and `fontcolor`
    - default to `style="rounded,filled"` for box-like nodes unless another shape semantic is more important
    - when the rendering context is unknown, prefer cross-theme fills with explicit borders so nodes stay readable on both light and dark canvases
@@ -45,8 +47,12 @@ This skill is the style authority for DOT snippets used by `runbook`, `write-doc
    - keep node text readable against the chosen fill; do not pair light text with light fills or dark text with dark fills
    - cluster borders and labels should be styled explicitly when the graph uses transparent background
 8. Choose direction deliberately:
-   - `rankdir=TB` for hierarchies, steps, trees
+   - `rankdir=TB` for hierarchies and trees; use `rankdir=LR` for mindmaps so the root and capability branches read left to right
    - `rankdir=LR` for pipelines, data paths, layered architecture
+   - Prefer curved edges with `splines=curved` for request/data-flow,
+     process-flow, dependency maps, and resource relationship diagrams. Use
+     `splines=ortho` only when the user explicitly requests right-angle
+     routing or when a layered architecture cannot remain legible with curves.
 9. Use `subgraph cluster_*` only when grouping materially improves readability.
 10. Avoid decorative noise:
    - too many colors

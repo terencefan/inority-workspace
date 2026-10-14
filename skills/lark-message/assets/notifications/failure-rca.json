@@ -1,0 +1,57 @@
+{
+  "template": {
+    "name": "failure-rca",
+    "required": ["mention_open_id", "subject", "summary", "problem", "root_cause", "solution", "next_action"]
+  },
+  "card": {
+    "schema": "2.0",
+    "config": {
+      "update_multi": true,
+      "width_mode": "default",
+      "summary": { "content": "{{subject}}" }
+    },
+    "header": {
+      "title": { "tag": "plain_text", "content": "{{subject}}" },
+      "subtitle": { "tag": "plain_text", "content": "失败根因分析" },
+      "template": "orange",
+      "icon": { "tag": "standard_icon", "token": "warning_colorful" },
+      "text_tag_list": [
+        { "tag": "text_tag", "text": { "tag": "plain_text", "content": "RCA" }, "color": "orange" }
+      ]
+    },
+    "body": {
+      "direction": "vertical",
+      "padding": "12px 12px 20px 12px",
+      "vertical_spacing": "12px",
+      "elements": [
+        {
+          "tag": "column_set",
+          "flex_mode": "none",
+          "background_style": "orange-50",
+          "columns": [{
+            "tag": "column", "width": "weighted", "weight": 1, "padding": "12px",
+            "elements": [{ "tag": "markdown", "content": "<at id={{mention_open_id}}></at>，**{{summary}}**" }]
+          }]
+        },
+        {
+          "tag": "column_set",
+          "flex_mode": "none",
+          "background_style": "yellow-50",
+          "columns": [{
+            "tag": "column", "width": "weighted", "weight": 1, "padding": "12px",
+            "elements": [{ "tag": "markdown", "content": "**<font color='orange'>问题与根因</font>**\n{{problem}}\n\n{{root_cause}}" }]
+          }]
+        },
+        {
+          "tag": "column_set",
+          "flex_mode": "none",
+          "background_style": "green-50",
+          "columns": [{
+            "tag": "column", "width": "weighted", "weight": 1, "padding": "12px",
+            "elements": [{ "tag": "markdown", "content": "**<font color='green'>解决方案</font>**\n{{solution}}\n\n下一步：{{next_action}}" }]
+          }]
+        }
+      ]
+    }
+  }
+}

@@ -98,7 +98,43 @@ claiming success.
 
 ## Dashboard Authoring Rules
 
+### Native collapsible row sections
+
+For dashboards that need multiple collapsible sections, use Grafana's native
+row model. Rows are top-level entries in `dashboard.panels`; do not use empty
+rows as visual separators and do not rely on nested `row.panels` for Grafana
+11 imports. The reliable API shape is:
+
+```json
+{
+  "type": "row",
+  "id": 1,
+  "title": "01 · Overview",
+  "collapsed": false,
+  "gridPos": {"x": 0, "y": 0, "w": 24, "h": 1},
+  "panels": []
+}
+```
+
+Place the section's chart panels as subsequent top-level `dashboard.panels`
+entries, with their `gridPos.y` after the row and before the next row. Set
+`collapsed: false` so every section is expanded on first load; users can still
+collapse it interactively. Give rows and child panels stable unique numeric
+`id` values. Do not add duplicate Markdown/text heading panels for the same
+row title.
+
+After import, verify both the persisted JSON and a rendered screenshot: each
+row title must precede its charts, charts must remain visible, and the row
+chevron must support collapse/expand. A dashboard that only shows row titles or
+that renders charts without the row controls has not passed layout validation.
+
 Use Grafana field units for display semantics instead of baking units into panel titles or PromQL unless the user explicitly asks for a fixed unit conversion.
+
+For traffic and byte-rate panels, set `fieldConfig.defaults.unit` to `Bps` so
+Grafana automatically renders humanized `kB/s`, `MB/s`, or `GB/s` values. Use
+`bytes`/`decbytes` for byte quantities, `reqps` for request rates, and `s` or
+`ms` for latency. Do not leave raw counter values or unitless large numbers in
+user-facing panels.
 
 - Dynamic values and attribution:
   - Do not add hardcoded variables, constants, replica counts, node names, GPU counts, IPs, run IDs, deployment names, or resource identities unless the dashboard's fixed scope or an external contract requires them.

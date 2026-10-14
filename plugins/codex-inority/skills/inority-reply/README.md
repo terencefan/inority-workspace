@@ -14,8 +14,8 @@ There is no separate `CODEX_HOME/inority-reply` runtime and no skill-local hook 
 
 ## Current Format Contract
 
-- CLI hosts use a borderless, aligned three-row table with ANSI-yellow
-  `Goal / Ambiguity / Risk` labels in the left column.
+- CLI hosts use a stable Markdown table with `Goal / Ambiguity / Risk` rows;
+  rendering must not depend on ANSI color or terminal column padding.
 - Codex Desktop and editor hosts use the fenced `text` template.
 - Unknown hosts fall back to the Markdown-safe template.
 - Host detection runs in the Node plugin hook and does not require `bash` or WSL.
