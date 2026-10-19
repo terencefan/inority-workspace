@@ -116,7 +116,19 @@ function parseSections(lines, level) {
   return sections;
 }
 
-function h2MatchesRule(actualH2, requiredH2, optionalH2 = []) {
+function h2MatchesRule(actualH2, requiredH2, optionalH2 = [], allowAnyH2 = false) {
+  if (allowAnyH2) {
+    // 首尾锚定：requiredH2 首项必须是第一个 H2、尾项必须是最后一个 H2；
+    // 锚点按序各出现恰一次，其余中段 H2 标题自由。该分支不启用 optionalH2 语义。
+    if (actualH2.length < requiredH2.length) {
+      return false;
+    }
+    if (actualH2[0] !== requiredH2[0] || actualH2[actualH2.length - 1] !== requiredH2[requiredH2.length - 1]) {
+      return false;
+    }
+    const anchors = actualH2.filter((title) => requiredH2.includes(title));
+    return JSON.stringify(anchors) === JSON.stringify(requiredH2);
+  }
   const optionalTitles = new Set(optionalH2.map((entry) => entry.title));
   const actualRequiredOnly = actualH2.filter((title) => !optionalTitles.has(title));
   if (JSON.stringify(actualRequiredOnly) !== JSON.stringify(requiredH2)) {
@@ -149,7 +161,10 @@ function h2MatchesRule(actualH2, requiredH2, optionalH2 = []) {
   return true;
 }
 
-function h2ExpectedLabel(requiredH2, optionalH2 = []) {
+function h2ExpectedLabel(requiredH2, optionalH2 = [], allowAnyH2 = false) {
+  if (allowAnyH2) {
+    return `${requiredH2[0]} / （中间章节标题自由） / ${requiredH2[requiredH2.length - 1]}`;
+  }
   let titles = [...requiredH2];
   for (const optional of optionalH2) {
     const insertAfter = optional.after == null ? -1 : titles.indexOf(optional.after);
@@ -306,9 +321,9 @@ function validateHeadingStructure(lines, pathValue) {
   const h2Titles = h2Sections.map(([, sectionTitle]) => sectionTitle);
   const expectedH2 = rule.requiredH2 ?? null;
   const optionalH2 = rule.optionalH2 ?? [];
-  if (expectedH2 != null && !h2MatchesRule(h2Titles, expectedH2, optionalH2)) {
+  if (expectedH2 != null && !h2MatchesRule(h2Titles, expectedH2, optionalH2, rule.allowAnyH2 === true)) {
     const lineIdx = h2Sections.length > 0 ? h2Sections[0][0] : 0;
-    errors.push(err("E010", lines, lineIdx, h2Titles.join(" / "), { expected: h2ExpectedLabel(expectedH2, optionalH2) }));
+    errors.push(err("E010", lines, lineIdx, h2Titles.join(" / "), { expected: h2ExpectedLabel(expectedH2, optionalH2, rule.allowAnyH2 === true) }));
   }
 
   return errors;
@@ -761,6 +776,50 @@ function validateReferenceSection(lines, h2Sections) {
   return errors;
 }
 
+function validateReferenceSectionFlexible(lines, h2Sections) {
+  const errors = [];
+  const section = sectionSlice(h2Sections, "参考资料", lines.length);
+  if (section == null) {
+    return errors;
+  }
+
+  const [start, end] = section;
+  const entries = [];
+  for (let idx = start + 1; idx < end; idx += 1) {
+    const trimmed = lines[idx].trim();
+    if (!trimmed) {
+      continue;
+    }
+    entries.push([idx, trimmed]);
+  }
+
+  if (entries.length === 0) {
+    errors.push(err("E040", lines, start));
+    return errors;
+  }
+
+  const tableRows = [];
+  for (const [idx, line] of entries) {
+    if (line.startsWith("|")) {
+      tableRows.push([idx, line]);
+    } else if (!line.startsWith("- [")) {
+      errors.push(err("E041", lines, idx));
+    }
+  }
+
+  if (tableRows.length > 0) {
+    // 表格形态：header 行 + `| --- |` 分隔行 + 分隔行后至少一条含链接的数据行
+    const separatorIdx = tableRows.findIndex(([, line]) => line.includes("-") && /^\|[\s:|-]+\|?$/.test(line));
+    const hasHeader = separatorIdx > 0;
+    const hasDataRow = separatorIdx >= 0 && tableRows.slice(separatorIdx + 1).some(([, line]) => line.includes("]("));
+    if (!hasHeader || !hasDataRow) {
+      errors.push(err("E041", lines, tableRows[0][0]));
+    }
+  }
+
+  return errors;
+}
+
 function validateComparisonSection(lines, h2Sections) {
   const errors = [];
   const section = sectionSlice(h2Sections, "方案对比", lines.length);
@@ -919,6 +978,9 @@ export function collectErrors(text, { pathValue = null } = {}) {
     if (flags.has("referenceSection")) {
       errors.push(...validateReferenceSection(lines, h2Sections));
     }
+    if (flags.has("referenceSectionFlexible")) {
+      errors.push(...validateReferenceSectionFlexible(lines, h2Sections));
+    }
     if (flags.has("projectReadmeLinks")) {
       errors.push(...validateProjectReadmeLinks(lines, h2Sections));
     }
@@ -993,6 +1055,15 @@ export function main(argv = process.argv.slice(2), { stdin = readStdin(), stdout
   return 1;
 }
 
-if (process.argv[1] != null && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+function invokedAsEntrypoint() {
+  if (process.argv[1] == null) return false;
+  try {
+    return fs.realpathSync(process.argv[1]) === fileURLToPath(import.meta.url);
+  } catch {
+    return false;
+  }
+}
+
+if (invokedAsEntrypoint()) {
   process.exitCode = main();
 }

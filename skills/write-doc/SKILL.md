@@ -1,6 +1,6 @@
 ---
 name: write-doc
-description: 用于编写或整理产品 spec、技术 spec、LLM 节点 spec、contract、README、benchmark、调研报告、事实清单、项目内 Markdown 表格与 RCA，并支持在 Markdown 中编写可渲染的数学或统计公式。用户提到“写 spec”“写 contract”“写 README”“写压测报告”“写 benchmark”“写报告”“做个表格放在项目里”“整理成 Markdown”“写事实清单”“写公式”“写统计方法”“写 RCA”“写故障分析”“写排障总结”，或任务产出调查结果、地址映射、资源清单、状态表格等事实型交付物时使用。除非用户明确指定飞书或其他外部工具，这些事实型交付物默认作为可评审 `.md` 文件持久化到项目。
+description: 用于编写或整理产品 spec、技术 spec、LLM 节点 spec、contract、README、benchmark、调研报告、开发指南、事实清单、项目内 Markdown 表格与 RCA，并支持在 Markdown 中编写可渲染的数学或统计公式。用户提到“写 spec”“写 contract”“写 README”“写压测报告”“写 benchmark”“写报告”“写开发指南”“写使用指南”“写操作手册”“做个表格放在项目里”“整理成 Markdown”“写事实清单”“写公式”“写统计方法”“写 RCA”“写故障分析”“写排障总结”，或任务产出调查结果、地址映射、资源清单、状态表格等事实型交付物时使用。除非用户明确指定飞书或其他外部工具，这些事实型交付物默认作为可评审 `.md` 文件持久化到项目。
 ---
 
 # Write Doc
@@ -29,6 +29,8 @@ description: 用于编写或整理产品 spec、技术 spec、LLM 节点 spec、
   适用于调研、侦察、现状分析、非压测型对比结论、排障总结，以及需要持久化到仓库的事实清单、资源地址映射和 Markdown 表格。
 - rca：`modes/rca/MODE.md`
   适用于统一的事故分析复盘文档。
+- guide：`modes/guide/MODE.md`
+  适用于面向接手人的 `开发指南`、使用指南、操作手册（自由文件名，如仓库根目录的 `E2E-TESTING.md`）。
 
 ## 默认协作面
 
@@ -46,6 +48,8 @@ description: 用于编写或整理产品 spec、技术 spec、LLM 节点 spec、
 答案仍必须按 `$inority-question` 规则展开为完整语义并写入真实访谈记录；不得只写按钮值。
 
 ## 跨模式共通规则
+
+- 每个标题只表达一个内容主题，适用于文档总标题、各级章节标题和加粗引导式小标题。避免用“X 与 Y”“X 和 Y”“X 及 Y”拼接并列主题，也不要机械删掉连接词后继续堆叠。可用准确的上位主题命名，或将独立内容拆成小节。例如“登录与凭证”改为“认证方式”，“组件职责与端口映射”按实际内容命名为“入口映射”或拆节。发布前检查全部标题，用户明确指定的标题或必须保真的原文除外。
 
 1. 先判定模式，再读取对应模式目录里的 `MODE.md`、template 和 validator 规则。主 skill 只保留跨模式规则和需要稳定复用的文档格式契约，实验方法等领域细节由对应 mode 维护。
 2. 优先使用仓库事实，不用泛化措辞替代真实代码、接口、表、事件、目录边界。
@@ -86,7 +90,7 @@ scripts/docctl validate <benchmark-path>
 
 ## Validator 入口回归规则
 
-- 症状：Windows 上直接执行 `node validate.mjs <path>` 可能无输出且返回 0，造成假通过。
-- 根因：用字符串拼接的 `file://` URL 与 Windows 反斜杠入口路径比较，二者永远不相等，`main()` 未运行。
-- 修复：用 `fileURLToPath(import.meta.url)` 与 `path.resolve(process.argv[1])` 比较规范化文件路径。
-- 防复发：validator 成功必须输出 `document ok:`；测试同时断言合法文档有成功标记、非法文档返回非零和错误码，不能只看退出码。
+- 症状（2026-10-18 Linux 软链复现）：经 `scripts/docctl` 或软链路径调用 `validate.mjs` 无输出且返回 0，对故意非法文档也静默通过。
+- 根因：入口守卫用 `fileURLToPath(import.meta.url)`（Node ESM 对软链模块解析为 realpath）与 `path.resolve(process.argv[1])`（保留调用侧软链路径）比较，`~/.claude/skills` 是软链时二者永不相等，`main()` 未运行。早期 Windows 变体（反斜杠路径拼接）同属这一类。
+- 修复：入口判定双侧 realpath 归一——`fs.realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)`（try/catch 包裹），已落在 `scripts/commands/validate.mjs`。
+- 防复发：validator 成功必须输出 `document ok:`；测试同时断言合法文档有成功标记、非法文档返回非零和错误码，不能只看退出码。怀疑假通过时用非法探针文件（预期报错）验证 validator 真在执行。

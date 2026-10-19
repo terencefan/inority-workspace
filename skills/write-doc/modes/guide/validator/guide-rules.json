@@ -1,0 +1,17 @@
+{
+  "mode": "guide",
+  "docTypes": [
+    {
+      "name": "开发指南",
+      "typeLabel": "document",
+      "requiredH2": [
+        "快速开始",
+        "参考资料"
+      ],
+      "allowAnyH2": true,
+      "flags": [
+        "referenceSectionFlexible"
+      ]
+    }
+  ]
+}

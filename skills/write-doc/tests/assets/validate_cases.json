@@ -350,5 +350,70 @@
     "expected_codes": [
       "E010"
     ]
+  },
+  {
+    "name": "guide-invalid-type",
+    "template": "guide_doc",
+    "replacements": [
+      {
+        "old": "> 当前文档类型：开发指南",
+        "new": "> 当前文档类型：使用手册"
+      }
+    ],
+    "expected_codes": [
+      "E005"
+    ]
+  },
+  {
+    "name": "guide-missing-quickstart",
+    "template": "guide_doc",
+    "replacements": [
+      {
+        "old": "## 快速开始",
+        "new": "## 立即开始"
+      }
+    ],
+    "expected_codes": [
+      "E010"
+    ]
+  },
+  {
+    "name": "guide-missing-reference",
+    "template": "guide_doc",
+    "replacements": [
+      {
+        "old": "## 参考资料",
+        "new": "## 参考材料"
+      }
+    ],
+    "expected_codes": [
+      "E010"
+    ]
+  },
+  {
+    "name": "guide-reference-empty",
+    "template": "guide_doc",
+    "replacements": [
+      {
+        "old": "| 文档 | 内容 |\n| --- | --- |\n| [设计 authority](https://example.com/demo-design-spec) | 机制与回归矩阵 |\n| [局部说明](https://example.com/demo-readme) | 目录协作约定 |",
+        "new": ""
+      }
+    ],
+    "expected_codes": [
+      "E040"
+    ]
+  },
+  {
+    "name": "guide-reference-plain-text",
+    "template": "guide_doc",
+    "replacements": [
+      {
+        "old": "| [设计 authority](https://example.com/demo-design-spec) | 机制与回归矩阵 |",
+        "new": "设计 authority 见 docs/spec/demo.md。"
+      }
+    ],
+    "expected_codes": [
+      "E041"
+    ]
   }
 ]

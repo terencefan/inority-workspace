@@ -14,6 +14,7 @@ const REFERENCE_REPORT = path.join(ASSETS_DIR, "reference-report.md");
 const REFERENCE_BENCHMARK = path.join(ASSETS_DIR, "reference-benchmark.md");
 const REFERENCE_MODULE_README = path.join(ASSETS_DIR, "folder-readme", "README.md");
 const REFERENCE_PROJECT_README = path.join(ASSETS_DIR, "project-readme", "README.md");
+const REFERENCE_GUIDE = path.join(ASSETS_DIR, "reference-guide.md");
 
 const TEMPLATE_CASES = [
   ["modes/spec/templates/product-spec-template.md", "/tmp/product-spec.md"],
@@ -27,6 +28,7 @@ const TEMPLATE_CASES = [
   ["modes/benchmark/templates/benchmark-template.md", "/tmp/example-benchmark.md"],
   ["modes/report/templates/report-template.md", "/tmp/example-report.md"],
   ["modes/rca/templates/rca-template.md", "/tmp/example-rca.md"],
+  ["modes/guide/templates/guide-template.md", "/tmp/E2E-TESTING.md"],
 ];
 
 test("full document templates conform to their mode validators", () => {
@@ -62,6 +64,8 @@ function fixturePath(name) {
       return REFERENCE_MODULE_README;
     case "project_readme":
       return REFERENCE_PROJECT_README;
+    case "guide_doc":
+      return REFERENCE_GUIDE;
     default:
       throw new Error(`unknown fixture: ${name}`);
   }
@@ -194,6 +198,50 @@ test("project README rejects misplaced or duplicate storage layout sections", ()
 
   assert.ok(collectErrors(misplaced, { pathValue: REFERENCE_PROJECT_README }).some((item) => item.code === "E010"));
   assert.ok(collectErrors(duplicate, { pathValue: REFERENCE_PROJECT_README }).some((item) => item.code === "E010"));
+});
+
+test("reference guide passes validation", () => {
+  assert.deepEqual(collectErrors(loadText(REFERENCE_GUIDE), { pathValue: REFERENCE_GUIDE }), []);
+});
+
+test("guide accepts arbitrary middle H2 sections", () => {
+  const withExtraSection = loadText(REFERENCE_GUIDE).replace(
+    "## 参考资料",
+    "## 调试技巧\n\n按失败签名路由；先证据后推断。\n\n## 参考资料",
+  );
+  assert.deepEqual(collectErrors(withExtraSection, { pathValue: REFERENCE_GUIDE }), []);
+});
+
+test("guide requires the quickstart anchor to stay first", () => {
+  const prefixed = loadText(REFERENCE_GUIDE).replace(
+    "## 快速开始",
+    "## 背景\n\n一句话说明工具定位。\n\n## 快速开始",
+  );
+  assert.ok(collectErrors(prefixed, { pathValue: REFERENCE_GUIDE }).some((item) => item.code === "E010"));
+});
+
+test("guide rejects H2 sections after the reference anchor", () => {
+  const appended = `${loadText(REFERENCE_GUIDE).trimEnd()}\n\n## 附录\n\n补充材料。\n`;
+  assert.ok(collectErrors(appended, { pathValue: REFERENCE_GUIDE }).some((item) => item.code === "E010"));
+});
+
+test("guide reference section accepts list form", () => {
+  const withList = loadText(REFERENCE_GUIDE).replace(
+    "| 文档 | 内容 |\n| --- | --- |\n| [设计 authority](https://example.com/demo-design-spec) | 机制与回归矩阵 |\n| [局部说明](https://example.com/demo-readme) | 目录协作约定 |",
+    "- [设计 authority](https://example.com/demo-design-spec) — 机制与回归矩阵\n- [局部说明](https://example.com/demo-readme) — 目录协作约定",
+  );
+  assert.deepEqual(collectErrors(withList, { pathValue: REFERENCE_GUIDE }), []);
+});
+
+test("guide reference section rejects a table without separator or plain text rows", () => {
+  const reference = loadText(REFERENCE_GUIDE);
+  const withoutSeparator = reference.replace("| 文档 | 内容 |\n| --- | --- |", "| 文档 | 内容 |");
+  assert.ok(collectErrors(withoutSeparator, { pathValue: REFERENCE_GUIDE }).some((item) => item.code === "E041"));
+  const plainRow = reference.replace(
+    "| [设计 authority](https://example.com/demo-design-spec) | 机制与回归矩阵 |",
+    "设计 authority 见 docs/spec/demo.md。",
+  );
+  assert.ok(collectErrors(plainRow, { pathValue: REFERENCE_GUIDE }).some((item) => item.code === "E041"));
 });
 
 function benchmarkWithExperiments(groupIds, resultIds) {
@@ -368,6 +416,19 @@ test("cli path mode validates a local project README path", () => {
   let stdout = "";
   let stderr = "";
   const status = main([REFERENCE_PROJECT_README], {
+    stdin: "",
+    stdout: { write(chunk) { stdout += chunk; } },
+    stderr: { write(chunk) { stderr += chunk; } },
+  });
+  assert.equal(status, 0);
+  assert.match(stdout, /document ok:/);
+  assert.equal(stderr, "");
+});
+
+test("cli path mode validates a local guide path", () => {
+  let stdout = "";
+  let stderr = "";
+  const status = main([REFERENCE_GUIDE], {
     stdin: "",
     stdout: { write(chunk) { stdout += chunk; } },
     stderr: { write(chunk) { stderr += chunk; } },
